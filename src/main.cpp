@@ -40,7 +40,7 @@ int main(int argc, char *argv[])
 	a.setQuitOnLastWindowClosed(true);
 
 	MainWindow w;
-    w.resize(1000, 700);
+    w.resize(1280, 720);
 	w.show();
 
     return a.exec();

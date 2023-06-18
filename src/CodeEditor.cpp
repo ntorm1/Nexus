@@ -24,6 +24,8 @@
 #include <QMimeDatabase>
 #include <QStringDecoder>
 #include <QDebug>
+#include <QPainter>
+#include <QTextBlock>
 
 #include "CodeEditor.h"
 #include "NexusEnv.h"
@@ -43,6 +45,7 @@ Highlighter::Highlighter(QTextDocument* parent)
     keywordFormat.setForeground(QColor("#FF5370"));
     keywordFormat.setFontWeight(QFont::Bold);
     const QString keywordPatterns[] = {
+        QStringLiteral("\\btrue\\b"),QStringLiteral("\\bfalse\\b"),
         QStringLiteral("\\bchar\\b"), QStringLiteral("\\bclass\\b"), QStringLiteral("\\bconst\\b"),
         QStringLiteral("\\bdouble\\b"), QStringLiteral("\\benum\\b"), QStringLiteral("\\bexplicit\\b"),
         QStringLiteral("\\bfriend\\b"), QStringLiteral("\\binline\\b"), QStringLiteral("\\bint\\b"),
@@ -60,48 +63,43 @@ Highlighter::Highlighter(QTextDocument* parent)
         highlightingRules.append(rule);
         //! [0] //! [1]
     }
-    //! [1]
 
-    //! [2]
-    //!     
     classFormat.setFontWeight(QFont::Bold);
-    classFormat.setForeground(QColor("#C792EA"));
+    classFormat.setForeground(QColor("#64d987"));
     rule.pattern = QRegularExpression(QStringLiteral("\\bQ[A-Za-z]+\\b"));
     rule.format = classFormat;
     highlightingRules.append(rule);
-    //! [2]
 
-    //! [3]
     singleLineCommentFormat.setForeground(QColor("#637777"));
     rule.pattern = QRegularExpression(QStringLiteral("//[^\n]*"));
     rule.format = singleLineCommentFormat;
     highlightingRules.append(rule);
 
     multiLineCommentFormat.setForeground(QColor("#637777"));
-    //! [3]
 
-    //! [4]
     quotationFormat.setForeground(QColor("#FFCB6B"));
     rule.pattern = QRegularExpression(QStringLiteral("\".*\""));
     rule.format = quotationFormat;
     highlightingRules.append(rule);
-    //! [4]
 
-    //! [5]
     functionFormat.setFontItalic(true);
     functionFormat.setForeground(QColor("#82AAFF"));
     rule.pattern = QRegularExpression(QStringLiteral("\\b[A-Za-z0-9_]+(?=\\()"));
     rule.format = functionFormat;
     highlightingRules.append(rule);
-    //! [5]
 
-    //! [6]
+    // Create a QTextCharFormat object for formatting keywords
+    controlFormat.setForeground(QColor("#e887d5"));
+    rule.pattern = QRegularExpression(QStringLiteral("\\b(return|for|while|if|else|switch)\\b"));
+    rule.format = controlFormat;
+    highlightingRules.append(rule);
+
     commentStartExpression = QRegularExpression(QStringLiteral("/\\*"));
     commentEndExpression = QRegularExpression(QStringLiteral("\\*/"));
 }
 //! [6]
 
-//! [7]
+//============================================================================
 void Highlighter::highlightBlock(const QString& text)
 {
     for (const HighlightingRule& rule : qAsConst(highlightingRules)) {
@@ -139,6 +137,7 @@ void Highlighter::highlightBlock(const QString& text)
     }
 }
 
+//============================================================================
 TextEdit::TextEdit(NexusEnv const * nexus_env_, QWidget* parent):
     QMainWindow(parent),
     nexus_env(nexus_env_)
@@ -148,18 +147,23 @@ TextEdit::TextEdit(NexusEnv const * nexus_env_, QWidget* parent):
 #endif
     setWindowTitle(QCoreApplication::applicationName());
 
-    //Text editor font
+    // Build line number widger
+    //textEdit = new CodeEditor(this);
+
+    // Text editor font
     QFont font;
     font.setFamily("Source Code Pro");
+    font.setStyleHint(QFont::Monospace);
     font.setFixedPitch(true);
     font.setPointSize(10);
     
-    textEdit = new QTextEdit(this);
+    // Build the actual text edit widget and set document
+    textEdit = new QTextEditHighlighter(this);
     document = new QTextDocument();
     textEdit->setDocument(document);
     textEdit->setFont(font);
+    this->setup_tab();
     
-
     //Add syntax highlighting
     highlighter = new Highlighter(textEdit->document());
 
@@ -170,8 +174,8 @@ TextEdit::TextEdit(NexusEnv const * nexus_env_, QWidget* parent):
     setCentralWidget(textEdit);
 
     setToolButtonStyle(Qt::ToolButtonFollowStyle);
-    setupFileActions();
-    setupEditActions();
+    setup_file_actions();
+    setup_edit_actions();
     colorChanged(textEdit->textColor());
 
     auto* document = textEdit->document();
@@ -209,11 +213,8 @@ TextEdit::TextEdit(NexusEnv const * nexus_env_, QWidget* parent):
     pal.setColor(QPalette::Text, QColor(Qt::black));
     textEdit->setPalette(pal);
 #endif
-    //auto file("C:\\Users\\natha\\OneDrive\\Desktop\\C++\\Argus\\include\\portfolio.h");
-    //this->fileOpen(file);
 }
 
-//! [closeevent]
 void TextEdit::closeEvent(QCloseEvent* e)
 {
     if (maybeSave())
@@ -221,9 +222,28 @@ void TextEdit::closeEvent(QCloseEvent* e)
     else
         e->ignore();
 }
-//! [closeevent]
 
-void TextEdit::setupFileActions()
+//============================================================================
+void TextEdit::setup_tab()
+{
+    // Set the tab size
+    static constexpr int tab_width_char = 4;
+    const auto font_metrics = textEdit->fontMetrics();
+
+    static constexpr int big_number = 1000; // arbitrary big number.
+    const QString test_string(" ");
+
+    // compute the size of a char in double-precision
+    const int single_char_width = font_metrics.horizontalAdvance(test_string);
+    const int many_char_width = font_metrics.horizontalAdvance(test_string.repeated(big_number));
+    const double single_char_width_double = many_char_width / double(big_number);
+
+    // set the tab stop with double precision
+    textEdit->setTabStopDistance(tab_width_char * single_char_width_double);
+}
+
+//============================================================================
+void TextEdit::setup_file_actions()
 {
     QToolBar* tb = addToolBar(tr("File Actions"));
     QMenu* menu = menuBar()->addMenu(tr("&File"));
@@ -274,7 +294,8 @@ void TextEdit::setupFileActions()
     a->setShortcut(Qt::CTRL | Qt::Key_Q);
 }
 
-void TextEdit::setupEditActions()
+//============================================================================
+void TextEdit::setup_edit_actions()
 {
     QToolBar* tb = addToolBar(tr("Edit Actions"));
     QMenu* menu = menuBar()->addMenu(tr("&Edit"));
@@ -314,6 +335,7 @@ void TextEdit::setupEditActions()
 #endif
 }
 
+//============================================================================
 bool TextEdit::load(const QString& f)
 {
     if (this->nexus_env->get_editor(f).has_value())
@@ -329,24 +351,8 @@ bool TextEdit::load(const QString& f)
         return false;
 
     QByteArray data = file.readAll();
-    QMimeDatabase db;
-    const QString& mimeTypeName = db.mimeTypeForFileNameAndData(f, data).name();
-    if (mimeTypeName == u"text/html") {
-        auto encoding = QStringDecoder::encodingForHtml(data);
-        QString str = QStringDecoder(encoding ? *encoding : QStringDecoder::Utf8)(data);
-        QUrl fileUrl = f.startsWith(u':') ? QUrl(f) : QUrl::fromLocalFile(f);
-        textEdit->document()->setBaseUrl(fileUrl.adjusted(QUrl::RemoveFilename));
-        textEdit->setHtml(str);
-#if QT_CONFIG(textmarkdownreader)
-    }
-    else if (mimeTypeName == u"text/markdown") {
-        textEdit->setMarkdown(QString::fromUtf8(data));
-#endif
-    }
-    else {
-        textEdit->setPlainText(QString::fromUtf8(data));
-    }
-
+    textEdit->setPlainText(QString::fromUtf8(data));
+    
     setCurrentFileName(f);
     return true;
 }
@@ -506,6 +512,8 @@ void TextEdit::filePrintPdf()
 #endif
 }
 
+//============================================================================
+
 void TextEdit::textFamily(const QString& f)
 {
     QTextCharFormat fmt;
@@ -513,6 +521,7 @@ void TextEdit::textFamily(const QString& f)
     mergeFormatOnWordOrSelection(fmt);
 }
 
+//============================================================================
 void TextEdit::textSize(const QString& p)
 {
     qreal pointSize = p.toFloat();
@@ -523,6 +532,7 @@ void TextEdit::textSize(const QString& p)
     }
 }
 
+//============================================================================
 void TextEdit::textStyle(int styleIndex)
 {
     QTextCursor cursor = textEdit->textCursor();
@@ -663,4 +673,185 @@ void TextEdit::colorChanged(const QColor& c)
 {
     QPixmap pix(16, 16);
     pix.fill(c);
+}
+
+LineNumberArea::LineNumberArea(QTextEdit* editor) : QWidget(editor) {
+    codeEditor = editor;
+}
+
+QSize LineNumberArea::sizeHint() const {
+    return QSize(((QTextEditHighlighter*)codeEditor)->lineNumberAreaWidth(), 0);
+}
+
+void LineNumberArea::paintEvent(QPaintEvent* event) {
+    ((QTextEditHighlighter*)codeEditor)->lineNumberAreaPaintEvent(event);
+}
+
+QTextEditHighlighter::QTextEditHighlighter(QWidget* parent) :
+    QTextEdit(parent)
+{
+    // Line numbers
+    lineNumberArea = new LineNumberArea(this);
+    ///
+    connect(this->document(), SIGNAL(blockCountChanged(int)), this, SLOT(updateLineNumberAreaWidth(int)));
+    connect(this->verticalScrollBar(), SIGNAL(valueChanged(int)), this, SLOT(updateLineNumberArea/*_2*/(int)));
+    connect(this, SIGNAL(textChanged()), this, SLOT(updateLineNumberArea()));
+    connect(this, SIGNAL(cursorPositionChanged()), this, SLOT(updateLineNumberArea()));
+    ///
+    updateLineNumberAreaWidth(0);
+}
+
+int QTextEditHighlighter::lineNumberAreaWidth()
+{
+    int digits = 1;
+    int max = qMax(1, this->document()->blockCount());
+    while (max >= 10) {
+        max /= 10;
+        ++digits;
+    }
+
+    int space = 13 + fontMetrics().horizontalAdvance(QLatin1Char('9')) * (digits);
+    return space;
+}
+
+void QTextEditHighlighter::updateLineNumberAreaWidth(int /* newBlockCount */)
+{
+    setViewportMargins(lineNumberAreaWidth(), 0, 0, 0);
+}
+
+
+void QTextEditHighlighter::updateLineNumberArea(QRectF /*rect_f*/)
+{
+    QTextEditHighlighter::updateLineNumberArea();
+}
+void QTextEditHighlighter::updateLineNumberArea(int /*slider_pos*/)
+{
+    QTextEditHighlighter::updateLineNumberArea();
+}
+void QTextEditHighlighter::updateLineNumberArea()
+{
+    /*
+     * When the signal is emitted, the sliderPosition has been adjusted according to the action,
+     * but the value has not yet been propagated (meaning the valueChanged() signal was not yet emitted),
+     * and the visual display has not been updated. In slots connected to this signal you can thus safely
+     * adjust any action by calling setSliderPosition() yourself, based on both the action and the
+     * slider's value.
+     */
+     // Make sure the sliderPosition triggers one last time the valueChanged() signal with the actual value !!!!
+    this->verticalScrollBar()->setSliderPosition(this->verticalScrollBar()->sliderPosition());
+
+    // Since "QTextEdit" does not have an "updateRequest(...)" signal, we chose
+    // to grab the imformations from "sliderPosition()" and "contentsRect()".
+    // See the necessary connections used (Class constructor implementation part).
+
+    QRect rect = this->contentsRect();
+    lineNumberArea->update(0, rect.y(), lineNumberArea->width(), rect.height());
+    updateLineNumberAreaWidth(0);
+    //----------
+    int dy = this->verticalScrollBar()->sliderPosition();
+    if (dy > -1) {
+        lineNumberArea->scroll(0, dy);
+    }
+
+    // Addjust slider to alway see the number of the currently being edited line...
+    int first_block_id = getFirstVisibleBlockId();
+    if (first_block_id == 0 || this->textCursor().block().blockNumber() == first_block_id - 1)
+        this->verticalScrollBar()->setSliderPosition(dy - this->document()->documentMargin());
+
+    //    // Snap to first line (TODO...)
+    //    if (first_block_id > 0)
+    //    {
+    //        int slider_pos = this->verticalScrollBar()->sliderPosition();
+    //        int prev_block_height = (int) this->document()->documentLayout()->blockBoundingRect(this->document()->findBlockByNumber(first_block_id-1)).height();
+    //        if (dy <= this->document()->documentMargin() + prev_block_height)
+    //            this->verticalScrollBar()->setSliderPosition(slider_pos - (this->document()->documentMargin() + prev_block_height));
+    //    }
+
+}
+
+
+void QTextEditHighlighter::resizeEvent(QResizeEvent* e)
+{
+    QTextEdit::resizeEvent(e);
+
+    QRect cr = this->contentsRect();
+    lineNumberArea->setGeometry(QRect(cr.left(), cr.top(), lineNumberAreaWidth(), cr.height()));
+}
+
+
+int QTextEditHighlighter::getFirstVisibleBlockId()
+{
+    // Detect the first block for which bounding rect - once translated 
+    // in absolute coordinated - is contained by the editor's text area
+
+    // Costly way of doing but since "blockBoundingGeometry(...)" doesn't 
+    // exists for "QTextEdit"...
+
+    QTextCursor curs = QTextCursor(this->document());
+    curs.movePosition(QTextCursor::Start);
+    for (int i = 0; i < this->document()->blockCount(); ++i)
+    {
+        QTextBlock block = curs.block();
+
+        QRect r1 = this->viewport()->geometry();
+        QRect r2 = this->document()->documentLayout()->blockBoundingRect(block).translated(
+            this->viewport()->geometry().x(), this->viewport()->geometry().y() - (
+                this->verticalScrollBar()->sliderPosition()
+                )).toRect();
+
+        if (r1.contains(r2, true)) { return i; }
+
+        curs.movePosition(QTextCursor::NextBlock);
+    }
+
+    return 0;
+}
+
+void QTextEditHighlighter::lineNumberAreaPaintEvent(QPaintEvent* event)
+{
+    this->verticalScrollBar()->setSliderPosition(this->verticalScrollBar()->sliderPosition());
+
+    QPainter painter(lineNumberArea);
+    painter.fillRect(event->rect(), Qt::lightGray);
+    int blockNumber = this->getFirstVisibleBlockId();
+
+    QTextBlock block = this->document()->findBlockByNumber(blockNumber);
+    QTextBlock prev_block = (blockNumber > 0) ? this->document()->findBlockByNumber(blockNumber - 1) : block;
+    int translate_y = (blockNumber > 0) ? -this->verticalScrollBar()->sliderPosition() : 0;
+
+    int top = this->viewport()->geometry().top();
+
+    // Adjust text position according to the previous "non entirely visible" block 
+    // if applicable. Also takes in consideration the document's margin offset.
+    int additional_margin;
+    if (blockNumber == 0)
+        // Simply adjust to document's margin
+        additional_margin = (int)this->document()->documentMargin() - 1 - this->verticalScrollBar()->sliderPosition();
+    else
+        additional_margin = (int)this->document()->documentLayout()->blockBoundingRect(prev_block).translated(0, translate_y).intersected(this->viewport()->geometry()).height();
+    // Shift the starting point
+    top += additional_margin;
+
+    int bottom = top + (int)this->document()->documentLayout()->blockBoundingRect(block).height();
+
+    QColor col_1(90, 255, 30);      // Current line (custom green)
+    QColor col_0(120, 120, 120);    // Other lines  (custom darkgrey)
+
+    // Draw the numbers (displaying the current line number in green)
+    while (block.isValid() && top <= event->rect().bottom()) {
+        if (block.isVisible() && bottom >= event->rect().top()) {
+            QString number = QString::number(blockNumber + 1);
+            painter.setPen(QColor(120, 120, 120));
+            painter.setPen((this->textCursor().blockNumber() == blockNumber) ? col_1 : col_0);
+            painter.drawText(-5, top,
+                lineNumberArea->width(), fontMetrics().height(),
+                Qt::AlignRight, number);
+        }
+
+        block = block.next();
+        top = bottom;
+        bottom = top + (int)this->document()->documentLayout()->blockBoundingRect(block).height();
+        ++blockNumber;
+    }
+
 }

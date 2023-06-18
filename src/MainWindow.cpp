@@ -86,7 +86,6 @@ MainWindow::MainWindow(QWidget* parent):
     // Create the dock manager. Because the parent parameter is a QMainWindow
     // the dock manager registers itself as the central widget.
     CDockManager::setConfigFlag(CDockManager::OpaqueSplitterResize, true);
-    //CDockManager::setConfigFlag(CDockManager::XmlCompressionEnabled, false);
     CDockManager::setConfigFlag(CDockManager::FocusHighlighting, true);
     CDockManager::setAutoHideConfigFlags(CDockManager::DefaultAutoHideConfig);
 
@@ -102,7 +101,8 @@ MainWindow::MainWindow(QWidget* parent):
     auto FileSystemWidget = create_file_system_tree_widget();
     FileSystemWidget->setFeature(ads::CDockWidget::DockWidgetFloatable, false);
     FileSystemWidget->setFeature(ads::CDockWidget::DockWidgetMovable, false);
-    this->DockManager->addDockWidget(ads::LeftDockWidgetArea, FileSystemWidget);
+    FileSystemWidget->setFeature(ads::CDockWidget::DockWidgetClosable, false);
+    this->DockManager->addAutoHideDockWidget(ads::SideBarLeft, FileSystemWidget);
 
     auto TextEditWidget = create_editor_widget();
     this->DockManager->addDockWidget(ads::RightDockWidgetArea, TextEditWidget);
@@ -131,7 +131,7 @@ ads::CDockWidget* MainWindow::create_file_system_tree_widget()
     m->setRootPath(QDir::currentPath());
     w->setModel(m);
     w->setRootIndex(m->index(QDir::currentPath()));
-    ads::CDockWidget* DockWidget = new ads::CDockWidget(QString("Filesystem %1")
+    ads::CDockWidget* DockWidget = new ads::CDockWidget(QString("Files")
         .arg(FileSystemCount++));
     DockWidget->setWidget(w);
     DockWidget->setIcon(svgIcon(".images/folder_open.svg"));
@@ -373,6 +373,7 @@ void MainWindow::onFileDoubleClicked(const QModelIndex& index)
 
     if (QFileSystemModel const* fileSystemModel = dynamic_cast<QFileSystemModel const*>(model))
     {
+        // Get the previous editor, if we fail to create the new one restore to this
         auto last_editor = this->LastDockedEditor;
 
         //Create a new TextEdit widget and load in the file that was clicked
@@ -386,9 +387,8 @@ void MainWindow::onFileDoubleClicked(const QModelIndex& index)
         connect(a, &QAction::triggered, this, &MainWindow::create_editor);
         a->trigger();
 
+        // Get the editor that was just created and attempt to fload the file that was clicked
         auto editor = dynamic_cast<TextEdit*>(LastDockedEditor->widget());
-
-        // Attempt to load the file
         if (!editor->load(file_path))
         {
             LastDockedEditor->closeDockWidget();

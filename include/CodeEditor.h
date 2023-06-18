@@ -4,11 +4,17 @@
 #include <vector>
 
 #include <QMainWindow>
+#include <QSize>
 #include <QSyntaxHighlighter>
 #include <QTextCharFormat>
 #include <QRegularExpression>
+#include <QPlainTextEdit>
+#include <QScrollBar>
+#include <QFontMetrics>
 
 class NexusEnv;
+class QTextEditHighlighter;
+class LineNumberArea;
 
 QT_BEGIN_NAMESPACE
 class QAction;
@@ -49,6 +55,7 @@ private:
     QTextCharFormat multiLineCommentFormat;
     QTextCharFormat quotationFormat;
     QTextCharFormat functionFormat;
+    QTextCharFormat controlFormat;
 };
 
 class TextEdit : public QMainWindow
@@ -60,7 +67,6 @@ public:
         QWidget* parent = nullptr
     );
     bool load(const QString& f);
-
     bool maybeSave();
 
     QString const& get_file_name() const { return this->fileName; }
@@ -93,8 +99,9 @@ private slots:
     void about();
 
 private:
-    void setupFileActions();
-    void setupEditActions();
+    void setup_file_actions();
+    void setup_edit_actions();
+    void setup_tab();
     void setCurrentFileName(const QString& fileName);
 
     void mergeFormatOnWordOrSelection(const QTextCharFormat& format);
@@ -111,8 +118,58 @@ private:
     QAction* actionPaste;
 #endif
 
-    QString fileName;
-    QTextDocument* document;
-    QTextEdit* textEdit;
-    Highlighter* highlighter;
+    QString         fileName;
+    QTextDocument*  document;
+    QTextEditHighlighter*     textEdit;
+    QWidget*        lineNumberArea;
+    Highlighter*    highlighter;
+};
+
+
+class LineNumberArea : public QWidget
+{
+    Q_OBJECT
+
+public:
+    LineNumberArea(QTextEdit* editor);
+
+    QSize sizeHint() const;
+
+protected:
+    void paintEvent(QPaintEvent* event);
+
+private:
+    QTextEdit* codeEditor;
+};
+
+class QTextEditHighlighter : public QTextEdit
+{
+    Q_OBJECT
+
+public:
+
+    explicit QTextEditHighlighter(QWidget* parent = 0);
+
+    int getFirstVisibleBlockId();
+    void lineNumberAreaPaintEvent(QPaintEvent* event);
+    int lineNumberAreaWidth();
+
+signals:
+
+
+public slots:
+
+    void resizeEvent(QResizeEvent* e);
+
+private slots:
+
+    void updateLineNumberAreaWidth(int newBlockCount);
+    void updateLineNumberArea(QRectF /*rect_f*/);
+    void updateLineNumberArea(int /*slider_pos*/);
+    void updateLineNumberArea();
+
+private:
+
+    QWidget* lineNumberArea;
+
 };

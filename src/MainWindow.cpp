@@ -1,22 +1,33 @@
-#include <QAction>
-#include <QtWidgets>
-#include <QWidgetAction>
+#include <QTime>
 #include <QLabel>
+#include <QTextEdit>
 #include <QCalendarWidget>
+#include <QFrame>
 #include <QTreeView>
 #include <QFileSystemModel>
-#include <QTableWidget>
-#include <QHBoxLayout>
-#include <QRadioButton>
-#include <QPushButton>
-#include <QInputDialog>
-#include <QFileDialog>
+#include <QBoxLayout>
 #include <QSettings>
-#include <QMessageBox>
+#include <QDockWidget>
+#include <QDebug>
+#include <QResizeEvent>
+#include <QAction>
+#include <QWidgetAction>
+#include <QComboBox>
+#include <QInputDialog>
+#include <QRubberBand>
 #include <QPlainTextEdit>
+#include <QTableWidget>
+#include <QScreen>
+#include <QStyle>
+#include <QMessageBox>
+#include <QMenu>
+#include <QToolButton>
 #include <QToolBar>
-#include "MainWindow.h"
+#include <QPointer>
+#include <QMap>
+#include <QElapsedTimer>
 
+#include "MainWindow.h"
 #include "ui_MainWindow.h"
 
 #include "AutoHideDockContainer.h"
@@ -33,9 +44,8 @@ MainWindow::~MainWindow()
     delete ui;
 }
 
-/**
- * Helper function to create an SVG icon
- */
+//============================================================================
+
 static QIcon svgIcon(const QString& File)
 {
     // This is a workaround, because in item views SVG icons are not
@@ -45,17 +55,38 @@ static QIcon svgIcon(const QString& File)
     return SvgIcon;
 }
 
+//============================================================================
+class CCustomComponentsFactory : public ads::CDockComponentsFactory
+{
+public:
+    using Super = ads::CDockComponentsFactory;
+    ads::CDockAreaTitleBar* createDockAreaTitleBar(ads::CDockAreaWidget* DockArea) const override
+    {
+        auto TitleBar = new ads::CDockAreaTitleBar(DockArea);
+        auto CustomButton = new QToolButton(DockArea);
+        CustomButton->setToolTip(QObject::tr("Help"));
+        CustomButton->setIcon(svgIcon("./images/help_outline.svg"));
+        CustomButton->setAutoRaise(true);
+        int Index = TitleBar->indexOf(TitleBar->button(ads::TitleBarButtonTabsMenu));
+        TitleBar->insertWidget(Index + 1, CustomButton);
+        return TitleBar;
+    }
+};
+
+
 
 MainWindow::MainWindow(QWidget* parent):
     QMainWindow(parent),
     ui(new Ui::MainWindow)
 {
-    ui->setupUi(this);
+    this->nexus_env = NexusEnv();
+    this->ui->setupUi(this);
+    ads::CDockComponentsFactory::setFactory(new CCustomComponentsFactory());
 
     // Create the dock manager. Because the parent parameter is a QMainWindow
     // the dock manager registers itself as the central widget.
     CDockManager::setConfigFlag(CDockManager::OpaqueSplitterResize, true);
-    CDockManager::setConfigFlag(CDockManager::XmlCompressionEnabled, false);
+    //CDockManager::setConfigFlag(CDockManager::XmlCompressionEnabled, false);
     CDockManager::setConfigFlag(CDockManager::FocusHighlighting, true);
     CDockManager::setAutoHideConfigFlags(CDockManager::DefaultAutoHideConfig);
 
@@ -67,43 +98,15 @@ MainWindow::MainWindow(QWidget* parent):
     setup_help_menu();
     setup_toolbar();
 
-    //CDockWidget* CentralDockWidget = create_editor_widget();
-    //auto* CentralDockArea = DockManager->setCentralWidget(CentralDockWidget);
-    //CentralDockArea->setAllowedAreas(DockWidgetArea::OuterDockAreas);
-
     // create other dock widgets
-    QTableWidget* table = new QTableWidget();
-    table->setColumnCount(3);
-    table->setRowCount(10);
-    CDockWidget* TableDockWidget = new CDockWidget("Table 1");
-    TableDockWidget->setWidget(table);
-    TableDockWidget->setMinimumSizeHintMode(CDockWidget::MinimumSizeHintFromDockWidget);
-    TableDockWidget->setMinimumSize(200, 150);
-    const auto autoHideContainer = DockManager->addAutoHideDockWidget(SideBarLocation::SideBarLeft, TableDockWidget);
-    autoHideContainer->setSize(480);
-    ui->menuView->addAction(TableDockWidget->toggleViewAction());
+    auto FileSystemWidget = create_file_system_tree_widget();
+    FileSystemWidget->setFeature(ads::CDockWidget::DockWidgetFloatable, false);
+    FileSystemWidget->setFeature(ads::CDockWidget::DockWidgetMovable, false);
+    this->DockManager->addDockWidget(ads::LeftDockWidgetArea, FileSystemWidget);
 
-    table = new QTableWidget();
-    table->setColumnCount(5);
-    table->setRowCount(1020);
-    TableDockWidget = new CDockWidget("Table 2");
-    TableDockWidget->setWidget(table);
-    TableDockWidget->setMinimumSizeHintMode(CDockWidget::MinimumSizeHintFromDockWidget);
-    TableDockWidget->resize(250, 150);
-    TableDockWidget->setMinimumSize(200, 150);
-    DockManager->addAutoHideDockWidget(SideBarLocation::SideBarLeft, TableDockWidget);
-    ui->menuView->addAction(TableDockWidget->toggleViewAction());
-
-    QTableWidget* propertiesTable = new QTableWidget();
-    propertiesTable->setColumnCount(3);
-    propertiesTable->setRowCount(10);
-    CDockWidget* PropertiesDockWidget = new CDockWidget("Properties");
-    PropertiesDockWidget->setWidget(propertiesTable);
-    PropertiesDockWidget->setMinimumSizeHintMode(CDockWidget::MinimumSizeHintFromDockWidget);
-    PropertiesDockWidget->resize(250, 150);
-    PropertiesDockWidget->setMinimumSize(200, 150);
-    //DockManager->addDockWidget(DockWidgetArea::RightDockWidgetArea, PropertiesDockWidget, CentralDockArea);
-    //ui->menuView->addAction(PropertiesDockWidget->toggleViewAction());
+    auto TextEditWidget = create_editor_widget();
+    this->DockManager->addDockWidget(ads::RightDockWidgetArea, TextEditWidget);
+    this->LastDockedEditor = TextEditWidget;
 
     create_perspective_ui();
     applyVsStyle();
@@ -119,10 +122,41 @@ void MainWindow::about()
             "highlighting rules using regular expressions.</p>"));
 }
 
+ads::CDockWidget* MainWindow::create_file_system_tree_widget()
+{
+    static int FileSystemCount = 0;
+    QTreeView* w = new QTreeView();
+    w->setFrameShape(QFrame::NoFrame);
+    QFileSystemModel* m = new QFileSystemModel(w);
+    m->setRootPath(QDir::currentPath());
+    w->setModel(m);
+    w->setRootIndex(m->index(QDir::currentPath()));
+    ads::CDockWidget* DockWidget = new ads::CDockWidget(QString("Filesystem %1")
+        .arg(FileSystemCount++));
+    DockWidget->setWidget(w);
+    DockWidget->setIcon(svgIcon(".images/folder_open.svg"));
+    ui->menuView->addAction(DockWidget->toggleViewAction());
+    // We disable focus to test focus highlighting if the dock widget content
+    // does not support focus
+    w->setFocusPolicy(Qt::NoFocus);
+
+
+    connect(w, &QAbstractItemView::doubleClicked, this, &MainWindow::onFileDoubleClicked);
+
+    return DockWidget;
+}
+
+
 ads::CDockWidget* MainWindow::create_editor_widget()
 {
+    // Build the new TextEdit widget
     static int EditorCount = 0;
-    TextEdit* w = new TextEdit();
+    TextEdit* w = new TextEdit(&this->nexus_env);
+
+    // Register the new editor with the current nexus env
+    this->nexus_env.new_editor(w);
+
+    // Add the new TextEdit widget to a DockWidget
     ads::CDockWidget* DockWidget = new ads::CDockWidget(QString("Editor %1").arg(EditorCount++));
     DockWidget->setWidget(w);
     DockWidget->setIcon(svgIcon("./images/edit.svg"));
@@ -149,6 +183,8 @@ void MainWindow::create_editor()
     if (Floating)
     {
         auto FloatingWidget = this->DockManager->addDockWidgetFloating(DockWidget);
+        this->LastCreatedFloatingEditor = DockWidget;
+        this->LastDockedEditor.clear();
         return;
     }
 
@@ -192,12 +228,19 @@ void MainWindow::create_editor()
             this->DockManager->addDockWidget(ads::TopDockWidgetArea, DockWidget);
         }
     }
+    this->LastDockedEditor = DockWidget;
 }
 
 void MainWindow::setup_toolbar()
 {
     ui->toolBar->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
 
+    ui->toolBar->addAction(ui->actionSaveState);
+    ui->toolBar->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
+    ui->actionSaveState->setIcon(svgIcon("./images/save.svg"));
+    ui->toolBar->addAction(ui->actionRestoreState);
+    ui->actionRestoreState->setIcon(svgIcon("./images/restore.svg"));
+    ui->toolBar->addSeparator();
 
     QAction* a = new QAction("Create Floating Editor", ui->toolBar);
     a->setProperty("Floating", true);
@@ -223,6 +266,7 @@ void MainWindow::setup_toolbar()
     ui->toolBar->addAction(a);
 }
 
+//============================================================================
 void MainWindow::setup_help_menu()
 {
     QMenu* helpMenu = new QMenu(tr("&Help"), this);
@@ -232,9 +276,10 @@ void MainWindow::setup_help_menu()
     helpMenu->addAction(tr("About &Qt"), qApp, &QApplication::aboutQt);
 }
 
+//============================================================================
 void MainWindow::save_perspective()
 {
-    QString PerspectiveName = QInputDialog::getText(this, "Save Environment", "Enter unique name:");
+    QString PerspectiveName = QInputDialog::getText(this, "Save Perspective", "Enter unique name:");
     if (PerspectiveName.isEmpty())
     {
         return;
@@ -245,12 +290,16 @@ void MainWindow::save_perspective()
     PerspectiveComboBox->clear();
     PerspectiveComboBox->addItems(DockManager->perspectiveNames());
     PerspectiveComboBox->setCurrentText(PerspectiveName);
+
+    QSettings Settings("Settings.ini", QSettings::IniFormat);
+    DockManager->savePerspectives(Settings);
 }
 
+//============================================================================
 void MainWindow::create_perspective_ui()
 {
-    SavePerspectiveAction = new QAction("Create Environment", this);
-    connect(SavePerspectiveAction, SIGNAL(triggered()), SLOT(savePerspective()));
+    SavePerspectiveAction = new QAction("Create Perspective", this);
+    connect(SavePerspectiveAction, SIGNAL(triggered()), SLOT(save_perspective()));
     PerspectiveListAction = new QWidgetAction(this);
     PerspectiveComboBox = new QComboBox(this);
     PerspectiveComboBox->setSizeAdjustPolicy(QComboBox::AdjustToContents);
@@ -258,10 +307,37 @@ void MainWindow::create_perspective_ui()
     connect(PerspectiveComboBox, SIGNAL(currentTextChanged(const QString&)),
         DockManager, SLOT(openPerspective(const QString&)));
     PerspectiveListAction->setDefaultWidget(PerspectiveComboBox);
+
     ui->toolBar->addSeparator();
     ui->toolBar->addAction(PerspectiveListAction);
     ui->toolBar->addAction(SavePerspectiveAction);
 }
+
+//============================================================================
+void MainWindow::save_state()
+{
+    QSettings Settings("C:\\Users\\natha\\OneDrive\\Desktop\\C++\\Nexus\\x64\\Debug\\Settings.ini", QSettings::IniFormat);
+    Settings.setValue("mainWindow/Geometry", this->saveGeometry());
+    Settings.setValue("mainWindow/State", this->saveState());
+    Settings.setValue("mainWindow/DockingState", DockManager->saveState());
+}
+
+
+//============================================================================
+void MainWindow::restore_state()
+{
+    QSettings Settings("C:\\Users\\natha\\OneDrive\\Desktop\\C++\\Nexus\\x64\\Debug\\Settings.ini", QSettings::IniFormat);
+    this->restoreGeometry(Settings.value("mainWindow/Geometry").toByteArray());
+    this->restoreState(Settings.value("mainWindow/State").toByteArray());
+
+    bool res = DockManager->restoreState(Settings.value("mainWindow/DockingState").toByteArray());
+    if (!res)
+    {
+        QMessageBox::critical(nullptr, "Error", "Failed to restore state");
+        return;
+    }
+}
+
 
 //============================================================================
 void MainWindow::onViewVisibilityChanged(bool visible)
@@ -288,14 +364,50 @@ void MainWindow::onViewToggled(bool open)
 }
 
 //============================================================================
+void MainWindow::onFileDoubleClicked(const QModelIndex& index)
+{
+    if (!index.isValid())
+        return;
+
+    QAbstractItemModel const* model = index.model();
+
+    if (QFileSystemModel const* fileSystemModel = dynamic_cast<QFileSystemModel const*>(model))
+    {
+        auto last_editor = this->LastDockedEditor;
+
+        //Create a new TextEdit widget and load in the file that was clicked
+        QString file_path = fileSystemModel->filePath(index);
+        auto a = new QAction("Create Docked Editor");
+        a->setProperty("Floating", false);
+        if (!LastDockedEditor)
+        {
+            a->setProperty("Tabbed", false);
+        }
+        connect(a, &QAction::triggered, this, &MainWindow::create_editor);
+        a->trigger();
+
+        auto editor = dynamic_cast<TextEdit*>(LastDockedEditor->widget());
+
+        // Attempt to load the file
+        if (!editor->load(file_path))
+        {
+            LastDockedEditor->closeDockWidget();
+            this->LastDockedEditor = last_editor;
+        }
+    }
+}
+
+//============================================================================
 void MainWindow::on_editor_close_requested()
 {
     auto DockWidget = qobject_cast<ads::CDockWidget*>(sender());
-    int Result = QMessageBox::question(this, "Close Editor", QString("Editor %1 "
-        "contains unsaved changes? Would you like to close it?")
-        .arg(DockWidget->windowTitle()));
-    if (QMessageBox::Yes == Result)
+    auto text_edit = qobject_cast<TextEdit*>(DockWidget->widget());
+
+    // Allow text edit to save if any changes made. If returned true close widget, save successful
+    if (text_edit->maybeSave())
     {
+        auto file_name = text_edit->get_file_name();
+        this->nexus_env.remove_editor(file_name);
         DockWidget->closeDockWidget();
     }
 }
@@ -303,16 +415,19 @@ void MainWindow::on_editor_close_requested()
 //============================================================================
 void MainWindow::on_widget_focus(ads::CDockWidget* old, ads::CDockWidget* now)
 {
-    if (now->floatingDockContainer())
-    {
-        this->LastCreatedFloatingEditor = now;
-        this->LastDockedEditor.clear();
-    }
-    else
-    {
-        this->LastDockedEditor = now;
-        this->LastCreatedFloatingEditor.clear();
-    }
+}
+
+//============================================================================
+void MainWindow::on_actionSaveState_triggered(bool)
+{
+    save_state();
+}
+
+
+//============================================================================
+void MainWindow::on_actionRestoreState_triggered(bool)
+{
+    restore_state();
 }
 
 //============================================================================

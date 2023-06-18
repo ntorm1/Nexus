@@ -60,7 +60,7 @@
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
-      <AdditionalIncludeDirectories>C:\Users\natha\OneDrive\Desktop\C++\Nexus\ads;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Users\natha\OneDrive\Desktop\C++\Nexus\include;C:\Users\natha\OneDrive\Desktop\C++\Nexus\ads;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'" Label="Configuration">
@@ -110,16 +110,17 @@
     <ClCompile Include="ads\IconProvider.cpp" />
     <ClCompile Include="ads\PushButton.cpp" />
     <ClCompile Include="ads\ResizeHandle.cpp" />
+    <ClCompile Include="src\NexusEnv.cpp" />
     <QtRcc Include="ads\ads.qrc" />
     <QtRcc Include="MainWindow.qrc" />
     <QtUic Include="MainWindow.ui" />
-    <QtMoc Include="MainWindow.h" />
-    <ClCompile Include="CodeEditor.cpp" />
-    <ClCompile Include="MainWindow.cpp" />
-    <ClCompile Include="main.cpp" />
+    <QtMoc Include="include\MainWindow.h" />
+    <ClCompile Include="src\CodeEditor.cpp" />
+    <ClCompile Include="src\MainWindow.cpp" />
+    <ClCompile Include="src\main.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <QtMoc Include="CodeEditor.h" />
+    <QtMoc Include="include\CodeEditor.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="cpp.hint" />
@@ -178,6 +179,7 @@
     <ClInclude Include="ads\DockComponentsFactory.h" />
     <ClInclude Include="ads\DockingStateReader.h" />
     <ClInclude Include="ads\IconProvider.h" />
+    <ClInclude Include="include\NexusEnv.h" />
     <QtMoc Include="ads\ResizeHandle.h" />
     <QtMoc Include="ads\PushButton.h" />
     <QtMoc Include="ads\FloatingDragPreview.h" />

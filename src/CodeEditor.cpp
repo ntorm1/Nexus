@@ -25,6 +25,9 @@
 #include <QStringDecoder>
 #include <QDebug>
 
+#include "CodeEditor.h"
+#include "NexusEnv.h"
+
 #ifdef Q_OS_MAC
 const QString rsrcPath = ":/images/mac";
 #else
@@ -136,8 +139,9 @@ void Highlighter::highlightBlock(const QString& text)
     }
 }
 
-TextEdit::TextEdit(QWidget* parent)
-    : QMainWindow(parent)
+TextEdit::TextEdit(NexusEnv const * nexus_env_, QWidget* parent):
+    QMainWindow(parent),
+    nexus_env(nexus_env_)
 {
 #ifdef Q_OS_MACOS
     setUnifiedTitleAndToolBarOnMac(true);
@@ -149,8 +153,12 @@ TextEdit::TextEdit(QWidget* parent)
     font.setFamily("Source Code Pro");
     font.setFixedPitch(true);
     font.setPointSize(10);
+    
     textEdit = new QTextEdit(this);
+    document = new QTextDocument();
+    textEdit->setDocument(document);
     textEdit->setFont(font);
+    
 
     //Add syntax highlighting
     highlighter = new Highlighter(textEdit->document());
@@ -201,9 +209,8 @@ TextEdit::TextEdit(QWidget* parent)
     pal.setColor(QPalette::Text, QColor(Qt::black));
     textEdit->setPalette(pal);
 #endif
-
-    auto file("C:\\Users\\natha\\OneDrive\\Desktop\\C++\\Argus\\include\\portfolio.h");
-    this->fileOpen(file);
+    //auto file("C:\\Users\\natha\\OneDrive\\Desktop\\C++\\Argus\\include\\portfolio.h");
+    //this->fileOpen(file);
 }
 
 //! [closeevent]
@@ -309,6 +316,12 @@ void TextEdit::setupEditActions()
 
 bool TextEdit::load(const QString& f)
 {
+    if (this->nexus_env->get_editor(f).has_value())
+    {
+        QMessageBox::critical(nullptr, "Error", "File is already open in and editor");
+        return false;
+    }
+
     if (!QFile::exists(f))
         return false;
     QFile file(f);
@@ -413,32 +426,32 @@ bool TextEdit::fileSave()
     if (fileName.isEmpty() || fileName.startsWith(u":/"))
         return fileSaveAs();
 
-    QTextDocumentWriter writer(fileName);
-    bool success = writer.write(textEdit->document());
-    if (success) {
+    QString text = textEdit->toPlainText();
+    QFile file(fileName);
+    if (file.open(QIODevice::WriteOnly | QIODevice::Text)) {
+        QTextStream stream(&file);
+        stream << text;  // Write the plain text to the file
+        file.close();
+
         textEdit->document()->setModified(false);
         statusBar()->showMessage(tr("Wrote \"%1\"").arg(QDir::toNativeSeparators(fileName)));
+
     }
     else {
         statusBar()->showMessage(tr("Could not write to file \"%1\"")
             .arg(QDir::toNativeSeparators(fileName)));
     }
-    return success;
+    return true;
 }
 
 bool TextEdit::fileSaveAs()
 {
     QFileDialog fileDialog(this, tr("Save as..."));
     fileDialog.setAcceptMode(QFileDialog::AcceptSave);
-    QStringList mimeTypes{ "text/plain",
-#if QT_CONFIG(textodfwriter)
-                          "application/vnd.oasis.opendocument.text",
-#endif
-#if QT_CONFIG(textmarkdownwriter)
-                           "text/markdown",
-#endif
-                           "text/html" };
-    fileDialog.setMimeTypeFilters(mimeTypes);
+    fileDialog.setMimeTypeFilters({
+            "text/x-c++hdr",
+            "text/x-c++src"
+        });
 #if QT_CONFIG(textodfwriter)
     fileDialog.setDefaultSuffix("odt");
 #endif

@@ -37,6 +37,7 @@ int main(int argc, char *argv[])
 	QApplication::setStyle("Fusion");
 
     QApplication a(argc, argv);
+	a.setQuitOnLastWindowClosed(true);
 
 	MainWindow w;
     w.resize(1000, 700);

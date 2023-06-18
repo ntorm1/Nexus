@@ -40,6 +40,16 @@
 			<attribute name="toolBarBreak">
 				<bool>false</bool>
 			</attribute>
+			<action name="actionSaveState">
+				<property name="text">
+					<string>Save State</string>
+				</property>
+			</action>
+			<action name="actionRestoreState">
+				<property name="text">
+					<string>Restore State</string>
+				</property>
+			</action>
 		</widget>
 	</widget>
 	<pixmapfunction></pixmapfunction>

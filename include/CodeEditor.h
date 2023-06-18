@@ -1,11 +1,14 @@
 #pragma once
 #include <optional>
 #include <string>
+#include <vector>
 
 #include <QMainWindow>
 #include <QSyntaxHighlighter>
 #include <QTextCharFormat>
 #include <QRegularExpression>
+
+class NexusEnv;
 
 QT_BEGIN_NAMESPACE
 class QAction;
@@ -52,8 +55,16 @@ class TextEdit : public QMainWindow
 {
     Q_OBJECT
 public:
-    TextEdit(QWidget* parent = nullptr);
+    TextEdit(
+        NexusEnv const * nexus_env,
+        QWidget* parent = nullptr
+    );
     bool load(const QString& f);
+
+    bool maybeSave();
+
+    QString const& get_file_name() const { return this->fileName; }
+    QTextDocument* get_document() const { return this->document; }
 
 public slots:
     void fileNew();
@@ -84,12 +95,12 @@ private slots:
 private:
     void setupFileActions();
     void setupEditActions();
-    bool maybeSave();
     void setCurrentFileName(const QString& fileName);
 
     void mergeFormatOnWordOrSelection(const QTextCharFormat& format);
     void colorChanged(const QColor& c);
 
+    NexusEnv const * nexus_env;
     QAction* actionSave;
     QAction* actionToggleCheckState;
     QAction* actionUndo;
@@ -101,6 +112,7 @@ private:
 #endif
 
     QString fileName;
+    QTextDocument* document;
     QTextEdit* textEdit;
     Highlighter* highlighter;
 };

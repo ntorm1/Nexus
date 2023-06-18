@@ -29,10 +29,10 @@
     <QtUic Include="MainWindow.ui">
       <Filter>Form Files</Filter>
     </QtUic>
-    <QtMoc Include="MainWindow.h">
+    <QtMoc Include="include\MainWindow.h">
       <Filter>Header Files</Filter>
     </QtMoc>
-    <ClCompile Include="MainWindow.cpp">
+    <ClCompile Include="src\MainWindow.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <QtRcc Include="ads\ads.qrc">
@@ -40,10 +40,10 @@
     </QtRcc>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="main.cpp">
+    <ClCompile Include="src\main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="CodeEditor.cpp">
+    <ClCompile Include="src\CodeEditor.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="ads\ads_globals.cpp">
@@ -112,9 +112,12 @@
     <ClCompile Include="ads\ResizeHandle.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\NexusEnv.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <QtMoc Include="CodeEditor.h">
+    <QtMoc Include="include\CodeEditor.h">
       <Filter>Header Files</Filter>
     </QtMoc>
     <QtMoc Include="ads\ads_globals.h">
@@ -261,6 +264,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="ads\IconProvider.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\NexusEnv.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

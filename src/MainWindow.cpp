@@ -1,3 +1,5 @@
+#include <fstream>
+
 #include <QTime>
 #include <QLabel>
 #include <QTextEdit>
@@ -73,13 +75,13 @@ public:
     }
 };
 
-
-
+//============================================================================
 MainWindow::MainWindow(QWidget* parent):
     QMainWindow(parent),
     ui(new Ui::MainWindow)
 {
-    this->nexus_env = NexusEnv();
+    QString exePath = QCoreApplication::applicationDirPath();
+    this->nexus_env.load_env(exePath.toStdString(), "default");
     this->ui->setupUi(this);
     ads::CDockComponentsFactory::setFactory(new CCustomComponentsFactory());
 
@@ -87,6 +89,8 @@ MainWindow::MainWindow(QWidget* parent):
     // the dock manager registers itself as the central widget.
     CDockManager::setConfigFlag(CDockManager::OpaqueSplitterResize, true);
     CDockManager::setConfigFlag(CDockManager::FocusHighlighting, true);
+    CDockManager::setConfigFlag(CDockManager::XmlAutoFormattingEnabled, true);
+    CDockManager::setConfigFlag(CDockManager::XmlCompressionEnabled, false);
     CDockManager::setAutoHideConfigFlags(CDockManager::DefaultAutoHideConfig);
 
     DockManager = new CDockManager(this);
@@ -107,12 +111,12 @@ MainWindow::MainWindow(QWidget* parent):
     auto TextEditWidget = create_editor_widget();
     this->DockManager->addDockWidget(ads::RightDockWidgetArea, TextEditWidget);
     this->LastDockedEditor = TextEditWidget;
-
     create_perspective_ui();
     applyVsStyle();
 }
 
 
+//============================================================================
 void MainWindow::about()
 {
     QMessageBox::about(this, tr("About Syntax Highlighter"),
@@ -122,6 +126,7 @@ void MainWindow::about()
             "highlighting rules using regular expressions.</p>"));
 }
 
+//============================================================================
 ads::CDockWidget* MainWindow::create_file_system_tree_widget()
 {
     static int FileSystemCount = 0;
@@ -146,25 +151,27 @@ ads::CDockWidget* MainWindow::create_file_system_tree_widget()
     return DockWidget;
 }
 
-
+//============================================================================
 ads::CDockWidget* MainWindow::create_editor_widget()
 {
     // Build the new TextEdit widget
     static int EditorCount = 0;
-    TextEdit* w = new TextEdit(&this->nexus_env);
-
-    // Register the new editor with the current nexus env
-    this->nexus_env.new_editor(w);
 
     // Add the new TextEdit widget to a DockWidget
     ads::CDockWidget* DockWidget = new ads::CDockWidget(QString("Editor %1").arg(EditorCount++));
+    
+    TextEdit* w = new TextEdit(&this->nexus_env, DockWidget);
+    this->nexus_env.new_editor(w);
+
     DockWidget->setWidget(w);
     DockWidget->setIcon(svgIcon("./images/edit.svg"));
     DockWidget->setFeature(ads::CDockWidget::CustomCloseHandling, true);
+    DockWidget->set_id(EditorCount);
 
     return DockWidget;
 }
 
+//============================================================================
 void MainWindow::create_editor()
 {
     QObject* Sender = sender();
@@ -231,6 +238,7 @@ void MainWindow::create_editor()
     this->LastDockedEditor = DockWidget;
 }
 
+//============================================================================
 void MainWindow::setup_toolbar()
 {
     ui->toolBar->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
@@ -320,8 +328,22 @@ void MainWindow::save_state()
     Settings.setValue("mainWindow/Geometry", this->saveGeometry());
     Settings.setValue("mainWindow/State", this->saveState());
     Settings.setValue("mainWindow/DockingState", DockManager->saveState());
+    this->nexus_env.save_env();
 }
 
+
+std::optional<fs::path> get_editor_by_id(nlohmann::json const& open_editors, int id)
+{
+    for (const auto& editor : open_editors)
+    {
+        if (editor["widget_id"] == id)
+        {
+            std::string p = editor["open_file"];
+            return fs::path(p);
+        }
+    }
+    return std::nullopt;
+}
 
 //============================================================================
 void MainWindow::restore_state()
@@ -335,6 +357,33 @@ void MainWindow::restore_state()
     {
         QMessageBox::critical(nullptr, "Error", "Failed to restore state");
         return;
+    }
+    
+
+    // Load in env settings
+    this->nexus_env.remove_editors();
+    auto env_settings = this->nexus_env.get_env_settings_path();
+    std::ifstream env_settings_file(env_settings.string());
+
+    if (!env_settings_file.is_open()) {
+        QMessageBox::critical(nullptr, "Error", "Failed to find env state");
+        return;
+    }
+    std::string jsonString((std::istreambuf_iterator<char>(env_settings_file)), std::istreambuf_iterator<char>());
+    json j = nlohmann::json::parse(jsonString);
+    auto editors = j["open_editors"];
+
+    // Open files for the text edit widgets
+    for (auto DockWidget : DockManager->get_widgets().values())
+    {
+        auto open_file = get_editor_by_id(editors, DockWidget->get_id());
+        if (open_file.has_value())
+        {
+            auto editor = qobject_cast<TextEdit*>(DockWidget->widget());
+            auto q_open_file = QString::fromStdString(open_file.value().string());
+            editor->load(q_open_file);
+            this->nexus_env.new_editor(editor);
+        }
     }
 }
 
@@ -376,8 +425,17 @@ void MainWindow::onFileDoubleClicked(const QModelIndex& index)
         // Get the previous editor, if we fail to create the new one restore to this
         auto last_editor = this->LastDockedEditor;
 
-        //Create a new TextEdit widget and load in the file that was clicked
         QString file_path = fileSystemModel->filePath(index);
+        std::filesystem::path pathToCheck(file_path.toStdString());
+        if (std::filesystem::is_directory(pathToCheck)) {
+            return;
+        }
+        if (this->nexus_env.get_editor(file_path))
+        {
+            QMessageBox::critical(this, "Error", "File is already open");
+            return;
+        }
+
         auto a = new QAction("Create Docked Editor");
         a->setProperty("Floating", false);
         if (!LastDockedEditor)
@@ -393,6 +451,7 @@ void MainWindow::onFileDoubleClicked(const QModelIndex& index)
         {
             LastDockedEditor->closeDockWidget();
             this->LastDockedEditor = last_editor;
+            this->nexus_env.remove_editor(file_path);
         }
     }
 }
@@ -433,6 +492,17 @@ void MainWindow::on_actionRestoreState_triggered(bool)
 //============================================================================
 void MainWindow::closeEvent(QCloseEvent* event)
 {
+
+    int Result = QMessageBox::question(this, "Closing Nexus", QString("Save State?"));
+    if (QMessageBox::Yes == Result)
+    {
+        this->saveState();
+        if (!this->nexus_env.save_env())
+        {
+            QMessageBox::critical(this, "Error", "Failed to save Nexus Env");
+            return;
+        };
+    }
     // Delete dock manager here to delete all floating widgets. This ensures
     // that all top level windows of the dock manager are properly closed
     DockManager->deleteLater();

@@ -12,6 +12,8 @@
 #include <QScrollBar>
 #include <QFontMetrics>
 
+#include "DockWidget.h"
+
 class NexusEnv;
 class QTextEditHighlighter;
 class LineNumberArea;
@@ -64,6 +66,7 @@ class TextEdit : public QMainWindow
 public:
     TextEdit(
         NexusEnv const * nexus_env,
+        ads::CDockWidget* DockWidget,
         QWidget* parent = nullptr
     );
     bool load(const QString& f);
@@ -71,6 +74,7 @@ public:
 
     QString const& get_file_name() const { return this->fileName; }
     QTextDocument* get_document() const { return this->document; }
+    int get_id() const { return this->DockWidget->get_id(); }
 
 public slots:
     void fileNew();
@@ -118,7 +122,8 @@ private:
     QAction* actionPaste;
 #endif
 
-    QString         fileName;
+    ads::CDockWidget* DockWidget;
+    QString         fileName = "empty";
     QTextDocument*  document;
     QTextEditHighlighter*     textEdit;
     QWidget*        lineNumberArea;

@@ -981,11 +981,20 @@ bool CDockAreaWidget::restoreState(CDockingStateReader& s, CDockAreaWidget*& Cre
 			return false;
 		}
 
+		
+
 		s.skipCurrentElement();
 		CDockWidget* DockWidget = DockManager->findDockWidget(ObjectName.toString());
+
 		if (!DockWidget || Testing)
 		{
 			continue;
+		}
+		
+		auto ObjectId = s.attributes().value("id");
+		if (!ObjectId.isEmpty())
+		{
+			DockWidget->set_id(ObjectId.toInt());
 		}
 
         ADS_PRINT("Dock Widget found - parent " << DockWidget->parent());

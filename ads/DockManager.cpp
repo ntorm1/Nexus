@@ -760,6 +760,10 @@ QByteArray CDockManager::saveState(int version) const
     	? qCompress(xmldata, 9) : xmldata;
 }
 
+QMap<QString, CDockWidget*>& CDockManager::get_widgets()
+{
+	return this->d->DockWidgetsMap;
+}
 
 //============================================================================
 bool CDockManager::restoreState(const QByteArray &state, int version)

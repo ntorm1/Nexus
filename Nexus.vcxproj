@@ -179,6 +179,7 @@
     <ClInclude Include="ads\DockComponentsFactory.h" />
     <ClInclude Include="ads\DockingStateReader.h" />
     <ClInclude Include="ads\IconProvider.h" />
+    <ClInclude Include="include\json.hpp" />
     <ClInclude Include="include\NexusEnv.h" />
     <QtMoc Include="ads\ResizeHandle.h" />
     <QtMoc Include="ads\PushButton.h" />

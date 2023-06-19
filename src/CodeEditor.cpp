@@ -1,3 +1,5 @@
+#include <filesystem>
+
 #include "CodeEditor.h"
 #include <QActionGroup>
 #include <QApplication>
@@ -29,6 +31,8 @@
 
 #include "CodeEditor.h"
 #include "NexusEnv.h"
+
+namespace fs = std::filesystem;
 
 #ifdef Q_OS_MAC
 const QString rsrcPath = ":/images/mac";
@@ -138,9 +142,13 @@ void Highlighter::highlightBlock(const QString& text)
 }
 
 //============================================================================
-TextEdit::TextEdit(NexusEnv const * nexus_env_, QWidget* parent):
+TextEdit::TextEdit(
+        NexusEnv const * nexus_env_,
+        ads::CDockWidget* DockWidget_,
+        QWidget* parent):
     QMainWindow(parent),
-    nexus_env(nexus_env_)
+    nexus_env(nexus_env_),
+    DockWidget(DockWidget_)
 {
 #ifdef Q_OS_MACOS
     setUnifiedTitleAndToolBarOnMac(true);
@@ -352,6 +360,12 @@ bool TextEdit::load(const QString& f)
 
     QByteArray data = file.readAll();
     textEdit->setPlainText(QString::fromUtf8(data));
+    
+    // Update the parent dock widget title
+    fs::path path(f.toStdString());
+    auto new_file_name = path.filename().string();
+    QString q_file_name = QString::fromStdString(new_file_name);
+    this->DockWidget->setWindowTitle(q_file_name);
     
     setCurrentFileName(f);
     return true;

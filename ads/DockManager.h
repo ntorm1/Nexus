@@ -267,6 +267,9 @@ public:
 	 */
 	virtual ~CDockManager() override;
 
+	QMap<QString, CDockWidget*>& get_widgets();
+
+
 	/**
 	 * This function returns the global configuration flags
 	 */

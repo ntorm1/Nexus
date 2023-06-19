@@ -59,6 +59,7 @@ class ADS_EXPORT CDockWidget : public QFrame
     Q_OBJECT
 private:
     DockWidgetPrivate* d; ///< private data (pimpl)
+    int id = -1;
     friend struct DockWidgetPrivate;
 
 private Q_SLOTS:
@@ -541,6 +542,9 @@ public: // reimplements QFrame -----------------------------------------------
      * Emits titleChanged signal if title change event occurs
      */
     virtual bool event(QEvent *e) override;
+
+    void set_id(int id_) { this->id = id_; };
+    int get_id() { return this->id; }
 
 public Q_SLOTS:
 

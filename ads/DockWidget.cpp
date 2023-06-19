@@ -737,9 +737,12 @@ void CDockWidget::saveState(QXmlStreamWriter& s) const
 	s.writeStartElement("Widget");
 	s.writeAttribute("Name", objectName());
 	s.writeAttribute("Closed", QString::number(d->Closed ? 1 : 0));
+	if (this->id != -1) 
+	{
+		s.writeAttribute("id", QString::number(this->id));
+	}
 	s.writeEndElement();
 }
-
 
 //============================================================================
 void CDockWidget::flagAsUnassigned()

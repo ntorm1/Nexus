@@ -1,8 +1,14 @@
 #pragma once
 
 #include <vector>
+#include <filesystem>
+
+#include <json.hpp>
 
 #include "CodeEditor.h"
+
+namespace fs = std::filesystem;
+using json = nlohmann::json;
 
 class NexusEnv
 {
@@ -12,30 +18,21 @@ private:
 	/// </summary>
 	std::vector<TextEdit*> open_editors;
 
+	std::string env_name;
+	fs::path env_path;
+
 public:
-	/// <summary>
-	/// Add a new TextEdit widget to the open editors vector
-	/// </summary>
-	/// <param name="new_editor">pointer to new TextEdit widget</param>
+	NexusEnv() {};
+
+	fs::path get_env_settings_path() const { return this->env_path / "env_settings.json"; }
+
+	bool save_env();
+	void load_env(std::string const & exe_path, std::string const & env_name);
+
 	void new_editor(TextEdit* new_editor);
-
-	/// <summary>
-	/// Get a editor from the open editors vector by file name
-	/// </summary>
-	/// <param name="file_name">File name of the editor to get</param>
-	/// <returns>Pointer to the TextEdit widget if exists</returns>
 	std::optional<TextEdit*> get_editor(QString const & file_name) const;
-	
-	/// <summary>
-	/// Remove a TextEdit widget by file name
-	/// </summary>
-	/// <param name="file_name"></param>
 	void remove_editor(QString const& file_name);
-
-	/// <summary>
-	/// File is already open in a text editor
-	/// </summary>
-	/// <param name="file"></param>
-	/// <returns></returns>
+	void remove_editors() { this->open_editors.clear(); }
 	bool editor_open(QString const & file_name);
+
 };

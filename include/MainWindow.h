@@ -13,6 +13,7 @@
 #include "CodeEditor.h"
 #include "NexusEnv.h"
 
+
 QT_BEGIN_NAMESPACE
 namespace Ui {
     class MainWindow;
@@ -42,6 +43,7 @@ protected:
     virtual void closeEvent(QCloseEvent* event) override;
 
 private:
+    static int widget_counter;
     void restore_state();
     void save_state();
 
@@ -49,13 +51,13 @@ private:
     void setup_help_menu();
     void create_perspective_ui();
 
+    ads::CDockWidget* create_console_widget();
     ads::CDockWidget* create_editor_widget();
     ads::CDockWidget* create_file_system_tree_widget();
 
     void onViewVisibilityChanged(bool open);
     void onViewToggled(bool open);
     void onFileDoubleClicked(const QModelIndex& index);
-
 
     void applyVsStyle();
 

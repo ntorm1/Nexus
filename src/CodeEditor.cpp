@@ -167,7 +167,7 @@ TextEdit::TextEdit(
     
     // Build the actual text edit widget and set document
     textEdit = new QTextEditHighlighter(this);
-    document = new QTextDocument();
+    document = new QTextDocument(this);
     textEdit->setDocument(document);
     textEdit->setFont(font);
     this->setup_tab();

@@ -41,6 +41,9 @@
 
 using namespace ads;
 
+
+int MainWindow::widget_counter = 0;
+
 MainWindow::~MainWindow()
 {
     delete ui;
@@ -80,6 +83,7 @@ MainWindow::MainWindow(QWidget* parent):
     QMainWindow(parent),
     ui(new Ui::MainWindow)
 {
+
     QString exePath = QCoreApplication::applicationDirPath();
     this->nexus_env.load_env(exePath.toStdString(), "default");
     this->ui->setupUi(this);
@@ -89,8 +93,11 @@ MainWindow::MainWindow(QWidget* parent):
     // the dock manager registers itself as the central widget.
     CDockManager::setConfigFlag(CDockManager::OpaqueSplitterResize, true);
     CDockManager::setConfigFlag(CDockManager::FocusHighlighting, true);
-    CDockManager::setConfigFlag(CDockManager::XmlAutoFormattingEnabled, true);
     CDockManager::setConfigFlag(CDockManager::XmlCompressionEnabled, false);
+    CDockManager::setConfigFlag(CDockManager::AllTabsHaveCloseButton, true);
+    CDockManager::setConfigFlag(CDockManager::DragPreviewIsDynamic, true);
+    CDockManager::setConfigFlag(CDockManager::DragPreviewShowsContentPixmap, false);
+    CDockManager::setConfigFlag(CDockManager::DragPreviewHasWindowFrame, false);
     CDockManager::setAutoHideConfigFlags(CDockManager::DefaultAutoHideConfig);
 
     DockManager = new CDockManager(this);
@@ -106,7 +113,8 @@ MainWindow::MainWindow(QWidget* parent):
     FileSystemWidget->setFeature(ads::CDockWidget::DockWidgetFloatable, false);
     FileSystemWidget->setFeature(ads::CDockWidget::DockWidgetMovable, false);
     FileSystemWidget->setFeature(ads::CDockWidget::DockWidgetClosable, false);
-    this->DockManager->addAutoHideDockWidget(ads::SideBarLeft, FileSystemWidget);
+    auto container = this->DockManager->addAutoHideDockWidget(ads::SideBarLeft, FileSystemWidget);
+    container->setSize(300);
 
     auto TextEditWidget = create_editor_widget();
     this->DockManager->addDockWidget(ads::RightDockWidgetArea, TextEditWidget);
@@ -127,24 +135,47 @@ void MainWindow::about()
 }
 
 //============================================================================
+ads::CDockWidget* MainWindow::create_console_widget()
+{
+    static int console_count = 0;
+    /*
+    ads::CDockWidget* DockWidget = new ads::CDockWidget(QString("Console %1").arg(console_count++));
+    QConsole* w = new QConsole(DockWidget, "Nexus Env Console Emulator...");
+    DockWidget->setWidget(w);
+    DockWidget->set_id(this->widget_counter);
+    
+    this->widget_counter++;
+    console_count++;
+    this->DockManager->addDockWidget(ads::TopDockWidgetArea, DockWidget);
+
+    return DockWidget;
+    */
+    return nullptr;
+}
+
+//============================================================================
 ads::CDockWidget* MainWindow::create_file_system_tree_widget()
 {
-    static int FileSystemCount = 0;
+    static int file_system_count = 0;
+
     QTreeView* w = new QTreeView();
     w->setFrameShape(QFrame::NoFrame);
     QFileSystemModel* m = new QFileSystemModel(w);
     m->setRootPath(QDir::currentPath());
     w->setModel(m);
     w->setRootIndex(m->index(QDir::currentPath()));
+
     ads::CDockWidget* DockWidget = new ads::CDockWidget(QString("Files")
-        .arg(FileSystemCount++));
+        .arg(file_system_count++));
     DockWidget->setWidget(w);
     DockWidget->setIcon(svgIcon(".images/folder_open.svg"));
+    DockWidget->set_id(this->widget_counter);
+    this->widget_counter++;
+
     ui->menuView->addAction(DockWidget->toggleViewAction());
     // We disable focus to test focus highlighting if the dock widget content
     // does not support focus
     w->setFocusPolicy(Qt::NoFocus);
-
 
     connect(w, &QAbstractItemView::doubleClicked, this, &MainWindow::onFileDoubleClicked);
 
@@ -155,18 +186,24 @@ ads::CDockWidget* MainWindow::create_file_system_tree_widget()
 ads::CDockWidget* MainWindow::create_editor_widget()
 {
     // Build the new TextEdit widget
-    static int EditorCount = 0;
+    static int editor_count = 0;
 
     // Add the new TextEdit widget to a DockWidget
-    ads::CDockWidget* DockWidget = new ads::CDockWidget(QString("Editor %1").arg(EditorCount++));
+    ads::CDockWidget* DockWidget = new ads::CDockWidget(QString("Editor %1").arg(editor_count++));
     
-    TextEdit* w = new TextEdit(&this->nexus_env, DockWidget);
+    TextEdit* w = new TextEdit(&this->nexus_env, DockWidget, DockWidget);
     this->nexus_env.new_editor(w);
 
     DockWidget->setWidget(w);
     DockWidget->setIcon(svgIcon("./images/edit.svg"));
     DockWidget->setFeature(ads::CDockWidget::CustomCloseHandling, true);
-    DockWidget->set_id(EditorCount);
+    DockWidget->set_id(this->widget_counter);
+    this->widget_counter++;
+    editor_count++;
+
+    DockWidget->setFeature(ads::CDockWidget::DockWidgetDeleteOnClose, true);
+    DockWidget->setFeature(ads::CDockWidget::DockWidgetForceCloseWithArea, true);
+    connect(DockWidget, SIGNAL(closeRequested()), SLOT(on_editor_close_requested()));
 
     return DockWidget;
 }
@@ -181,10 +218,6 @@ void MainWindow::create_editor()
     bool Tabbed = vTabbed.isValid() ? vTabbed.toBool() : true;
 
     auto DockWidget = this->create_editor_widget();
-    DockWidget->setFeature(ads::CDockWidget::DockWidgetDeleteOnClose, true);
-    DockWidget->setFeature(ads::CDockWidget::DockWidgetForceCloseWithArea, true);
-    
-    connect(DockWidget, SIGNAL(closeRequested()), SLOT(on_editor_close_requested()));
 
     // Creating a new floating dock widget
     if (Floating)
@@ -250,7 +283,14 @@ void MainWindow::setup_toolbar()
     ui->actionRestoreState->setIcon(svgIcon("./images/restore.svg"));
     ui->toolBar->addSeparator();
 
-    QAction* a = new QAction("Create Floating Editor", ui->toolBar);
+    QAction* a = new QAction("New Console", ui->toolBar);
+    a->setProperty("Floating", true);
+    a->setToolTip("Creates a new Nexus Env console window");
+    a->setIcon(svgIcon("./images/console.png"));
+    connect(a, &QAction::triggered, this, &MainWindow::create_console_widget);
+    ui->toolBar->addAction(a);
+
+    a = new QAction("Create Floating Editor", ui->toolBar);
     a->setProperty("Floating", true);
     a->setToolTip("Creates a docked editor windows that are deleted on close");
     a->setIcon(svgIcon("./images/note_add.svg"));
@@ -348,6 +388,8 @@ std::optional<fs::path> get_editor_by_id(nlohmann::json const& open_editors, int
 //============================================================================
 void MainWindow::restore_state()
 {
+    qDebug() << "==== Restoring state ====";
+
     QSettings Settings("C:\\Users\\natha\\OneDrive\\Desktop\\C++\\Nexus\\x64\\Debug\\Settings.ini", QSettings::IniFormat);
     this->restoreGeometry(Settings.value("mainWindow/Geometry").toByteArray());
     this->restoreState(Settings.value("mainWindow/State").toByteArray());
@@ -359,7 +401,6 @@ void MainWindow::restore_state()
         return;
     }
     
-
     // Load in env settings
     this->nexus_env.remove_editors();
     auto env_settings = this->nexus_env.get_env_settings_path();
@@ -385,8 +426,8 @@ void MainWindow::restore_state()
             this->nexus_env.new_editor(editor);
         }
     }
+    qDebug() << "==== State Restored ====";
 }
-
 
 //============================================================================
 void MainWindow::onViewVisibilityChanged(bool visible)

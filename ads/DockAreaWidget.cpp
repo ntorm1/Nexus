@@ -32,6 +32,7 @@
 #include <AutoHideTab.h>
 #include "DockAreaWidget.h"
 
+#include<QDebug>
 #include <QStackedLayout>
 #include <QScrollBar>
 #include <QWheelEvent>
@@ -964,32 +965,37 @@ bool CDockAreaWidget::restoreState(CDockingStateReader& s, CDockAreaWidget*& Cre
 
 	while (s.readNextStartElement())
 	{
-        if (s.name() != QLatin1String("Widget"))
+		if (s.name() != QLatin1String("Widget"))
 		{
 			continue;
 		}
+		
+		qDebug() << "Found Widget to Restore";
 
 		auto ObjectName = s.attributes().value("Name");
 		if (ObjectName.isEmpty())
 		{
 			return false;
 		}
+		qDebug() << "Attempting to restore widget: " << ObjectName.toString();
 
 		bool Closed = s.attributes().value("Closed").toInt(&Ok);
 		if (!Ok)
 		{
+			qDebug() << "Widget is closed";
 			return false;
 		}
-
-		
 
 		s.skipCurrentElement();
 		CDockWidget* DockWidget = DockManager->findDockWidget(ObjectName.toString());
 
 		if (!DockWidget || Testing)
 		{
+			qDebug() << "Failed to find widget in Dock Manager";
 			continue;
 		}
+
+		qDebug() << "Found Widget: " << ObjectName.toString();
 		
 		auto ObjectId = s.attributes().value("id");
 		if (!ObjectId.isEmpty())
@@ -1011,6 +1017,8 @@ bool CDockAreaWidget::restoreState(CDockingStateReader& s, CDockAreaWidget*& Cre
 		DockWidget->setClosedState(Closed);
 		DockWidget->setProperty(internal::ClosedProperty, Closed);
 		DockWidget->setProperty(internal::DirtyProperty, false);
+
+		qDebug() << "Restored Widget: " << ObjectName.toString();
 	}
 
 	if (Testing)

@@ -115,6 +115,15 @@
     <ClCompile Include="src\NexusEnv.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\QTerminal.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\QTerminalImpl.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\NexusTree.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <QtMoc Include="include\CodeEditor.h">
@@ -180,10 +189,50 @@
     <QtMoc Include="ads\ResizeHandle.h">
       <Filter>Header Files</Filter>
     </QtMoc>
+    <QtMoc Include="include\QTerminal.h">
+      <Filter>Header Files</Filter>
+    </QtMoc>
+    <QtMoc Include="include\QTerminalImpl.h">
+      <Filter>Header Files</Filter>
+    </QtMoc>
+    <QtMoc Include="include\NexusTree.h">
+      <Filter>Header Files</Filter>
+    </QtMoc>
   </ItemGroup>
   <ItemGroup>
     <None Include="cpp.hint" />
     <None Include="vs_light.qss" />
+    <None Include="styles\NexusTree.qss" />
+    <None Include="images\ads_tile_blue_light.svg" />
+    <None Include="images\ads_tile_green.svg" />
+    <None Include="images\ads_tile_orange.svg" />
+    <None Include="images\color_lens.svg" />
+    <None Include="images\create_floating_editor.svg" />
+    <None Include="images\create_floating_table.svg" />
+    <None Include="images\crop_original.svg" />
+    <None Include="images\custom-menu-button.svg" />
+    <None Include="images\date_range.svg" />
+    <None Include="images\docked_editor.svg" />
+    <None Include="images\edit.svg" />
+    <None Include="images\find_in_page.svg" />
+    <None Include="images\folder.svg" />
+    <None Include="images\folder_open.svg" />
+    <None Include="images\font_download.svg" />
+    <None Include="images\fullscreen.svg" />
+    <None Include="images\grid_on.svg" />
+    <None Include="images\help_outline.svg" />
+    <None Include="images\note_add.svg" />
+    <None Include="images\panorama.svg" />
+    <None Include="images\perm_media.svg" />
+    <None Include="images\photo.svg" />
+    <None Include="images\picture_in_picture.svg" />
+    <None Include="images\plus.svg" />
+    <None Include="images\restore.svg" />
+    <None Include="images\save.svg" />
+    <None Include="images\tab.svg" />
+    <None Include="images\zoom_in.svg" />
+    <None Include="images\zoom_out.svg" />
+    <None Include="images\zoom_out_map.svg" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="images\win\checkbox.png">
@@ -255,6 +304,9 @@
     <Image Include="images\win\zoomout.png">
       <Filter>Resource Files</Filter>
     </Image>
+    <Image Include="images\console.png">
+      <Filter>Resource Files</Filter>
+    </Image>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ads\DockComponentsFactory.h">
@@ -272,5 +324,8 @@
     <ClInclude Include="include\json.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="images\material_icons_license.txt" />
   </ItemGroup>
 </Project>

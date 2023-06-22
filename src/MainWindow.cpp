@@ -32,6 +32,7 @@
 #include "MainWindow.h"
 #include "ui_MainWindow.h"
 
+// Adavance Docking System
 #include "AutoHideDockContainer.h"
 #include "DockAreaWidget.h"
 #include "DockAreaTitleBar.h"
@@ -39,8 +40,13 @@
 #include "FloatingDockContainer.h"
 #include "DockComponentsFactory.h"
 
-using namespace ads;
+// Octave Win32 Terminal 
+#include "QTerminalImpl.h"
 
+// Tree view model
+#include "NexusTree.h"
+
+using namespace ads;
 
 int MainWindow::widget_counter = 0;
 
@@ -108,14 +114,23 @@ MainWindow::MainWindow(QWidget* parent):
     setup_help_menu();
     setup_toolbar();
 
-    // create other dock widgets
+    // create file system widget
     auto FileSystemWidget = create_file_system_tree_widget();
     FileSystemWidget->setFeature(ads::CDockWidget::DockWidgetFloatable, false);
-    FileSystemWidget->setFeature(ads::CDockWidget::DockWidgetMovable, false);
+    //FileSystemWidget->setFeature(ads::CDockWidget::DockWidgetMovable, false);
     FileSystemWidget->setFeature(ads::CDockWidget::DockWidgetClosable, false);
     auto container = this->DockManager->addAutoHideDockWidget(ads::SideBarLeft, FileSystemWidget);
     container->setSize(300);
 
+    // create exchange widget
+    auto ExchangesWidget = create_exchanges_widget();
+    ExchangesWidget->setFeature(ads::CDockWidget::DockWidgetFloatable, false);
+    //ExchangesWidget->setFeature(ads::CDockWidget::DockWidgetMovable, false);
+    ExchangesWidget->setFeature(ads::CDockWidget::DockWidgetClosable, false);
+    container = this->DockManager->addAutoHideDockWidget(ads::SideBarLeft, ExchangesWidget);
+    container->setSize(300);
+
+    // create editor widget
     auto TextEditWidget = create_editor_widget();
     this->DockManager->addDockWidget(ads::RightDockWidgetArea, TextEditWidget);
     this->LastDockedEditor = TextEditWidget;
@@ -138,10 +153,12 @@ void MainWindow::about()
 ads::CDockWidget* MainWindow::create_console_widget()
 {
     static int console_count = 0;
-    /*
+    
     ads::CDockWidget* DockWidget = new ads::CDockWidget(QString("Console %1").arg(console_count++));
-    QConsole* w = new QConsole(DockWidget, "Nexus Env Console Emulator...");
-    DockWidget->setWidget(w);
+    QWinTerminalImpl* terminal = new QWinTerminalImpl(DockWidget);
+
+    // optional style options
+    DockWidget->setWidget(terminal);
     DockWidget->set_id(this->widget_counter);
     
     this->widget_counter++;
@@ -149,8 +166,24 @@ ads::CDockWidget* MainWindow::create_console_widget()
     this->DockManager->addDockWidget(ads::TopDockWidgetArea, DockWidget);
 
     return DockWidget;
-    */
-    return nullptr;
+}
+
+//============================================================================
+ads::CDockWidget* MainWindow::create_exchanges_widget()
+{
+    static int exchanges_widgets_counter = 0;
+
+    NexusTree* w = new NexusTree();
+
+    ads::CDockWidget* DockWidget = new ads::CDockWidget(QString("Exchanges")
+        .arg(exchanges_widgets_counter++));
+    DockWidget->setWidget(w);
+    DockWidget->set_id(this->widget_counter);
+    this->widget_counter++;
+
+    w->setFocusPolicy(Qt::NoFocus);
+
+    return DockWidget;
 }
 
 //============================================================================
@@ -528,6 +561,12 @@ void MainWindow::on_actionSaveState_triggered(bool)
 void MainWindow::on_actionRestoreState_triggered(bool)
 {
     restore_state();
+}
+
+//============================================================================
+void MainWindow::on_new_exchange_request(const QPoint& pos)
+{
+    return;
 }
 
 //============================================================================

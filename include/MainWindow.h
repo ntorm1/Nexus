@@ -38,6 +38,7 @@ private slots:
     void on_widget_focus(ads::CDockWidget* old, ads::CDockWidget* now);
     void on_actionSaveState_triggered(bool);
     void on_actionRestoreState_triggered(bool);
+    void on_new_exchange_request(const QPoint& pos);
 
 protected:
     virtual void closeEvent(QCloseEvent* event) override;
@@ -53,6 +54,7 @@ private:
 
     ads::CDockWidget* create_console_widget();
     ads::CDockWidget* create_editor_widget();
+    ads::CDockWidget* create_exchanges_widget();
     ads::CDockWidget* create_file_system_tree_widget();
 
     void onViewVisibilityChanged(bool open);

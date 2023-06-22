@@ -1,11 +1,15 @@
 #pragma once
 
+#include <memory.h>
 #include <vector>
 #include <filesystem>
+#include <unordered_map>
 
 #include <json.hpp>
 
 #include "CodeEditor.h"
+#include "Exchange.h"
+
 
 namespace fs = std::filesystem;
 using json = nlohmann::json;
@@ -17,6 +21,8 @@ private:
 	/// Vector of pointers to text editors currently open.
 	/// </summary>
 	std::vector<TextEdit*> open_editors;
+
+	std::unordered_map<std::string, std::shared_ptr<Exchange>> exchanges;
 
 	std::string env_name;
 	fs::path env_path;

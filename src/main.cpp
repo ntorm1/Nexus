@@ -39,6 +39,11 @@ int main(int argc, char *argv[])
     QApplication a(argc, argv);
 	a.setQuitOnLastWindowClosed(true);
 
+	QFile styleSheetFile("./styles/NexusTree.qss");
+	styleSheetFile.open(QFile::ReadOnly);
+	QString styleSheet = QLatin1String(styleSheetFile.readAll());
+	a.setStyleSheet(styleSheet);
+
 	MainWindow w;
     w.resize(1280, 720);
 	w.show();

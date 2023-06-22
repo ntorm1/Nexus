@@ -60,8 +60,11 @@
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
-      <AdditionalIncludeDirectories>C:\Users\natha\OneDrive\Desktop\C++\Nexus\include;C:\Users\natha\OneDrive\Desktop\C++\Nexus\ads;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Users\natha\OneDrive\Desktop\C++\AgisCore;C:\Users\natha\OneDrive\Desktop\C++\Nexus\include;C:\Users\natha\OneDrive\Desktop\C++\Nexus\ads;C:\Users\natha\OneDrive\Desktop\C++\Nexus\src\octave-gui;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
+    <Link>
+      <AdditionalDependencies>ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
@@ -116,6 +119,9 @@
     <ClCompile Include="ads\PushButton.cpp" />
     <ClCompile Include="ads\ResizeHandle.cpp" />
     <ClCompile Include="src\NexusEnv.cpp" />
+    <ClCompile Include="src\QTerminal.cpp" />
+    <ClCompile Include="src\QTerminalImpl.cpp" />
+    <ClCompile Include="src\NexusTree.cpp" />
     <QtRcc Include="ads\ads.qrc" />
     <QtRcc Include="MainWindow.qrc" />
     <QtUic Include="MainWindow.ui" />
@@ -129,9 +135,41 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="cpp.hint" />
+    <None Include="images\ads_tile_blue_light.svg" />
+    <None Include="images\ads_tile_green.svg" />
+    <None Include="images\ads_tile_orange.svg" />
+    <None Include="images\color_lens.svg" />
+    <None Include="images\create_floating_editor.svg" />
+    <None Include="images\create_floating_table.svg" />
+    <None Include="images\crop_original.svg" />
+    <None Include="images\custom-menu-button.svg" />
+    <None Include="images\date_range.svg" />
+    <None Include="images\docked_editor.svg" />
+    <None Include="images\edit.svg" />
+    <None Include="images\find_in_page.svg" />
+    <None Include="images\folder.svg" />
+    <None Include="images\folder_open.svg" />
+    <None Include="images\font_download.svg" />
+    <None Include="images\fullscreen.svg" />
+    <None Include="images\grid_on.svg" />
+    <None Include="images\help_outline.svg" />
+    <None Include="images\note_add.svg" />
+    <None Include="images\panorama.svg" />
+    <None Include="images\perm_media.svg" />
+    <None Include="images\photo.svg" />
+    <None Include="images\picture_in_picture.svg" />
+    <None Include="images\plus.svg" />
+    <None Include="images\restore.svg" />
+    <None Include="images\save.svg" />
+    <None Include="images\tab.svg" />
+    <None Include="images\zoom_in.svg" />
+    <None Include="images\zoom_out.svg" />
+    <None Include="images\zoom_out_map.svg" />
+    <None Include="styles\NexusTree.qss" />
     <None Include="vs_light.qss" />
   </ItemGroup>
   <ItemGroup>
+    <Image Include="images\console.png" />
     <Image Include="images\win\checkbox-checked.png" />
     <Image Include="images\win\checkbox.png" />
     <Image Include="images\win\editcopy.png" />
@@ -185,6 +223,9 @@
     <ClInclude Include="ads\DockingStateReader.h" />
     <ClInclude Include="ads\IconProvider.h" />
     <ClInclude Include="include\json.hpp" />
+    <QtMoc Include="include\NexusTree.h" />
+    <QtMoc Include="include\QTerminalImpl.h" />
+    <QtMoc Include="include\QTerminal.h" />
     <ClInclude Include="include\NexusEnv.h" />
     <QtMoc Include="ads\ResizeHandle.h" />
     <QtMoc Include="ads\PushButton.h" />
@@ -198,6 +239,9 @@
     <QtMoc Include="ads\DockManager.h" />
     <QtMoc Include="ads\DockFocusController.h" />
     <QtMoc Include="ads\DockContainerWidget.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="images\material_icons_license.txt" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Condition="Exists('$(QtMsBuild)\qt.targets')">

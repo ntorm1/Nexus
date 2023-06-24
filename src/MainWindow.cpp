@@ -174,6 +174,8 @@ ads::CDockWidget* MainWindow::create_exchanges_widget()
     static int exchanges_widgets_counter = 0;
 
     ExchangeTree* w = new ExchangeTree();
+    this->nexus_env.new_tree(w);
+
     // Signal that requests new exchanges
     QObject::connect(
         w, 
@@ -210,7 +212,6 @@ ads::CDockWidget* MainWindow::create_exchanges_widget()
     this->widget_counter++;
 
     w->setFocusPolicy(Qt::NoFocus);
-
     return DockWidget;
 }
 
@@ -451,9 +452,13 @@ void MainWindow::restore_state()
 {
     qDebug() << "==== Restoring state ====";
 
+    // Reset window geometry
     QSettings Settings("C:\\Users\\natha\\OneDrive\\Desktop\\C++\\Nexus\\x64\\Debug\\Settings.ini", QSettings::IniFormat);
     this->restoreGeometry(Settings.value("mainWindow/Geometry").toByteArray());
     this->restoreState(Settings.value("mainWindow/State").toByteArray());
+    
+    // Clear existing Nexus env
+    this->nexus_env.clear();
 
     bool res = DockManager->restoreState(Settings.value("mainWindow/DockingState").toByteArray());
     if (!res)
@@ -463,7 +468,6 @@ void MainWindow::restore_state()
     }
     
     // Load in env settings
-    this->nexus_env.remove_editors();
     auto env_settings = this->nexus_env.get_env_settings_path();
     std::ifstream env_settings_file(env_settings.string());
 
@@ -487,6 +491,10 @@ void MainWindow::restore_state()
             this->nexus_env.new_editor(editor);
         }
     }
+
+    // Restore Nexus env from the given json
+    this->nexus_env.restore(j);
+
     qDebug() << "==== State Restored ====";
 }
 

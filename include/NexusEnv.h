@@ -8,6 +8,7 @@
 #include <json.hpp>
 
 #include "CodeEditor.h"
+#include "NexusTree.h"
 
 #include "AgisPointers.h"
 #include "AgisErrors.h"
@@ -25,6 +26,14 @@ private:
 	/// </summary>
 	std::vector<TextEdit*> open_editors;
 
+	/// <summary>
+	/// Vector of pointers to trees that are currently open
+	/// </summary>
+	std::vector<NexusTree*> open_trees;
+
+	/// <summary>
+	/// Shared pointer to a hydra instance
+	/// </summary>
 	std::shared_ptr<Hydra> hydra;
 
 	std::string env_name;
@@ -32,6 +41,9 @@ private:
 
 public:
 	NexusEnv();
+
+	void clear();
+	void restore(json const & j);
 
 	//============================================================================
 	fs::path get_env_settings_path() const { return this->env_path / "env_settings.json"; }
@@ -44,6 +56,10 @@ public:
 	void remove_editor(QString const& file_name);
 	void remove_editors() { this->open_editors.clear(); }
 	bool editor_open(QString const & file_name);
+
+	//============================================================================
+	void new_tree(NexusTree* new_tree);
+	void reset_trees();
 
 
 	NexusStatusCode new_exchange(

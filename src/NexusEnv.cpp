@@ -33,6 +33,19 @@ void NexusEnv::new_editor(TextEdit* new_editor)
 	this->open_editors.push_back(new_editor);
 }
 
+void NexusEnv::new_tree(NexusTree* new_tree)
+{
+	this->open_trees.push_back(new_tree);
+}
+
+void NexusEnv::reset_trees()
+{
+	for (auto& tree : this->open_trees)
+	{
+		tree->reset_tree();
+	}
+}
+
 bool NexusEnv::editor_open(QString const& file)
 {
 	for (auto editor : this->open_editors)
@@ -89,6 +102,21 @@ NexusStatusCode NexusEnv::remove_exchange(const std::string& name)
 	return this->hydra->remove_exchange(name);
 }
 
+void NexusEnv::clear()
+{
+	this->remove_editors();
+	this->reset_trees();
+	this->hydra->clear();
+}
+
+void NexusEnv::restore(json const& j)
+{
+	for (auto& tree : this->open_trees)
+	{
+		tree->restore_tree(j);
+	}
+}
+
 bool NexusEnv::save_env()
 {
 	qDebug() << "Saving environemnt...";
@@ -123,10 +151,11 @@ bool NexusEnv::save_env()
 	if (outputFile.is_open()) {
 		outputFile << jsonString;
 		outputFile.close();
+		qDebug() << "Environemnt saved";
 		return true;
 	}
 	else {
+		qDebug() << "Environemnt failed to saved";
 		return false;
 	}
-	qDebug() << "Environemnt saved";
 }

@@ -10,18 +10,24 @@ enum CustomRoles {
 
 NexusTree::NexusTree(QWidget* parent) : QTreeView(parent)
 {
-    this->setObjectName("Exchanges");
-    connect(this, &NexusTree::customContextMenuRequested, this, &NexusTree::handle_new_item_action);
+}
 
-    this->model = new QStandardItemModel(this);
-    QStandardItem* rootItem = this->model->invisibleRootItem();
-    
-    QStandardItem* item1 = new QStandardItem("Exchanges");
-    //item1->setFlags(item1->flags() & ~Qt::ItemIsSelectable); // Make item1 unselectable
-    item1->setData(QVariant::fromValue(rootItem), ParentItemRole);  // Set the parent item using custom role
-    rootItem->appendRow(item1);
-    
-    this->setModel(model);
+void NexusTree::reset_tree()
+{
+    // Retrieve the model associated with the tree view
+    QAbstractItemModel* model = this->model;
+
+    // Get the root index
+    QModelIndex rootIndex = model->index(0, 0);
+
+    // Get the number of children under the root
+    int numChildren = model->rowCount(rootIndex);
+
+    // Remove the children of the root item
+    model->removeRows(0, numChildren, rootIndex);
+
+    // Reset the model to update the view
+    this->reset();
 }
 
 void NexusTree::contextMenuEvent(QContextMenuEvent* event)
@@ -59,6 +65,7 @@ void NexusTree::new_item_accepted(const QModelIndex& parentIndex, const QString&
     QStandardItemModel* model = static_cast<QStandardItemModel*>(this->model);
     QStandardItem* parentItem = model->itemFromIndex(parentIndex);
     QStandardItem* newItem = new QStandardItem(name);
+    newItem->setEditable(false);
     newItem->setData(QVariant::fromValue(parentItem), ParentItemRole);  // Set the parent item using custom role
     parentItem->appendRow(newItem);
 }
@@ -82,6 +89,36 @@ void NexusTree::remove_item_accepeted(const QModelIndex& index)
     parentItem->removeRow(item->row());
 }
 
+ExchangeTree::ExchangeTree(QWidget* parent) : NexusTree(parent)
+{
+    this->setObjectName("Exchanges");
+    connect(this, &NexusTree::customContextMenuRequested, this, &NexusTree::handle_new_item_action);
+
+    this->model = new QStandardItemModel(this);
+    QStandardItem* rootItem = this->model->invisibleRootItem();
+
+    this->root = new QStandardItem("Exchanges");
+    this->root->setEditable(false);
+    this->root->setData(QVariant::fromValue(rootItem), ParentItemRole);  // Set the parent item using custom role
+    rootItem->appendRow(this->root);
+
+    this->setModel(model);
+}
+
+void ExchangeTree::contextMenuEvent(QContextMenuEvent* event) {
+    // If index is an exchange disable the context menu from popping up
+    QModelIndex index = indexAt(event->pos());
+    if (index.isValid()) {
+        QStandardItem* item = model->itemFromIndex(index);
+        if (item != this->root) {
+            return;
+        }
+    }
+
+    // Proceed with the default context menu event handling
+    NexusTree::contextMenuEvent(event);
+}
+
 void ExchangeTree::create_new_item(const QModelIndex& parentIndex)
 {
     NewExchangePopup* popup = new NewExchangePopup();
@@ -92,5 +129,21 @@ void ExchangeTree::create_new_item(const QModelIndex& parentIndex)
         auto freq = popup->get_freq();
         // Send signal to main window asking to create the new item
         emit new_item_requested(parentIndex, exchange_id, source, freq);
+    }
+}
+
+void ExchangeTree::restore_tree(json const& j)
+{
+    json exchanges = j["exchanges"];
+    for (const auto& exchange : exchanges.items()) 
+    {
+        QString id = QString::fromStdString(exchange.key());
+        QStandardItem* newItem = new QStandardItem(id);
+        Qt::ItemFlags rootFlags = newItem->flags();
+        rootFlags &= ~Qt::ItemIsDropEnabled;  // Remove the drop enabled flag
+        newItem->setFlags(rootFlags);
+        newItem->setEditable(false);
+        newItem->setData(QVariant::fromValue(root), ParentItemRole);  // Set the parent item using custom role
+        root->appendRow(newItem);
     }
 }

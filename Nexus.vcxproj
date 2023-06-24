@@ -32,8 +32,10 @@
   </ImportGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'" Label="QtSettings">
     <QtInstall>6.5.1</QtInstall>
-    <QtModules>core;gui;widgets</QtModules>
+    <QtModules>core;gui;widgets;uitools</QtModules>
     <QtBuildConfig>debug</QtBuildConfig>
+    <QMakeExtraArgs>
+    </QMakeExtraArgs>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'" Label="QtSettings">
     <QtInstall>6.5.1</QtInstall>
@@ -64,6 +66,7 @@
     </ClCompile>
     <Link>
       <AdditionalDependencies>ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -119,6 +122,7 @@
     <ClCompile Include="ads\PushButton.cpp" />
     <ClCompile Include="ads\ResizeHandle.cpp" />
     <ClCompile Include="src\NexusEnv.cpp" />
+    <ClCompile Include="src\NexusPopups.cpp" />
     <ClCompile Include="src\QTerminal.cpp" />
     <ClCompile Include="src\QTerminalImpl.cpp" />
     <ClCompile Include="src\NexusTree.cpp" />
@@ -129,6 +133,7 @@
     <ClCompile Include="src\CodeEditor.cpp" />
     <ClCompile Include="src\MainWindow.cpp" />
     <ClCompile Include="src\main.cpp" />
+    <QtUic Include="ui\NewExchangePopup.ui" />
   </ItemGroup>
   <ItemGroup>
     <QtMoc Include="include\CodeEditor.h" />
@@ -222,7 +227,7 @@
     <ClInclude Include="ads\DockComponentsFactory.h" />
     <ClInclude Include="ads\DockingStateReader.h" />
     <ClInclude Include="ads\IconProvider.h" />
-    <ClInclude Include="include\json.hpp" />
+    <QtMoc Include="include\NexusPopups.h" />
     <QtMoc Include="include\NexusTree.h" />
     <QtMoc Include="include\QTerminalImpl.h" />
     <QtMoc Include="include\QTerminal.h" />
@@ -242,6 +247,11 @@
   </ItemGroup>
   <ItemGroup>
     <Text Include="images\material_icons_license.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\AgisCore\AgisCore.vcxproj">
+      <Project>{580f9cb3-a7ba-418f-abe1-5865b3071d6a}</Project>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Condition="Exists('$(QtMsBuild)\qt.targets')">

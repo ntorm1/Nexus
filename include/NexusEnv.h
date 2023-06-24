@@ -8,11 +8,14 @@
 #include <json.hpp>
 
 #include "CodeEditor.h"
-#include "Exchange.h"
 
+#include "AgisPointers.h"
+#include "AgisErrors.h"
+#include "Hydra.h"
 
 namespace fs = std::filesystem;
 using json = nlohmann::json;
+
 
 class NexusEnv
 {
@@ -22,23 +25,32 @@ private:
 	/// </summary>
 	std::vector<TextEdit*> open_editors;
 
-	std::unordered_map<std::string, std::shared_ptr<Exchange>> exchanges;
+	std::shared_ptr<Hydra> hydra;
 
 	std::string env_name;
 	fs::path env_path;
 
 public:
-	NexusEnv() {};
+	NexusEnv();
 
+	//============================================================================
 	fs::path get_env_settings_path() const { return this->env_path / "env_settings.json"; }
-
 	bool save_env();
 	void load_env(std::string const & exe_path, std::string const & env_name);
 
+	//============================================================================
 	void new_editor(TextEdit* new_editor);
 	std::optional<TextEdit*> get_editor(QString const & file_name) const;
 	void remove_editor(QString const& file_name);
 	void remove_editors() { this->open_editors.clear(); }
 	bool editor_open(QString const & file_name);
+
+
+	NexusStatusCode new_exchange(
+		const std::string& exchange_id,
+		const std::string& source,
+		const std::string& freq
+	);
+	NexusStatusCode remove_exchange(const std::string& name);
 
 };

@@ -5,6 +5,7 @@
 #include <QComboBox>
 #include <QWidgetAction>
 #include <QPointer>
+#include <QStandardItemModel>
 
 #include "DockManager.h"
 #include "DockAreaWidget.h"
@@ -38,7 +39,13 @@ private slots:
     void on_widget_focus(ads::CDockWidget* old, ads::CDockWidget* now);
     void on_actionSaveState_triggered(bool);
     void on_actionRestoreState_triggered(bool);
-    void on_new_exchange_request(const QPoint& pos);
+
+    void on_new_exchange_request(const QModelIndex& parentIndex,
+        const QString& exchange_id,
+        const QString& source,
+        const QString& freq);
+    void on_remove_exchange_request(const QString& name, const QModelIndex& parentIndex);
+
 
 protected:
     virtual void closeEvent(QCloseEvent* event) override;
@@ -76,5 +83,9 @@ private:
     ads::CDockManager*      DockManager;
     ads::CDockAreaWidget*   StatusDockArea;
     ads::CDockWidget*       TimelineDockWidget;
+
+signals:
+    void new_exchange_accepted(const QModelIndex& parentIndex, const QString& name);
+    void remove_exchange_accepted(const QModelIndex& parentIndex);
 
 };

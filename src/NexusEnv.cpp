@@ -2,6 +2,12 @@
 
 #include "NexusEnv.h"
 
+
+NexusEnv::NexusEnv()
+{
+	this->hydra = std::make_shared<Hydra>();
+}
+
 void NexusEnv::load_env(std::string const& exe_path_, std::string const & env_name_)
 {
 	this->env_name = env_name_;
@@ -68,8 +74,24 @@ void NexusEnv::remove_editor(QString const& file_name)
 	}
 }
 
+NexusStatusCode NexusEnv::new_exchange(
+	const std::string& exchange_id,
+	const std::string& source,
+	const std::string& freq)
+{
+	qDebug() << "Building new exchange: " << exchange_id;
+	return this->hydra->new_exchange(exchange_id, source, string_to_freq(freq));
+}
+
+NexusStatusCode NexusEnv::remove_exchange(const std::string& name)
+{
+	qDebug() << "Removing exchange: " << name;
+	return this->hydra->remove_exchange(name);
+}
+
 bool NexusEnv::save_env()
 {
+	qDebug() << "Saving environemnt...";
 	json j;
 
 	// Save the current open editors and the files they have open
@@ -89,6 +111,12 @@ bool NexusEnv::save_env()
 	}
 	j["open_editors"] = open_editors;
 
+	// Save the current hydra sate;
+	qDebug() << "Serializing hydra state...";
+	this->hydra->save_state(j);
+	qDebug() << "Hydra state serialized";
+
+	// Dump ths json output to a file
 	std::string jsonString = j.dump(4);
 	auto json_path = this->env_path / "env_settings.json";
 	std::ofstream outputFile(json_path.string());
@@ -100,4 +128,5 @@ bool NexusEnv::save_env()
 	else {
 		return false;
 	}
+	qDebug() << "Environemnt saved";
 }

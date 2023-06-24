@@ -124,6 +124,9 @@
     <ClCompile Include="src\NexusTree.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\NexusPopups.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <QtMoc Include="include\CodeEditor.h">
@@ -196,6 +199,9 @@
       <Filter>Header Files</Filter>
     </QtMoc>
     <QtMoc Include="include\NexusTree.h">
+      <Filter>Header Files</Filter>
+    </QtMoc>
+    <QtMoc Include="include\NexusPopups.h">
       <Filter>Header Files</Filter>
     </QtMoc>
   </ItemGroup>
@@ -321,11 +327,13 @@
     <ClInclude Include="include\NexusEnv.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="include\json.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Text Include="images\material_icons_license.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <QtUic Include="ui\NewExchangePopup.ui">
+      <Filter>Form Files</Filter>
+    </QtUic>
   </ItemGroup>
 </Project>

@@ -4,7 +4,6 @@
 
 #include "NexusTree.h"
 
-
 enum CustomRoles {
     ParentItemRole = Qt::UserRole + 1,
 };
@@ -42,7 +41,6 @@ void NexusTree::contextMenuEvent(QContextMenuEvent* event)
         QAction* removeAction = new QAction("Delete Item", this);
         connect(removeAction, &QAction::triggered, [this, index]() { remove_item(index); });
         menu.addAction(removeAction);
-
         menu.exec(event->globalPos());
     }
 }
@@ -55,20 +53,14 @@ void NexusTree::handle_new_item_action()
     contextMenuEvent(event);
 }
 
-void NexusTree::create_new_item(const QModelIndex& parentIndex)
+void NexusTree::new_item_accepted(const QModelIndex& parentIndex, const QString& name)
 {
-    bool ok;
-    QString id = QInputDialog::getText(this, "Add Exchange", "Exchange id:", QLineEdit::Normal, "", &ok);
-
-    if (ok && !id.isEmpty())
-    {
-        emit new_item_requested(id, parentIndex);
-        QStandardItemModel* model = static_cast<QStandardItemModel*>(this->model);
-        QStandardItem* parentItem = model->itemFromIndex(parentIndex);
-        QStandardItem* newItem = new QStandardItem(id);
-        newItem->setData(QVariant::fromValue(parentItem), ParentItemRole);  // Set the parent item using custom role
-        parentItem->appendRow(newItem);
-    }
+    // New item has been accepeted by the main window
+    QStandardItemModel* model = static_cast<QStandardItemModel*>(this->model);
+    QStandardItem* parentItem = model->itemFromIndex(parentIndex);
+    QStandardItem* newItem = new QStandardItem(name);
+    newItem->setData(QVariant::fromValue(parentItem), ParentItemRole);  // Set the parent item using custom role
+    parentItem->appendRow(newItem);
 }
 
 void NexusTree::remove_item(const QModelIndex& index)
@@ -77,10 +69,28 @@ void NexusTree::remove_item(const QModelIndex& index)
     QStandardItem* item = model->itemFromIndex(index);
     if (item && item != model->invisibleRootItem())
     {
-        emit remove_item_requested(item->text());
-        QString itemName = item->text();  // Get the name of the item
-        QStandardItem* parentItem = item->parent();
-        parentItem->removeRow(item->row());
+        emit remove_item_requested(item->text(), index);
     }
 }
 
+void NexusTree::remove_item_accepeted(const QModelIndex& index)
+{
+    QStandardItemModel* model = qobject_cast<QStandardItemModel*>(this->model);
+    QStandardItem* item = model->itemFromIndex(index);
+
+    QStandardItem* parentItem = item->parent();
+    parentItem->removeRow(item->row());
+}
+
+void ExchangeTree::create_new_item(const QModelIndex& parentIndex)
+{
+    NewExchangePopup* popup = new NewExchangePopup();
+    if (popup->exec() == QDialog::Accepted)
+    {
+        auto exchange_id = popup->get_exchange_id();
+        auto source = popup->get_source();
+        auto freq = popup->get_freq();
+        // Send signal to main window asking to create the new item
+        emit new_item_requested(parentIndex, exchange_id, source, freq);
+    }
+}

@@ -173,7 +173,35 @@ ads::CDockWidget* MainWindow::create_exchanges_widget()
 {
     static int exchanges_widgets_counter = 0;
 
-    NexusTree* w = new NexusTree();
+    ExchangeTree* w = new ExchangeTree();
+    // Signal that requests new exchanges
+    QObject::connect(
+        w, 
+        SIGNAL(new_item_requested(QModelIndex, QString, QString, QString)),
+        this, 
+        SLOT(on_new_exchange_request(QModelIndex, QString, QString, QString))
+    );
+    // Signal to accept  new exchanges
+    QObject::connect(
+        this,
+        SIGNAL(new_exchange_accepted(QModelIndex, QString)),
+        w,
+        SLOT(new_item_accepted(QModelIndex, QString))
+    );
+    // Signal to request removal of exchange
+    QObject::connect(
+        w,
+        SIGNAL(remove_item_requested(QString, QModelIndex)),
+        this,
+        SLOT(on_remove_exchange_request(QString, QModelIndex))
+    );
+    // Signal to accept removal of exchange
+    QObject::connect(
+        this,
+        SIGNAL(remove_exchange_accepted(QModelIndex)),
+        w,
+        SLOT(remove_item_accepeted(QModelIndex))
+    );
 
     ads::CDockWidget* DockWidget = new ads::CDockWidget(QString("Exchanges")
         .arg(exchanges_widgets_counter++));
@@ -564,10 +592,38 @@ void MainWindow::on_actionRestoreState_triggered(bool)
 }
 
 //============================================================================
-void MainWindow::on_new_exchange_request(const QPoint& pos)
+void MainWindow::on_new_exchange_request(const QModelIndex& parentIndex, 
+    const QString& exchange_id,
+    const QString& source,
+    const QString& freq)
 {
-    return;
+    auto res = this->nexus_env.new_exchange(
+        exchange_id.toStdString(),
+        source.toStdString(),
+        freq.toStdString());
+    if (res != NexusStatusCode::Ok)
+    {
+        QMessageBox::critical(this, "Error", "Failed to create exchange");
+    }
+    else
+    {
+        emit new_exchange_accepted(parentIndex, exchange_id);
+    }
 }
+
+void MainWindow::on_remove_exchange_request(const QString& name, const QModelIndex& parentIndex)
+{
+    auto res = this->nexus_env.remove_exchange(name.toStdString());
+    if (res != NexusStatusCode::Ok)
+    {
+        QMessageBox::critical(this, "Error", "Failed to remove exchange");
+    }
+    else
+    {
+        emit remove_exchange_accepted(parentIndex);
+    }
+}
+
 
 //============================================================================
 void MainWindow::closeEvent(QCloseEvent* event)

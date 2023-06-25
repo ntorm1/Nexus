@@ -127,6 +127,9 @@
     <ClCompile Include="src\NexusPopups.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\NexusAsset.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <QtMoc Include="include\CodeEditor.h">
@@ -202,6 +205,9 @@
       <Filter>Header Files</Filter>
     </QtMoc>
     <QtMoc Include="include\NexusPopups.h">
+      <Filter>Header Files</Filter>
+    </QtMoc>
+    <QtMoc Include="include\NexusAsset.h">
       <Filter>Header Files</Filter>
     </QtMoc>
   </ItemGroup>
@@ -325,6 +331,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="include\NexusEnv.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\pch.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

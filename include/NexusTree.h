@@ -1,6 +1,8 @@
 #pragma once
+#include "pch.h"
 
-#include "json.hpp"
+#include <QMouseEvent>
+#include <QApplication>
 #include <QTreeView>
 #include <QMenu>
 #include <QStandardItemModel>
@@ -20,6 +22,7 @@ public:
     explicit NexusTree(QWidget* parent = nullptr);
     void reset_tree();
     virtual void restore_tree(json const& j) = 0;
+    virtual json to_json() const = 0;
 
 protected:
     virtual void contextMenuEvent(QContextMenuEvent* event) override;
@@ -38,9 +41,41 @@ signals:
 };
 
 
+class DoubleClickEventFilter : public QObject
+{
+    Q_OBJECT
+
+public:
+    explicit DoubleClickEventFilter(QObject* parent = nullptr)
+        : QObject(parent)
+    {
+    }
+
+    bool eventFilter(QObject* obj, QEvent* event) override
+    {
+        if (event->type() == QEvent::MouseButtonDblClick)
+        {
+            QMouseEvent* mouseEvent = static_cast<QMouseEvent*>(event);
+            if (mouseEvent->button() == Qt::LeftButton)
+            {
+                // Double-click occurred, emit signal with the item name
+                emit itemDoubleClicked(obj->objectName());
+                return true;  // Consume the event
+            }
+        }
+        return false;  // Let the event propagate further
+    }
+
+signals:
+    void itemDoubleClicked(const QString& itemName);
+};
+
 class ExchangeTree : public NexusTree
 {
     Q_OBJECT
+
+protected:
+    void mouseDoubleClickEvent(QMouseEvent* event) override;
 
 private:
     virtual void create_new_item(const QModelIndex& parentIndex) override;
@@ -50,6 +85,7 @@ private:
     std::shared_ptr<Hydra> const hydra;
 
 signals:
+    void asset_double_click(const QString& asset_id);
     void new_item_requested(const QModelIndex& parentIndex, 
         const QString& exchange_id,
         const QString& source,
@@ -63,5 +99,6 @@ public slots:
 public:
     explicit ExchangeTree(QWidget* parent, std::shared_ptr<Hydra> const hydra);
     void restore_tree(json const& j) override;
+    json to_json() const;
     void restore_ids(QStandardItem* newItem, QString exchange_id);
 };

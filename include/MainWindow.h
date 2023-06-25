@@ -13,7 +13,7 @@
 
 #include "CodeEditor.h"
 #include "NexusEnv.h"
-
+#include "NexusAsset.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui {
@@ -46,6 +46,7 @@ private slots:
         const QString& freq,
         const QString& dt_format);
     void on_remove_exchange_request(const QString& name, const QModelIndex& parentIndex);
+    void on_new_asset_window_request(const QString& name);
 
 
 protected:
@@ -64,6 +65,8 @@ private:
     ads::CDockWidget* create_editor_widget();
     ads::CDockWidget* create_exchanges_widget();
     ads::CDockWidget* create_file_system_tree_widget();
+    ads::CDockWidget* create_asset_widget(const QString& asset_id);
+    void place_widget(ads::CDockWidget* widget, QObject* Sender);
 
     void onViewVisibilityChanged(bool open);
     void onViewToggled(bool open);

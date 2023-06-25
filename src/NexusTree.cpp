@@ -1,4 +1,5 @@
 
+
 #include <QContextMenuEvent>
 #include <QInputDialog>
 
@@ -130,9 +131,30 @@ void ExchangeTree::new_item_accepted(const QModelIndex& parentIndex, const QStri
 
     this->restore_ids(addedItem, name);
 }
+
+void ExchangeTree::mouseDoubleClickEvent(QMouseEvent* event)
+{
+    QModelIndex index = indexAt(event->pos());
+    if (index.isValid())
+    {
+        QVariant itemData = index.data(Qt::DisplayRole);
+        if (itemData.canConvert<QString>())
+        {
+            QString itemName = itemData.toString();
+            if (this->hydra->asset_exists(itemName.toStdString()))
+            {
+                emit asset_double_click(itemName);
+            }
+        }
+    }
+    QTreeView::mouseDoubleClickEvent(event);
+}
+
 void ExchangeTree::restore_ids(QStandardItem* addedItem, QString exchange_id)
 {
     auto asset_ids = this->hydra->get_asset_ids(exchange_id.toStdString());
+
+    // Generate tree item for each asset listed on the exchange
     for (auto const& asset_id : asset_ids)
     {
         auto q_id = QString::fromStdString(asset_id);
@@ -160,19 +182,59 @@ void ExchangeTree::create_new_item(const QModelIndex& parentIndex)
     }
 }
 
+json ExchangeTree::to_json() const
+{
+    // Save the state of the tree to json
+    json j;
+    auto root_index = this->root->index();
+    j["root_expanded"] = this->isExpanded(root_index);
+
+    int rowCount = root_index.model()->rowCount(root_index);
+
+    for (int i = 0; i < rowCount; i++)
+    {
+        QModelIndex childIndex = root_index.model()->index(i,0,root_index);
+        QModelIndex parentIndex = childIndex.parent();
+        const QAbstractItemModel* abstractModel = parentIndex.model();
+        const QStandardItemModel* parent_model = static_cast<const QStandardItemModel*>(abstractModel);
+        QStandardItem* childItem = parent_model->itemFromIndex(childIndex);
+        j[childItem->text().toStdString()] = this->isExpanded(childIndex);
+    }
+    return j;
+}
+
 void ExchangeTree::restore_tree(json const& j)
 {
-    json exchanges = j["exchanges"];
+    json const& exchanges = j["exchanges"];
+    json const& exchanges_expanded = j["trees"][this->objectName().toStdString()];
+
+    // Is the root exchanges element expanded?
+    QModelIndex itemIndex = root->index();
+    if (exchanges_expanded["root_expanded"])
+    {
+        this->setExpanded(itemIndex, true);
+    }
+
     for (const auto& exchange : exchanges.items()) 
     {
         QString id = QString::fromStdString(exchange.key());
         QStandardItem* newItem = new QStandardItem(id);
+        
+        // Set exchange tree item flags. Can not edit or create child exchanges (TODO)
         Qt::ItemFlags rootFlags = newItem->flags();
         rootFlags &= ~Qt::ItemIsDropEnabled;  // Remove the drop enabled flag
         newItem->setFlags(rootFlags);
         newItem->setEditable(false);
         newItem->setData(QVariant::fromValue(root), ParentItemRole);  // Set the parent item using custom role
+        
         root->appendRow(newItem);
         this->restore_ids(newItem, id);
+
+        // Is the exchange element expanded?
+        QModelIndex itemIndex = newItem->index();
+        if (exchanges_expanded[id.toStdString()])
+        {
+            this->setExpanded(itemIndex, true);
+        }
     }
 }

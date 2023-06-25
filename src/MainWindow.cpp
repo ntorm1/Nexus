@@ -122,7 +122,7 @@ MainWindow::MainWindow(QWidget* parent):
     auto container = this->DockManager->addAutoHideDockWidget(ads::SideBarLeft, FileSystemWidget);
     container->setSize(300);
 
-    // create exchange widget
+    // create exchanges widget
     auto ExchangesWidget = create_exchanges_widget();
     ExchangesWidget->setFeature(ads::CDockWidget::DockWidgetFloatable, false);
     //ExchangesWidget->setFeature(ads::CDockWidget::DockWidgetMovable, false);
@@ -205,6 +205,13 @@ ads::CDockWidget* MainWindow::create_exchanges_widget()
         w,
         SLOT(remove_item_accepeted(QModelIndex))
     );
+    // Signal to create new asset window
+    QObject::connect(
+        w,
+        SIGNAL(asset_double_click(QString)),
+        this,
+        SLOT(on_new_asset_window_request(QString))
+    );
 
     ads::CDockWidget* DockWidget = new ads::CDockWidget(QString("Exchanges")
         .arg(exchanges_widgets_counter++));
@@ -262,7 +269,6 @@ ads::CDockWidget* MainWindow::create_editor_widget()
     DockWidget->setFeature(ads::CDockWidget::CustomCloseHandling, true);
     DockWidget->set_id(this->widget_counter);
     this->widget_counter++;
-    editor_count++;
 
     DockWidget->setFeature(ads::CDockWidget::DockWidgetDeleteOnClose, true);
     DockWidget->setFeature(ads::CDockWidget::DockWidgetForceCloseWithArea, true);
@@ -272,15 +278,25 @@ ads::CDockWidget* MainWindow::create_editor_widget()
 }
 
 //============================================================================
-void MainWindow::create_editor()
+ads::CDockWidget* MainWindow::create_asset_widget(const QString& asset_id)
 {
-    QObject* Sender = sender();
+    ads::CDockWidget* DockWidget = new ads::CDockWidget(QString("Asset: %1").arg(asset_id));
+
+    NexusAsset* w = new NexusAsset(&this->nexus_env, DockWidget, DockWidget);
+    DockWidget->setWidget(w);
+    DockWidget->set_id(this->widget_counter);
+    this->widget_counter++;
+
+    return DockWidget;
+}
+
+//============================================================================
+void MainWindow::place_widget(ads::CDockWidget* DockWidget, QObject* Sender)
+{
     QVariant vFloating = Sender->property("Floating");
     bool Floating = vFloating.isValid() ? vFloating.toBool() : true;
     QVariant vTabbed = Sender->property("Tabbed");
     bool Tabbed = vTabbed.isValid() ? vTabbed.toBool() : true;
-
-    auto DockWidget = this->create_editor_widget();
 
     // Creating a new floating dock widget
     if (Floating)
@@ -295,11 +311,11 @@ void MainWindow::create_editor()
     ads::CDockAreaWidget* EditorArea;
     if (this->LastDockedEditor)
     {
-        EditorArea= this->LastDockedEditor->dockAreaWidget();
-    } 
+        EditorArea = this->LastDockedEditor->dockAreaWidget();
+    }
     else if (this->LastCreatedFloatingEditor)
     {
-        EditorArea= this->LastCreatedFloatingEditor->dockAreaWidget();
+        EditorArea = this->LastCreatedFloatingEditor->dockAreaWidget();
     }
     else
     {
@@ -332,6 +348,13 @@ void MainWindow::create_editor()
         }
     }
     this->LastDockedEditor = DockWidget;
+}
+
+//============================================================================
+void MainWindow::create_editor()
+{
+    auto DockWidget = this->create_editor_widget();
+    this->place_widget(DockWidget, sender());
 }
 
 //============================================================================
@@ -622,6 +645,7 @@ void MainWindow::on_new_exchange_request(const QModelIndex& parentIndex,
     }
 }
 
+//============================================================================
 void MainWindow::on_remove_exchange_request(const QString& name, const QModelIndex& parentIndex)
 {
     auto res = this->nexus_env.remove_exchange(name.toStdString());
@@ -635,6 +659,16 @@ void MainWindow::on_remove_exchange_request(const QString& name, const QModelInd
     }
 }
 
+//============================================================================
+void MainWindow::on_new_asset_window_request(const QString& name)
+{
+    auto _sender = sender();
+    _sender->setProperty("Floating", false);
+    _sender->setProperty("Tabbed", false);
+
+    auto DockWidget = this->create_asset_widget(name);
+    this->place_widget(DockWidget, sender());
+}
 
 //============================================================================
 void MainWindow::closeEvent(QCloseEvent* event)

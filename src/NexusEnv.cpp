@@ -153,6 +153,14 @@ bool NexusEnv::save_env()
 	this->hydra->save_state(j);
 	qDebug() << "Hydra state serialized";
 
+	// Save the current state of the trees
+	json trees;
+	for (const auto& tree : this->open_trees)
+	{
+		trees[tree->objectName().toStdString()] = tree->to_json();
+	}
+	j["trees"] = trees;
+
 	// Dump ths json output to a file
 	std::string jsonString = j.dump(4);
 	auto json_path = this->env_path / "env_settings.json";

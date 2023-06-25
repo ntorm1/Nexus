@@ -79,6 +79,7 @@ private:
 
     NexusEnv                nexus_env;
     Ui::MainWindow*         ui;
+    ExchangeTree*           exchange_tree;
 
     ads::CDockManager*      DockManager;
     ads::CDockAreaWidget*   StatusDockArea;

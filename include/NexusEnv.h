@@ -61,6 +61,7 @@ public:
 	void new_tree(NexusTree* new_tree);
 	void reset_trees();
 
+	std::shared_ptr<Hydra> const get_hydra() { return this->hydra; }
 
 	NexusStatusCode new_exchange(
 		const std::string& exchange_id,

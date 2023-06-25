@@ -10,6 +10,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Nexus", "Nexus.vcxproj", "{
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "AgisCore", "..\AgisCore\AgisCore.vcxproj", "{580F9CB3-A7BA-418F-ABE1-5865B3071D6A}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "AgisCoreTest", "..\AgisCoreTest\AgisCoreTest.vcxproj", "{939DA327-5AE8-4499-B79F-69F041B085FF}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -34,6 +36,14 @@ Global
 		{580F9CB3-A7BA-418F-ABE1-5865B3071D6A}.Release|x64.Build.0 = Release|x64
 		{580F9CB3-A7BA-418F-ABE1-5865B3071D6A}.Release|x86.ActiveCfg = Release|Win32
 		{580F9CB3-A7BA-418F-ABE1-5865B3071D6A}.Release|x86.Build.0 = Release|Win32
+		{939DA327-5AE8-4499-B79F-69F041B085FF}.Debug|x64.ActiveCfg = Debug|x64
+		{939DA327-5AE8-4499-B79F-69F041B085FF}.Debug|x64.Build.0 = Debug|x64
+		{939DA327-5AE8-4499-B79F-69F041B085FF}.Debug|x86.ActiveCfg = Debug|Win32
+		{939DA327-5AE8-4499-B79F-69F041B085FF}.Debug|x86.Build.0 = Debug|Win32
+		{939DA327-5AE8-4499-B79F-69F041B085FF}.Release|x64.ActiveCfg = Release|x64
+		{939DA327-5AE8-4499-B79F-69F041B085FF}.Release|x64.Build.0 = Release|x64
+		{939DA327-5AE8-4499-B79F-69F041B085FF}.Release|x86.ActiveCfg = Release|Win32
+		{939DA327-5AE8-4499-B79F-69F041B085FF}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

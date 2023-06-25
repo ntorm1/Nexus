@@ -173,8 +173,9 @@ ads::CDockWidget* MainWindow::create_exchanges_widget()
 {
     static int exchanges_widgets_counter = 0;
 
-    ExchangeTree* w = new ExchangeTree();
+    ExchangeTree* w = new ExchangeTree(this, this->nexus_env.get_hydra());
     this->nexus_env.new_tree(w);
+    this->exchange_tree = w;
 
     // Signal that requests new exchanges
     QObject::connect(

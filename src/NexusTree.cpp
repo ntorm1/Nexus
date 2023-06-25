@@ -89,7 +89,9 @@ void NexusTree::remove_item_accepeted(const QModelIndex& index)
     parentItem->removeRow(item->row());
 }
 
-ExchangeTree::ExchangeTree(QWidget* parent) : NexusTree(parent)
+ExchangeTree::ExchangeTree(QWidget* parent, std::shared_ptr<Hydra> const hydra_) :
+    NexusTree(parent),
+    hydra(hydra_)
 {
     this->setObjectName("Exchanges");
     connect(this, &NexusTree::customContextMenuRequested, this, &NexusTree::handle_new_item_action);
@@ -119,6 +121,31 @@ void ExchangeTree::contextMenuEvent(QContextMenuEvent* event) {
     NexusTree::contextMenuEvent(event);
 }
 
+void ExchangeTree::new_item_accepted(const QModelIndex& parentIndex, const QString& name)
+{
+    NexusTree::new_item_accepted(parentIndex, name);
+
+    QStandardItem* parentItem = model->itemFromIndex(parentIndex);
+    QStandardItem* addedItem = parentItem->child(parentItem->rowCount() - 1);
+
+    this->restore_ids(addedItem, name);
+}
+void ExchangeTree::restore_ids(QStandardItem* addedItem, QString exchange_id)
+{
+    auto asset_ids = this->hydra->get_asset_ids(exchange_id.toStdString());
+    for (auto const& asset_id : asset_ids)
+    {
+        auto q_id = QString::fromStdString(asset_id);
+        QStandardItem* newItem = new QStandardItem(q_id);
+        Qt::ItemFlags rootFlags = newItem->flags();
+        rootFlags &= ~Qt::ItemIsDropEnabled;  // Remove the drop enabled flag
+        newItem->setFlags(rootFlags);
+        newItem->setEditable(false);
+        newItem->setData(QVariant::fromValue(addedItem), ParentItemRole);  // Set the parent item using custom role
+        addedItem->appendRow(newItem);
+    }
+}
+
 void ExchangeTree::create_new_item(const QModelIndex& parentIndex)
 {
     NewExchangePopup* popup = new NewExchangePopup();
@@ -145,5 +172,6 @@ void ExchangeTree::restore_tree(json const& j)
         newItem->setEditable(false);
         newItem->setData(QVariant::fromValue(root), ParentItemRole);  // Set the parent item using custom role
         root->appendRow(newItem);
+        this->restore_ids(newItem, id);
     }
 }

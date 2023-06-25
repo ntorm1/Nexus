@@ -93,7 +93,9 @@ NexusStatusCode NexusEnv::new_exchange(
 	const std::string& freq)
 {
 	qDebug() << "Building new exchange: " << exchange_id;
-	return this->hydra->new_exchange(exchange_id, source, string_to_freq(freq));
+	auto res = this->hydra->new_exchange(exchange_id, source, string_to_freq(freq));
+	if (res != NexusStatusCode::Ok) return res;
+
 }
 
 NexusStatusCode NexusEnv::remove_exchange(const std::string& name)
@@ -111,6 +113,7 @@ void NexusEnv::clear()
 
 void NexusEnv::restore(json const& j)
 {
+	this->hydra->restore(j);
 	for (auto& tree : this->open_trees)
 	{
 		tree->restore_tree(j);

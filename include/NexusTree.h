@@ -7,6 +7,8 @@
 #include <QPainter>
 #include <NexusPopups.h>
 
+#include "Hydra.h"
+
 using json = nlohmann::json;
 
 
@@ -28,7 +30,7 @@ protected:
 
 public slots:
     void handle_new_item_action();
-    void new_item_accepted(const QModelIndex& parentIndex, const QString& name);
+    virtual void new_item_accepted(const QModelIndex& parentIndex, const QString& name);
     void remove_item_accepeted(const QModelIndex& index);
 
 signals:
@@ -43,7 +45,9 @@ class ExchangeTree : public NexusTree
 private:
     virtual void create_new_item(const QModelIndex& parentIndex) override;
     void contextMenuEvent(QContextMenuEvent* event) override;
+    
     QStandardItem* root;
+    std::shared_ptr<Hydra> const hydra;
 
 signals:
     void new_item_requested(const QModelIndex& parentIndex, 
@@ -52,8 +56,12 @@ signals:
         const QString& freq
     );
 
-public:
-    explicit ExchangeTree(QWidget* parent = nullptr);
-    void restore_tree(json const& j) override;
+public slots:
+    void new_item_accepted(const QModelIndex& parentIndex, const QString& name) override;
 
+
+public:
+    explicit ExchangeTree(QWidget* parent, std::shared_ptr<Hydra> const hydra);
+    void restore_tree(json const& j) override;
+    void restore_ids(QStandardItem* newItem, QString exchange_id);
 };

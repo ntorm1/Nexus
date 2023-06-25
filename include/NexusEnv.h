@@ -1,11 +1,10 @@
 #pragma once
+#include "NexusPch.h"
 
 #include <memory.h>
 #include <vector>
 #include <filesystem>
 #include <unordered_map>
-
-#include <json.hpp>
 
 #include "CodeEditor.h"
 #include "NexusTree.h"
@@ -15,8 +14,6 @@
 #include "Hydra.h"
 
 namespace fs = std::filesystem;
-using json = nlohmann::json;
-
 
 class NexusEnv
 {
@@ -47,7 +44,7 @@ public:
 
 	//============================================================================
 	fs::path get_env_settings_path() const { return this->env_path / "env_settings.json"; }
-	bool save_env();
+	bool save_env(json &j);
 	void load_env(std::string const & exe_path, std::string const & env_name);
 
 	//============================================================================

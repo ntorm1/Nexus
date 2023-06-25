@@ -48,8 +48,6 @@
 
 using namespace ads;
 
-int MainWindow::widget_counter = 0;
-
 MainWindow::~MainWindow()
 {
     delete ui;
@@ -106,7 +104,7 @@ MainWindow::MainWindow(QWidget* parent):
     CDockManager::setConfigFlag(CDockManager::DragPreviewHasWindowFrame, false);
     CDockManager::setAutoHideConfigFlags(CDockManager::DefaultAutoHideConfig);
 
-    DockManager = new CDockManager(this);
+    DockManager = new NexusDockManager(this);
     connect(DockManager, &CDockManager::focusedDockWidgetChanged,
         this, &MainWindow::on_widget_focus);
 
@@ -159,10 +157,7 @@ ads::CDockWidget* MainWindow::create_console_widget()
 
     // optional style options
     DockWidget->setWidget(terminal);
-    DockWidget->set_id(this->widget_counter);
-    
-    this->widget_counter++;
-    console_count++;
+
     this->DockManager->addDockWidget(ads::TopDockWidgetArea, DockWidget);
 
     return DockWidget;
@@ -216,8 +211,7 @@ ads::CDockWidget* MainWindow::create_exchanges_widget()
     ads::CDockWidget* DockWidget = new ads::CDockWidget(QString("Exchanges")
         .arg(exchanges_widgets_counter++));
     DockWidget->setWidget(w);
-    DockWidget->set_id(this->widget_counter);
-    this->widget_counter++;
+    DockWidget->set_widget_type(WidgetType::Exchanges);
 
     w->setFocusPolicy(Qt::NoFocus);
     return DockWidget;
@@ -238,9 +232,8 @@ ads::CDockWidget* MainWindow::create_file_system_tree_widget()
     ads::CDockWidget* DockWidget = new ads::CDockWidget(QString("Files")
         .arg(file_system_count++));
     DockWidget->setWidget(w);
+    DockWidget->set_widget_type(WidgetType::FileTree);
     DockWidget->setIcon(svgIcon(".images/folder_open.svg"));
-    DockWidget->set_id(this->widget_counter);
-    this->widget_counter++;
 
     ui->menuView->addAction(DockWidget->toggleViewAction());
     // We disable focus to test focus highlighting if the dock widget content
@@ -265,13 +258,11 @@ ads::CDockWidget* MainWindow::create_editor_widget()
     this->nexus_env.new_editor(w);
 
     DockWidget->setWidget(w);
+    DockWidget->set_widget_type(WidgetType::Editor);
     DockWidget->setIcon(svgIcon("./images/edit.svg"));
     DockWidget->setFeature(ads::CDockWidget::CustomCloseHandling, true);
-    DockWidget->set_id(this->widget_counter);
-    this->widget_counter++;
 
-    DockWidget->setFeature(ads::CDockWidget::DockWidgetDeleteOnClose, true);
-    DockWidget->setFeature(ads::CDockWidget::DockWidgetForceCloseWithArea, true);
+
     connect(DockWidget, SIGNAL(closeRequested()), SLOT(on_editor_close_requested()));
 
     return DockWidget;
@@ -284,9 +275,7 @@ ads::CDockWidget* MainWindow::create_asset_widget(const QString& asset_id)
 
     NexusAsset* w = new NexusAsset(&this->nexus_env, DockWidget, DockWidget);
     DockWidget->setWidget(w);
-    DockWidget->set_id(this->widget_counter);
-    this->widget_counter++;
-
+    DockWidget->set_widget_type(WidgetType::Asset);
     return DockWidget;
 }
 
@@ -297,6 +286,9 @@ void MainWindow::place_widget(ads::CDockWidget* DockWidget, QObject* Sender)
     bool Floating = vFloating.isValid() ? vFloating.toBool() : true;
     QVariant vTabbed = Sender->property("Tabbed");
     bool Tabbed = vTabbed.isValid() ? vTabbed.toBool() : true;
+
+    DockWidget->setFeature(ads::CDockWidget::DockWidgetDeleteOnClose, true);
+    DockWidget->setFeature(ads::CDockWidget::DockWidgetForceCloseWithArea, true);
 
     // Creating a new floating dock widget
     if (Floating)
@@ -454,9 +446,12 @@ void MainWindow::save_state()
     Settings.setValue("mainWindow/Geometry", this->saveGeometry());
     Settings.setValue("mainWindow/State", this->saveState());
     Settings.setValue("mainWindow/DockingState", DockManager->saveState());
-    this->nexus_env.save_env();
+    
+    json j;
+    // Save the open widgets and the Nexus env state
+    j["widgets"] = this->DockManager->save_widgets();
+    this->nexus_env.save_env(j);
 }
-
 
 std::optional<fs::path> get_editor_by_id(nlohmann::json const& open_editors, int id)
 {
@@ -478,12 +473,15 @@ void MainWindow::restore_state()
 
     // Reset window geometry
     QSettings Settings("C:\\Users\\natha\\OneDrive\\Desktop\\C++\\Nexus\\x64\\Debug\\Settings.ini", QSettings::IniFormat);
+    qDebug() << "==== Restoring geometry ====";
     this->restoreGeometry(Settings.value("mainWindow/Geometry").toByteArray());
+    qDebug() << "==== Restoring state ====";
     this->restoreState(Settings.value("mainWindow/State").toByteArray());
     
     // Clear existing Nexus env
     this->nexus_env.clear();
 
+    qDebug() << "==== Restoring docking manager ====";
     bool res = DockManager->restoreState(Settings.value("mainWindow/DockingState").toByteArray());
     if (!res)
     {
@@ -506,14 +504,18 @@ void MainWindow::restore_state()
     // Open files for the text edit widgets
     for (auto DockWidget : DockManager->get_widgets().values())
     {
+        if (DockWidget->get_widget_type() != WidgetType::Editor)
+        {
+            continue;
+        }
+        auto editor = qobject_cast<TextEdit*>(DockWidget->widget());
         auto open_file = get_editor_by_id(editors, DockWidget->get_id());
         if (open_file.has_value())
         {
-            auto editor = qobject_cast<TextEdit*>(DockWidget->widget());
             auto q_open_file = QString::fromStdString(open_file.value().string());
             editor->load(q_open_file);
-            this->nexus_env.new_editor(editor);
         }
+        this->nexus_env.new_editor(editor);
     }
 
     // Restore Nexus env from the given json
@@ -678,7 +680,9 @@ void MainWindow::closeEvent(QCloseEvent* event)
     if (QMessageBox::Yes == Result)
     {
         this->saveState();
-        if (!this->nexus_env.save_env())
+        json j;
+        j["widgets"] = this->DockManager->save_widgets();
+        if (!this->nexus_env.save_env(j))
         {
             QMessageBox::critical(this, "Error", "Failed to save Nexus Env");
             return;

@@ -64,6 +64,9 @@
 
 namespace ads
 {
+
+unsigned int CDockWidget::counter = 0;
+
 /**
  * Private data class of CDockWidget class (pimpl)
  */
@@ -328,6 +331,8 @@ CDockWidget::CDockWidget(const QString &title, QWidget *parent) :
 	QFrame(parent),
 	d(new DockWidgetPrivate(this))
 {
+	this->set_id(counter);
+	counter++;
 	d->Layout = new QBoxLayout(QBoxLayout::TopToBottom);
 	d->Layout->setContentsMargins(0, 0, 0, 0);
 	d->Layout->setSpacing(0);

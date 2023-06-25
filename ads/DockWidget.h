@@ -37,6 +37,14 @@
 QT_FORWARD_DECLARE_CLASS(QToolBar)
 QT_FORWARD_DECLARE_CLASS(QXmlStreamWriter)
 
+enum class WidgetType {
+    None,
+    Asset,
+    Editor,
+    Exchanges,
+    FileTree
+};
+
 namespace ads
 {
 struct DockWidgetPrivate;
@@ -60,7 +68,11 @@ class ADS_EXPORT CDockWidget : public QFrame
 private:
     DockWidgetPrivate* d; ///< private data (pimpl)
     int id = -1;
+    WidgetType widget_Type = WidgetType::None;
+
     friend struct DockWidgetPrivate;
+
+    void set_id(int id_) { this->id = id_; };
 
 private Q_SLOTS:
     /**
@@ -543,8 +555,12 @@ public: // reimplements QFrame -----------------------------------------------
      */
     virtual bool event(QEvent *e) override;
 
-    void set_id(int id_) { this->id = id_; };
+    static unsigned int counter;
+
     int get_id() { return this->id; }
+
+    void set_widget_type(WidgetType t) { this->widget_Type = t; };
+    WidgetType get_widget_type() { return this->widget_Type; }
 
 public Q_SLOTS:
 

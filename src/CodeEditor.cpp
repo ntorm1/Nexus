@@ -346,7 +346,8 @@ void TextEdit::setup_edit_actions()
 //============================================================================
 bool TextEdit::load(const QString& f)
 {
-    if (this->nexus_env->get_editor(f).has_value())
+    auto editor = this->nexus_env->get_editor(f);
+    if (editor.has_value())
     {
         QMessageBox::critical(nullptr, "Error", "File is already open in and editor");
         return false;

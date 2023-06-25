@@ -1138,6 +1138,7 @@ bool DockContainerWidgetPrivate::restoreChildNodes(CDockingStateReader& s,
 		}
         else if (s.name() == QLatin1String("Area"))
 		{
+
 			Result = restoreDockArea(s, CreatedWidget, Testing);
             ADS_PRINT("DockAreaWidget");
 		}

@@ -63,6 +63,7 @@ namespace ads
 {
 static const char* const INDEX_PROPERTY = "index";
 static const char* const ACTION_PROPERTY = "action";
+unsigned int CDockAreaWidget::counter = 0;
 
 /**
  * Check, if auto hide is enabled
@@ -415,6 +416,8 @@ CDockAreaWidget::CDockAreaWidget(CDockManager* DockManager, CDockContainerWidget
 	QFrame(parent),
 	d(new DockAreaWidgetPrivate(this))
 {
+	this->set_id(counter);
+	counter++;
 	d->DockManager = DockManager;
 	d->Layout = new QBoxLayout(QBoxLayout::TopToBottom);
 	d->Layout->setContentsMargins(0, 0, 0, 0);
@@ -963,6 +966,7 @@ bool CDockAreaWidget::restoreState(CDockingStateReader& s, CDockAreaWidget*& Cre
 		}
 	}
 
+	qDebug() << "\nRestoring new DockArea";
 	while (s.readNextStartElement())
 	{
 		if (s.name() != QLatin1String("Widget"))
@@ -1020,6 +1024,8 @@ bool CDockAreaWidget::restoreState(CDockingStateReader& s, CDockAreaWidget*& Cre
 
 		qDebug() << "Restored Widget: " << ObjectName.toString();
 	}
+	qDebug() << "DockArea restored";
+
 
 	if (Testing)
 	{

@@ -69,6 +69,7 @@ private:
 	friend class CDockManager;
 	friend class CAutoHideDockContainer;
 	void onDockWidgetFeaturesChanged();
+	int id = -1;
 
 private Q_SLOTS:
 	void onTabCloseRequested(int Index);
@@ -178,6 +179,10 @@ protected Q_SLOTS:
 
 public:
 	using Super = QFrame;
+	static unsigned int counter;
+
+	void set_id(int id_) { this->id = id_; };
+	int get_id() { return this->id; }
 
 	/**
 	 * Dock area related flags

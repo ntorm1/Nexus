@@ -13,6 +13,7 @@
 
 #include "CodeEditor.h"
 #include "NexusEnv.h"
+#include "NexusDockManager.h"
 #include "NexusAsset.h"
 
 QT_BEGIN_NAMESPACE
@@ -53,7 +54,6 @@ protected:
     virtual void closeEvent(QCloseEvent* event) override;
 
 private:
-    static int widget_counter;
     void restore_state();
     void save_state();
 
@@ -85,7 +85,7 @@ private:
     Ui::MainWindow*         ui;
     ExchangeTree*           exchange_tree;
 
-    ads::CDockManager*      DockManager;
+    NexusDockManager*      DockManager;
     ads::CDockAreaWidget*   StatusDockArea;
     ads::CDockWidget*       TimelineDockWidget;
 

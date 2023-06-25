@@ -1,5 +1,5 @@
 #pragma once
-#include "pch.h"
+#include "NexusPch.h"
 
 #include <QMouseEvent>
 #include <QApplication>
@@ -10,8 +10,6 @@
 #include <NexusPopups.h>
 
 #include "Hydra.h"
-
-using json = nlohmann::json;
 
 
 class NexusTree : public QTreeView

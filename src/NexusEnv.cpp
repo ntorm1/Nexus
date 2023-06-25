@@ -126,10 +126,9 @@ void NexusEnv::restore(json const& j)
 	}
 }
 
-bool NexusEnv::save_env()
+bool NexusEnv::save_env(json& j)
 {
 	qDebug() << "Saving environemnt...";
-	json j;
 
 	// Save the current open editors and the files they have open
 	json open_editors;

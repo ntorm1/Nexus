@@ -122,6 +122,7 @@
     <ClCompile Include="ads\PushButton.cpp" />
     <ClCompile Include="ads\ResizeHandle.cpp" />
     <ClCompile Include="src\NexusAsset.cpp" />
+    <ClCompile Include="src\NexusDockManager.cpp" />
     <ClCompile Include="src\NexusEnv.cpp" />
     <ClCompile Include="src\NexusPopups.cpp" />
     <ClCompile Include="src\QTerminal.cpp" />
@@ -228,7 +229,8 @@
     <ClInclude Include="ads\DockComponentsFactory.h" />
     <ClInclude Include="ads\DockingStateReader.h" />
     <ClInclude Include="ads\IconProvider.h" />
-    <ClInclude Include="include\pch.h" />
+    <ClInclude Include="include\NexusDockManager.h" />
+    <ClInclude Include="include\NexusPch.h" />
     <QtMoc Include="include\NexusPopups.h" />
     <QtMoc Include="include\NexusTree.h" />
     <QtMoc Include="include\QTerminalImpl.h" />

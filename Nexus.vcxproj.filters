@@ -130,6 +130,9 @@
     <ClCompile Include="src\NexusAsset.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\NexusDockManager.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <QtMoc Include="include\CodeEditor.h">
@@ -333,7 +336,10 @@
     <ClInclude Include="include\NexusEnv.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="include\pch.h">
+    <ClInclude Include="include\NexusPch.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\NexusDockManager.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

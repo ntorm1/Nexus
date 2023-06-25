@@ -72,8 +72,6 @@ private:
 
     friend struct DockWidgetPrivate;
 
-    void set_id(int id_) { this->id = id_; };
-
 private Q_SLOTS:
     /**
      * Adjusts the toolbar icon sizes according to the floating state
@@ -558,6 +556,7 @@ public: // reimplements QFrame -----------------------------------------------
     static unsigned int counter;
 
     int get_id() { return this->id; }
+    void set_id(int id_) { this->id = id_; };
 
     void set_widget_type(WidgetType t) { this->widget_Type = t; };
     WidgetType get_widget_type() { return this->widget_Type; }

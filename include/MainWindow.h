@@ -13,8 +13,9 @@
 
 #include "CodeEditor.h"
 #include "NexusEnv.h"
-#include "NexusDockManager.h"
 #include "NexusAsset.h"
+
+class NexusDockManager;
 
 QT_BEGIN_NAMESPACE
 namespace Ui {
@@ -61,12 +62,8 @@ private:
     void setup_help_menu();
     void create_perspective_ui();
 
-    ads::CDockWidget* create_console_widget();
-    ads::CDockWidget* create_editor_widget();
-    ads::CDockWidget* create_exchanges_widget();
-    ads::CDockWidget* create_file_system_tree_widget();
-    ads::CDockWidget* create_asset_widget(const QString& asset_id);
-    void place_widget(ads::CDockWidget* widget, QObject* Sender);
+    void place_widget(ads::CDockWidget* docket_widget, QObject* Sender);
+    void place_widget(ads::CDockWidget* docket_widget, ads::CDockAreaWidget* dock_area);
 
     void onViewVisibilityChanged(bool open);
     void onViewToggled(bool open);
@@ -93,4 +90,10 @@ signals:
     void new_exchange_accepted(const QModelIndex& parentIndex, const QString& name);
     void remove_exchange_accepted(const QModelIndex& parentIndex);
 
+public:
+    ads::CDockWidget* create_console_widget();
+    ads::CDockWidget* create_editor_widget();
+    ads::CDockWidget* create_exchanges_widget();
+    ads::CDockWidget* create_file_system_tree_widget();
+    ads::CDockWidget* create_asset_widget(const QString& asset_id);
 };

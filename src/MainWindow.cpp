@@ -39,6 +39,8 @@
 #include "DockAreaTabBar.h"
 #include "FloatingDockContainer.h"
 #include "DockComponentsFactory.h"
+#include "NexusDockManager.h"
+
 
 // Octave Win32 Terminal 
 #include "QTerminalImpl.h"
@@ -104,7 +106,7 @@ MainWindow::MainWindow(QWidget* parent):
     CDockManager::setConfigFlag(CDockManager::DragPreviewHasWindowFrame, false);
     CDockManager::setAutoHideConfigFlags(CDockManager::DefaultAutoHideConfig);
 
-    DockManager = new NexusDockManager(this);
+    DockManager = new NexusDockManager(this, this);
     connect(DockManager, &CDockManager::focusedDockWidgetChanged,
         this, &MainWindow::on_widget_focus);
 
@@ -129,9 +131,9 @@ MainWindow::MainWindow(QWidget* parent):
     container->setSize(300);
 
     // create editor widget
-    auto TextEditWidget = create_editor_widget();
-    this->DockManager->addDockWidget(ads::RightDockWidgetArea, TextEditWidget);
-    this->LastDockedEditor = TextEditWidget;
+    //auto TextEditWidget = create_editor_widget();
+    //this->DockManager->addDockWidget(ads::RightDockWidgetArea, TextEditWidget);
+    //this->LastDockedEditor = TextEditWidget;
     create_perspective_ui();
     applyVsStyle();
 }
@@ -277,6 +279,11 @@ ads::CDockWidget* MainWindow::create_asset_widget(const QString& asset_id)
     DockWidget->setWidget(w);
     DockWidget->set_widget_type(WidgetType::Asset);
     return DockWidget;
+}
+
+void MainWindow::place_widget(ads::CDockWidget* dock_widget, ads::CDockAreaWidget* dock_area)
+{
+    this->DockManager->addDockWidget(ads::RightDockWidgetArea, dock_widget, dock_area);
 }
 
 //============================================================================
@@ -470,25 +477,6 @@ std::optional<fs::path> get_editor_by_id(nlohmann::json const& open_editors, int
 void MainWindow::restore_state()
 {
     qDebug() << "==== Restoring state ====";
-
-    // Reset window geometry
-    QSettings Settings("C:\\Users\\natha\\OneDrive\\Desktop\\C++\\Nexus\\x64\\Debug\\Settings.ini", QSettings::IniFormat);
-    qDebug() << "==== Restoring geometry ====";
-    this->restoreGeometry(Settings.value("mainWindow/Geometry").toByteArray());
-    qDebug() << "==== Restoring state ====";
-    this->restoreState(Settings.value("mainWindow/State").toByteArray());
-    
-    // Clear existing Nexus env
-    this->nexus_env.clear();
-
-    qDebug() << "==== Restoring docking manager ====";
-    bool res = DockManager->restoreState(Settings.value("mainWindow/DockingState").toByteArray());
-    if (!res)
-    {
-        QMessageBox::critical(nullptr, "Error", "Failed to restore state");
-        return;
-    }
-    
     // Load in env settings
     auto env_settings = this->nexus_env.get_env_settings_path();
     std::ifstream env_settings_file(env_settings.string());
@@ -501,6 +489,28 @@ void MainWindow::restore_state()
     json j = nlohmann::json::parse(jsonString);
     auto editors = j["open_editors"];
 
+    // Reset window geometry
+    QSettings Settings("C:\\Users\\natha\\OneDrive\\Desktop\\C++\\Nexus\\x64\\Debug\\Settings.ini", QSettings::IniFormat);
+    qDebug() << "==== Restoring geometry ====";
+    this->restoreGeometry(Settings.value("mainWindow/Geometry").toByteArray());
+    qDebug() << "==== Restoring state ====";
+    this->restoreState(Settings.value("mainWindow/State").toByteArray());
+    
+    // Clear existing Nexus env
+    this->nexus_env.clear();
+
+    // Restore widgets
+    this->DockManager->restore_widgets(j);
+
+    // Restore dock manager state
+    qDebug() << "==== Restoring docking manager ====";
+    bool res = DockManager->restoreState(Settings.value("mainWindow/DockingState").toByteArray());
+    if (!res)
+    {
+        QMessageBox::critical(nullptr, "Error", "Failed to restore state");
+        return;
+    }
+    
     // Open files for the text edit widgets
     for (auto DockWidget : DockManager->get_widgets().values())
     {
@@ -509,13 +519,13 @@ void MainWindow::restore_state()
             continue;
         }
         auto editor = qobject_cast<TextEdit*>(DockWidget->widget());
-        auto open_file = get_editor_by_id(editors, DockWidget->get_id());
+        auto editor_id = DockWidget->get_id();
+        auto open_file = get_editor_by_id(editors, editor_id);
         if (open_file.has_value())
         {
             auto q_open_file = QString::fromStdString(open_file.value().string());
             editor->load(q_open_file);
         }
-        this->nexus_env.new_editor(editor);
     }
 
     // Restore Nexus env from the given json

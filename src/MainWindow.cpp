@@ -180,9 +180,9 @@ ads::CDockWidget* MainWindow::create_exchanges_widget()
     // Signal that requests new exchanges
     QObject::connect(
         w, 
-        SIGNAL(new_item_requested(QModelIndex, QString, QString, QString)),
+        SIGNAL(new_item_requested(QModelIndex, QString, QString, QString, QString)),
         this, 
-        SLOT(on_new_exchange_request(QModelIndex, QString, QString, QString))
+        SLOT(on_new_exchange_request(QModelIndex, QString, QString, QString, QString))
     );
     // Signal to accept  new exchanges
     QObject::connect(
@@ -604,12 +604,14 @@ void MainWindow::on_actionRestoreState_triggered(bool)
 void MainWindow::on_new_exchange_request(const QModelIndex& parentIndex, 
     const QString& exchange_id,
     const QString& source,
-    const QString& freq)
+    const QString& freq,
+    const QString& dt_format)
 {
     auto res = this->nexus_env.new_exchange(
         exchange_id.toStdString(),
         source.toStdString(),
-        freq.toStdString());
+        freq.toStdString(),
+        dt_format.toStdString());
     if (res != NexusStatusCode::Ok)
     {
         QMessageBox::critical(this, "Error", "Failed to create exchange");

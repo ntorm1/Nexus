@@ -66,7 +66,8 @@ public:
 	NexusStatusCode new_exchange(
 		const std::string& exchange_id,
 		const std::string& source,
-		const std::string& freq
+		const std::string& freq,
+		const std::string& dt_format
 	);
 	NexusStatusCode remove_exchange(const std::string& name);
 

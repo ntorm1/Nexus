@@ -90,10 +90,16 @@ void NexusEnv::remove_editor(QString const& file_name)
 NexusStatusCode NexusEnv::new_exchange(
 	const std::string& exchange_id,
 	const std::string& source,
-	const std::string& freq)
+	const std::string& freq,
+	const std::string& dt_format)
 {
 	qDebug() << "Building new exchange: " << exchange_id;
-	auto res = this->hydra->new_exchange(exchange_id, source, string_to_freq(freq));
+	auto res = this->hydra->new_exchange(
+		exchange_id,
+		source,
+		string_to_freq(freq),
+		dt_format
+		);
 	if (res != NexusStatusCode::Ok) return res;
 
 }

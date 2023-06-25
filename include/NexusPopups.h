@@ -26,6 +26,7 @@ public:
     QString get_source() const;
     QString get_exchange_id() const;
     QString get_freq() const;
+    QString get_dt_format() const;
 
 private slots:
     void selectFolder();

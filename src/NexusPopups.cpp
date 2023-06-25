@@ -61,6 +61,11 @@ QString NewExchangePopup::get_freq() const
     return ui->freq_combo->currentText();
 }
 
+QString NewExchangePopup::get_dt_format() const
+{
+    return ui->dt_format_combo->currentText();
+}
+
 void NewExchangePopup::selectFolder()
 {
     QString folderPath = QFileDialog::getExistingDirectory(this, tr("Select Folder"));

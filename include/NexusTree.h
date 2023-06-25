@@ -53,12 +53,12 @@ signals:
     void new_item_requested(const QModelIndex& parentIndex, 
         const QString& exchange_id,
         const QString& source,
-        const QString& freq
+        const QString& freq,
+        const QString& dt_format
     );
 
 public slots:
     void new_item_accepted(const QModelIndex& parentIndex, const QString& name) override;
-
 
 public:
     explicit ExchangeTree(QWidget* parent, std::shared_ptr<Hydra> const hydra);

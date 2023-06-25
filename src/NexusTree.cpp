@@ -154,8 +154,9 @@ void ExchangeTree::create_new_item(const QModelIndex& parentIndex)
         auto exchange_id = popup->get_exchange_id();
         auto source = popup->get_source();
         auto freq = popup->get_freq();
+        auto dt_format = popup->get_dt_format();
         // Send signal to main window asking to create the new item
-        emit new_item_requested(parentIndex, exchange_id, source, freq);
+        emit new_item_requested(parentIndex, exchange_id, source, freq, dt_format);
     }
 }
 

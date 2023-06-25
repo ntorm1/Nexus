@@ -16,13 +16,6 @@
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
     <layout class="QGridLayout" name="gridLayout">
-     <item row="1" column="2">
-      <widget class="QPushButton" name="folder_button">
-       <property name="text">
-        <string>Select Folder</string>
-       </property>
-      </widget>
-     </item>
      <item row="1" column="0">
       <widget class="QLabel" name="label_2">
        <property name="text">
@@ -30,18 +23,25 @@
        </property>
       </widget>
      </item>
+     <item row="0" column="1">
+      <widget class="QLineEdit" name="exchange_id_edit"/>
+     </item>
+     <item row="2" column="0">
+      <widget class="QLabel" name="label_3">
+       <property name="text">
+        <string>Frequency:</string>
+       </property>
+      </widget>
+     </item>
+     <item row="1" column="1">
+      <widget class="QLineEdit" name="folder_path_label"/>
+     </item>
      <item row="0" column="0">
       <widget class="QLabel" name="label">
        <property name="text">
         <string>Exchange ID: </string>
        </property>
       </widget>
-     </item>
-     <item row="0" column="1">
-      <widget class="QLineEdit" name="exchange_id_edit"/>
-     </item>
-     <item row="1" column="1">
-      <widget class="QLineEdit" name="folder_path_label"/>
      </item>
      <item row="2" column="1">
       <widget class="QComboBox" name="freq_combo">
@@ -95,11 +95,47 @@
        </item>
       </widget>
      </item>
-     <item row="2" column="0">
-      <widget class="QLabel" name="label_3">
+     <item row="1" column="2">
+      <widget class="QPushButton" name="folder_button">
        <property name="text">
-        <string>Frequency:</string>
+        <string>Select Folder</string>
        </property>
+      </widget>
+     </item>
+     <item row="3" column="0">
+      <widget class="QLabel" name="label_4">
+       <property name="text">
+        <string>Dt Format:</string>
+       </property>
+      </widget>
+     </item>
+     <item row="3" column="1">
+      <widget class="QComboBox" name="dt_format_combo">
+       <item>
+        <property name="text">
+         <string>%Y-%m-%d</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>%Y-%m-%d %H:%M:%S</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>%Y-%m-%d %H:%M:%S.%f</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>%d-%b-%Y</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>%Y-%m-%dT%H:%M:%S%z</string>
+        </property>
+       </item>
       </widget>
      </item>
     </layout>

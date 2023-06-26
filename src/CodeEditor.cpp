@@ -28,6 +28,9 @@
 #include <QDebug>
 #include <QPainter>
 #include <QTextBlock>
+#include <QPrinter>
+#include <QPrintDialog>
+#include <QPrintPreviewDialog>
 
 #include "CodeEditor.h"
 #include "NexusEnv.h"

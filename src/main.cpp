@@ -10,6 +10,7 @@ int main(int argc, char *argv[])
 	QCoreApplication::setApplicationName("Nexus");
 	QCoreApplication::setOrganizationName("Agis Systems");
 
+	/*
 	QPalette darkPalette;
 	darkPalette.setColor(QPalette::Window, QColor(53, 53, 53));
 	darkPalette.setColor(QPalette::WindowText, QColor(255, 254, 255));
@@ -34,6 +35,7 @@ int main(int argc, char *argv[])
 	darkPalette.setColor(QPalette::Disabled, QPalette::HighlightedText, QColor(127, 127, 127));
 
 	QApplication::setPalette(darkPalette);
+	*/
 	QApplication::setStyle("Fusion");
 
     QApplication a(argc, argv);

@@ -133,6 +133,12 @@
     <ClCompile Include="src\NexusDockManager.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\NexusPlot.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="QCustomPlot\qcustomplot.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <QtMoc Include="include\CodeEditor.h">
@@ -211,6 +217,12 @@
       <Filter>Header Files</Filter>
     </QtMoc>
     <QtMoc Include="include\NexusAsset.h">
+      <Filter>Header Files</Filter>
+    </QtMoc>
+    <QtMoc Include="include\NexusPlot.h">
+      <Filter>Header Files</Filter>
+    </QtMoc>
+    <QtMoc Include="QCustomPlot\qcustomplot.h">
       <Filter>Header Files</Filter>
     </QtMoc>
   </ItemGroup>
@@ -348,6 +360,9 @@
   </ItemGroup>
   <ItemGroup>
     <QtUic Include="ui\NewExchangePopup.ui">
+      <Filter>Form Files</Filter>
+    </QtUic>
+    <QtUic Include="ui\NexusAsset.ui">
       <Filter>Form Files</Filter>
     </QtUic>
   </ItemGroup>

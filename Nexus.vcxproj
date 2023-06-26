@@ -32,14 +32,14 @@
   </ImportGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'" Label="QtSettings">
     <QtInstall>6.5.1</QtInstall>
-    <QtModules>core;gui;widgets;uitools</QtModules>
+    <QtModules>core;gui;widgets;uitools;printsupport</QtModules>
     <QtBuildConfig>debug</QtBuildConfig>
     <QMakeExtraArgs>
     </QMakeExtraArgs>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'" Label="QtSettings">
     <QtInstall>6.5.1</QtInstall>
-    <QtModules>core;gui;widgets</QtModules>
+    <QtModules>core;gui;widgets;printsupport</QtModules>
     <QtBuildConfig>release</QtBuildConfig>
   </PropertyGroup>
   <Target Name="QtMsBuildNotFound" BeforeTargets="CustomBuild;ClCompile" Condition="!Exists('$(QtMsBuild)\qt.targets') or !Exists('$(QtMsBuild)\qt.props')">
@@ -62,7 +62,7 @@
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
-      <AdditionalIncludeDirectories>C:\Users\natha\OneDrive\Desktop\C++\AgisCore;C:\Users\natha\OneDrive\Desktop\C++\Nexus\include;C:\Users\natha\OneDrive\Desktop\C++\Nexus\ads;C:\Users\natha\OneDrive\Desktop\C++\Nexus\src\octave-gui;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Users\natha\OneDrive\Desktop\C++\AgisCore;C:\Users\natha\OneDrive\Desktop\C++\Nexus\include;C:\Users\natha\OneDrive\Desktop\C++\Nexus\ads;C:\Users\natha\OneDrive\Desktop\C++\Nexus\src\octave-gui;C:\Users\natha\OneDrive\Desktop\C++\external\qcustomplot;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <AdditionalDependencies>ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
@@ -71,7 +71,7 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
-      <AdditionalIncludeDirectories>C:\Users\natha\OneDrive\Desktop\C++\Nexus\ads;C:\Users\natha\OneDrive\Desktop\C++\Nexus\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Users\natha\OneDrive\Desktop\C++\AgisCore;C:\Users\natha\OneDrive\Desktop\C++\Nexus\include;C:\Users\natha\OneDrive\Desktop\C++\Nexus\ads;C:\Users\natha\OneDrive\Desktop\C++\external\qcustomplot;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'" Label="Configuration">
@@ -121,9 +121,11 @@
     <ClCompile Include="ads\IconProvider.cpp" />
     <ClCompile Include="ads\PushButton.cpp" />
     <ClCompile Include="ads\ResizeHandle.cpp" />
+    <ClCompile Include="QCustomPlot\qcustomplot.cpp" />
     <ClCompile Include="src\NexusAsset.cpp" />
     <ClCompile Include="src\NexusDockManager.cpp" />
     <ClCompile Include="src\NexusEnv.cpp" />
+    <ClCompile Include="src\NexusPlot.cpp" />
     <ClCompile Include="src\NexusPopups.cpp" />
     <ClCompile Include="src\QTerminal.cpp" />
     <ClCompile Include="src\QTerminalImpl.cpp" />
@@ -136,6 +138,7 @@
     <ClCompile Include="src\MainWindow.cpp" />
     <ClCompile Include="src\main.cpp" />
     <QtUic Include="ui\NewExchangePopup.ui" />
+    <QtUic Include="ui\NexusAsset.ui" />
   </ItemGroup>
   <ItemGroup>
     <QtMoc Include="include\CodeEditor.h" />
@@ -231,6 +234,8 @@
     <ClInclude Include="ads\IconProvider.h" />
     <ClInclude Include="include\NexusDockManager.h" />
     <ClInclude Include="include\NexusPch.h" />
+    <QtMoc Include="QCustomPlot\qcustomplot.h" />
+    <QtMoc Include="include\NexusPlot.h" />
     <QtMoc Include="include\NexusPopups.h" />
     <QtMoc Include="include\NexusTree.h" />
     <QtMoc Include="include\QTerminalImpl.h" />

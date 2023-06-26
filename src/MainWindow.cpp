@@ -130,10 +130,6 @@ MainWindow::MainWindow(QWidget* parent):
     container = this->DockManager->addAutoHideDockWidget(ads::SideBarLeft, ExchangesWidget);
     container->setSize(300);
 
-    // create editor widget
-    //auto TextEditWidget = create_editor_widget();
-    //this->DockManager->addDockWidget(ads::RightDockWidgetArea, TextEditWidget);
-    //this->LastDockedEditor = TextEditWidget;
     create_perspective_ui();
     applyVsStyle();
 }
@@ -213,6 +209,7 @@ ads::CDockWidget* MainWindow::create_exchanges_widget()
     ads::CDockWidget* DockWidget = new ads::CDockWidget(QString("Exchanges")
         .arg(exchanges_widgets_counter++));
     DockWidget->setWidget(w);
+    DockWidget->setIcon(svgIcon("./images/exchange.svg"));
     DockWidget->set_widget_type(WidgetType::Exchanges);
 
     w->setFocusPolicy(Qt::NoFocus);
@@ -275,8 +272,15 @@ ads::CDockWidget* MainWindow::create_asset_widget(const QString& asset_id)
 {
     ads::CDockWidget* DockWidget = new ads::CDockWidget(QString("Asset: %1").arg(asset_id));
 
-    NexusAsset* w = new NexusAsset(&this->nexus_env, DockWidget, DockWidget);
+    NexusAsset* w = new NexusAsset(
+        &this->nexus_env,
+        DockWidget,
+        asset_id.toStdString(),
+        DockWidget
+    );
+
     DockWidget->setWidget(w);
+    DockWidget->setIcon(svgIcon("./images/stock.png"));
     DockWidget->set_widget_type(WidgetType::Asset);
     return DockWidget;
 }
@@ -687,6 +691,10 @@ void MainWindow::closeEvent(QCloseEvent* event)
 {
 
     int Result = QMessageBox::question(this, "Closing Nexus", QString("Save State?"));
+    if (!QMessageBox::Accepted)
+    {
+        return;
+    }
     if (QMessageBox::Yes == Result)
     {
         this->saveState();

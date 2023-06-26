@@ -16,9 +16,16 @@ json NexusDockManager::save_widgets()
 	for (auto const& dock_widget : this->get_widgets())
 	{
 		json widget;
-		widget["dock_area_id"] = dock_widget->dockAreaWidget()->get_id();
 		widget["widget_id"] = dock_widget->get_id();
 		widget["widget_type"] = dock_widget->get_widget_type();
+
+		if (dock_widget->get_widget_type() == WidgetType::Asset)
+		{
+			auto child = dock_widget->widget();
+			NexusAsset* asset_child = static_cast<NexusAsset*>(child);
+			widget["asset_id"] = asset_child->get_asset_id();
+		}
+
 		widgets[dock_widget->objectName().toStdString()] = widget;
 	}
 	return widgets;
@@ -44,6 +51,8 @@ void NexusDockManager::restore_widgets(json const& j)
 				break;
 			}
 			case WidgetType::Asset: {
+				auto asset_id = QString::fromStdString(widget_json["asset_id"]);
+				widget = this->main_window->create_asset_widget(asset_id);
 				break;
 			}
 			case WidgetType::Exchanges: {

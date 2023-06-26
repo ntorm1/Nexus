@@ -36,6 +36,8 @@ private:
 	std::string env_name;
 	fs::path env_path;
 
+	void remove_editors() { this->open_editors.clear(); }
+
 public:
 	NexusEnv();
 
@@ -51,7 +53,6 @@ public:
 	void new_editor(TextEdit* new_editor);
 	std::optional<TextEdit*> get_editor(QString const & file_name) const;
 	void remove_editor(QString const& file_name);
-	void remove_editors() { this->open_editors.clear(); }
 	bool editor_open(QString const & file_name);
 
 	//============================================================================

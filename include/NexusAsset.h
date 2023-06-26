@@ -1,12 +1,13 @@
 #pragma once
-
+#include "NexusPch.h"
 #include <QMainWindow>
 #include <QWidget>
 
 #include "DockWidget.h"
 
+#include "AgisPointers.h"
 #include "NexusEnv.h"
-
+#include "Asset.h"
 
 namespace Ui {
     class NexusAsset;
@@ -20,11 +21,11 @@ public:
     NexusAsset(
         NexusEnv const* nexus_env,
         ads::CDockWidget* DockWidget,
-        std::string asset_id,
+        SharedAssetLockPtr asset,
         QWidget* parent = nullptr
     );
 
-    std::string get_asset_id() const { return this->asset_id; }
+    std::string get_asset_id() const { return this->asset->read().unwrap().get_asset_id(); }
 
 private:
     Ui::NexusAsset* ui;
@@ -32,5 +33,5 @@ private:
     
     NexusEnv const* nexus_env;
 
-    std::string asset_id;
+    SharedAssetLockPtr asset;
 };

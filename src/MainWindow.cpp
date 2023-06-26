@@ -29,6 +29,8 @@
 #include <QMap>
 #include <QElapsedTimer>
 
+#include "AgisPointers.h"
+
 #include "MainWindow.h"
 #include "ui_MainWindow.h"
 
@@ -272,10 +274,15 @@ ads::CDockWidget* MainWindow::create_asset_widget(const QString& asset_id)
 {
     ads::CDockWidget* DockWidget = new ads::CDockWidget(QString("Asset: %1").arg(asset_id));
 
+    auto asset = this->nexus_env.get_asset(asset_id.toStdString());
+    if (!asset.has_value()) {
+        QMessageBox::critical(this, "Error", "Failed to find asset listed");
+    }
+    
     NexusAsset* w = new NexusAsset(
         &this->nexus_env,
         DockWidget,
-        asset_id.toStdString(),
+        asset.value(),
         DockWidget
     );
 
@@ -503,6 +510,9 @@ void MainWindow::restore_state()
     // Clear existing Nexus env
     this->nexus_env.clear();
 
+    // Restore Nexus env from the given json
+    this->nexus_env.restore(j);
+
     // Restore widgets
     this->DockManager->restore_widgets(j);
 
@@ -531,9 +541,6 @@ void MainWindow::restore_state()
             editor->load(q_open_file);
         }
     }
-
-    // Restore Nexus env from the given json
-    this->nexus_env.restore(j);
 
     qDebug() << "==== State Restored ====";
 }

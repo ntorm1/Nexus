@@ -6,7 +6,7 @@
 NexusAsset::NexusAsset(
         NexusEnv const* nexus_env_,
         ads::CDockWidget* DockWidget_,
-        std::string asset_id_,
+        SharedAssetLockPtr asset_,
         QWidget* parent) :
     QMainWindow(parent),
     ui(new Ui::NexusAsset),
@@ -14,7 +14,7 @@ NexusAsset::NexusAsset(
     DockWidget(DockWidget_)
 {
     ui->setupUi(this);
-    this->asset_id = asset_id_;
+    this->asset = asset_;
 
     // Retrieve the central widget from the UI
     QWidget* centralWidget = ui->centralwidget;

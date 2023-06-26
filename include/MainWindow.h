@@ -15,6 +15,7 @@
 #include "NexusEnv.h"
 #include "NexusAsset.h"
 
+
 class NexusDockManager;
 
 QT_BEGIN_NAMESPACE

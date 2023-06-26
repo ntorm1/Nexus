@@ -87,6 +87,11 @@ void NexusEnv::remove_editor(QString const& file_name)
 	}
 }
 
+std::optional<SharedAssetLockPtr> const NexusEnv::get_asset(std::string const& asset_id)
+{
+	return this->hydra->get_asset(asset_id);
+}
+
 NexusStatusCode NexusEnv::new_exchange(
 	const std::string& exchange_id,
 	const std::string& source,

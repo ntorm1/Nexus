@@ -1,8 +1,5 @@
 #pragma once
 #include "NexusPch.h"
-
-#include <memory.h>
-#include <vector>
 #include <filesystem>
 #include <unordered_map>
 
@@ -12,6 +9,7 @@
 #include "AgisPointers.h"
 #include "AgisErrors.h"
 #include "Hydra.h"
+#include "Asset.h"
 
 namespace fs = std::filesystem;
 
@@ -60,6 +58,7 @@ public:
 	void reset_trees();
 
 	std::shared_ptr<Hydra> const get_hydra() { return this->hydra; }
+	std::optional<SharedAssetLockPtr> const get_asset(std::string const& asset_id);
 
 	NexusStatusCode new_exchange(
 		const std::string& exchange_id,

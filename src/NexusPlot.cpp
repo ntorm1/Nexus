@@ -1,4 +1,4 @@
-
+#include <qsharedpointer.h>
 
 #include "NexusPlot.h"
 
@@ -18,7 +18,7 @@ NexusPlot::NexusPlot(QWidget* parent) :
 	QCPTextElement* title = new QCPTextElement(this, "Interaction Example", QFont("sans", 17, QFont::Bold));
 	this->plotLayout()->addElement(0, 0, title);
 
-	this->xAxis->setLabel("x Axis");
+	this->xAxis->setLabel("Time");
 	this->yAxis->setLabel("y Axis");
 	this->legend->setVisible(true);
 	QFont legendFont = font();
@@ -27,11 +27,13 @@ NexusPlot::NexusPlot(QWidget* parent) :
 	this->legend->setSelectedFont(legendFont);
 	this->legend->setSelectableParts(QCPLegend::spItems); // legend box shall not be selectable, only legend items
 
-	addRandomGraph();
-	addRandomGraph();
-	addRandomGraph();
-	addRandomGraph();
-	this->rescaleAxes();
+	// set locale to english, so we get english month names:
+	this->setLocale(QLocale(QLocale::English, QLocale::UnitedKingdom));
+
+	// configure bottom axis to show date instead of number:
+	QSharedPointer<QCPAxisTickerDateTime> dateTicker(new QCPAxisTickerDateTime);
+	dateTicker->setDateTimeFormat("d. MMMM\nyyyy");
+	this->xAxis->setTicker(dateTicker);
 
 	// connect slot that ties some axis selections together (especially opposite axes):
 	connect(this, SIGNAL(selectionChangedByUser()), this, SLOT(selectionChanged()));
@@ -55,6 +57,7 @@ NexusPlot::NexusPlot(QWidget* parent) :
 	this->setContextMenuPolicy(Qt::CustomContextMenu);
 	connect(this, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(contextMenuRequest(QPoint)));
 }
+
 void NexusPlot::mousePress()
 {
 	// if an axis is selected, only allow the direction of that axis to be dragged
@@ -186,6 +189,26 @@ void NexusPlot::graphClicked(QCPAbstractPlottable* plottable, int dataIndex)
 	double dataValue = plottable->interface1D()->dataMainValue(dataIndex);
 	QString message = QString("Clicked on graph '%1' at data point #%2 with value %3.").arg(plottable->name()).arg(dataIndex).arg(dataValue);
 	//this->ui->statusbar->showMessage(message, 2500);
+}
+
+void NexusPlot::plot(StridedPointer<long long> x, StridedPointer<double> y)
+{
+	this->addGraph();
+	this->graph()->setName(QString("New graph %1").arg(this->graphCount() - 1));
+
+	QVector<QCPGraphData> timeData(x.size());
+	for (int i = 0; i < x.size(); i++)
+	{
+		timeData[i].key = x[i] / static_cast<double>(1000000000);
+		timeData[i].value = y[i];
+	}
+
+	this->graph()->data()->set(timeData);
+	this->rescaleAxes();
+	QPen graphPen;
+	graphPen.setColor(QColor(std::rand() % 245 + 10, std::rand() % 245 + 10, std::rand() % 245 + 10));
+	this->graph()->setPen(graphPen);
+	this->replot();
 }
 
 void NexusPlot::addRandomGraph()

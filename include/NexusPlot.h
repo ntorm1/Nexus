@@ -1,11 +1,13 @@
 #pragma once
 
-
+#include "NexusPch.h"
 #include <QMainWindow>
 #include <qwidget.h>
 #include <QInputDialog>
+#include <QVector>
 
 #include "qcustomplot.h"
+
 
 class NexusPlot : public QCustomPlot
 {
@@ -14,6 +16,11 @@ class NexusPlot : public QCustomPlot
 public:
 	explicit NexusPlot(QWidget* parent = 0);
 	~NexusPlot() = default;
+
+	void plot(
+		StridedPointer<long long> x,
+		StridedPointer<double> y
+	);
 
 private slots:
 	//void titleDoubleClick(QMouseEvent* event);

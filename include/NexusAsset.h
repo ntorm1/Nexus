@@ -7,6 +7,7 @@
 
 #include "AgisPointers.h"
 #include "NexusEnv.h"
+#include "NexusPlot.h"
 #include "Asset.h"
 
 namespace Ui {
@@ -25,13 +26,17 @@ public:
         QWidget* parent = nullptr
     );
 
-    std::string get_asset_id() const { return this->asset->read().unwrap().get_asset_id(); }
+    void init_plot();
+
+    std::string get_asset_id() const { return this->asset->read().unwrap()->get_asset_id(); }
 
 private:
     Ui::NexusAsset* ui;
     ads::CDockWidget* DockWidget;
-    
-    NexusEnv const* nexus_env;
+    NexusPlot* nexus_plot;
 
+    NexusEnv const* nexus_env;
     SharedAssetLockPtr asset;
+
+    StridedPointer<long long> dt_index;
 };

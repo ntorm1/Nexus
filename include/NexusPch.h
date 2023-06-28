@@ -4,5 +4,6 @@
 #include <optional>
 
 #include <json.hpp>
+#include "AgisPointers.h"
 
 using json = nlohmann::json;

@@ -511,6 +511,7 @@ void MainWindow::restore_state()
     this->nexus_env.clear();
 
     // Restore Nexus env from the given json
+    //TODO editors are throwing file already open errors 
     this->nexus_env.restore(j);
 
     // Restore widgets
@@ -535,9 +536,14 @@ void MainWindow::restore_state()
         auto editor = qobject_cast<TextEdit*>(DockWidget->widget());
         auto editor_id = DockWidget->get_id();
         auto open_file = get_editor_by_id(editors, editor_id);
+
         if (open_file.has_value())
         {
             auto q_open_file = QString::fromStdString(open_file.value().string());
+            if (q_open_file == "")
+            {
+                continue;
+            }
             editor->load(q_open_file);
         }
     }

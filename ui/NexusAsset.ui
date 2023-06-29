@@ -14,7 +14,7 @@
    <string>MainWindow</string>
   </property>
   <widget class="QWidget" name="centralwidget">
-   <widget class="NexusPlot" name="widget" native="true">
+   <widget class="NexusAssetPlot" name="widget" native="true">
     <property name="sizePolicy">
      <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
       <horstretch>0</horstretch>
@@ -37,7 +37,7 @@
  </widget>
  <customwidgets>
   <customwidget>
-   <class>NexusPlot</class>
+   <class>NexusAssetPlot</class>
    <extends>QWidget</extends>
    <header>nexusplot.h</header>
    <container>1</container>

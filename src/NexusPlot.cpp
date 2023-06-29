@@ -191,10 +191,11 @@ void NexusPlot::graphClicked(QCPAbstractPlottable* plottable, int dataIndex)
 	//this->ui->statusbar->showMessage(message, 2500);
 }
 
-void NexusPlot::plot(StridedPointer<long long> x, StridedPointer<double> y)
+void NexusPlot::plot(StridedPointer<long long> x, StridedPointer<double> y, std::string name)
 {
 	this->addGraph();
-	this->graph()->setName(QString("New graph %1").arg(this->graphCount() - 1));
+	auto q_name = QString::fromStdString(name);
+	this->graph()->setName(q_name);
 
 	QVector<QCPGraphData> timeData(x.size());
 	for (int i = 0; i < x.size(); i++)

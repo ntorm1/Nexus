@@ -5,9 +5,9 @@
 #include <qwidget.h>
 #include <QInputDialog>
 #include <QVector>
+#include <QTableView>
 
 #include "qcustomplot.h"
-
 
 class NexusPlot : public QCustomPlot
 {
@@ -17,12 +17,14 @@ public:
 	explicit NexusPlot(QWidget* parent = 0);
 	~NexusPlot() = default;
 
+	void set_title(std::string title) {};
 	void plot(
 		StridedPointer<long long> x,
-		StridedPointer<double> y
+		StridedPointer<double> y,
+		std::string name
 	);
 
-private slots:
+protected slots:
 	//void titleDoubleClick(QMouseEvent* event);
 	//void axisLabelDoubleClick(QCPAxis* axis, QCPAxis::SelectablePart part);
 	//void legendDoubleClick(QCPLegend* legend, QCPAbstractLegendItem* item);
@@ -32,7 +34,7 @@ private slots:
 	void mouseWheel();
 	void removeSelectedGraph();
 	void removeAllGraphs();
-	void contextMenuRequest(QPoint pos);
+	virtual void contextMenuRequest(QPoint pos);
 	void moveLegend();
 	void graphClicked(QCPAbstractPlottable* plottable, int dataIndex);
 };

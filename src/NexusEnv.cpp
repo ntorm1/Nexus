@@ -87,7 +87,7 @@ void NexusEnv::remove_editor(QString const& file_name)
 	}
 }
 
-std::optional<SharedAssetLockPtr> const NexusEnv::get_asset(std::string const& asset_id)
+std::optional<std::shared_ptr<Asset>> const NexusEnv::get_asset(std::string const& asset_id)
 {
 	return this->hydra->get_asset(asset_id);
 }

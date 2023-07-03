@@ -4,6 +4,7 @@
 #include <QWidget>
 #include <QStringList>
 #include <QString>
+#include <QFrame>
 #include "DockWidget.h"
 
 #include "AgisPointers.h"

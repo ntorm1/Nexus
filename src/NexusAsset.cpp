@@ -1,4 +1,3 @@
-#include <QSplitter>
 
 #include "NexusAsset.h"
 #include "ui_NexusAsset.h"
@@ -41,8 +40,15 @@ NexusAsset::NexusAsset(
     sizePolicy.setHorizontalStretch(55); // Set the horizontal stretch factor
     this->nexus_plot->setSizePolicy(sizePolicy);
 
+    QSplitter* splitter = new QSplitter(Qt::Vertical);
+    QSplitterHandle* handle = splitter->handle(1);
+    QFrame* line = new QFrame(handle);
+    line->setFrameShape(QFrame::HLine);
+    line->setFrameShadow(QFrame::Sunken);
+
     // Add the NexusPlot widget and table widget to the layout
     layout->addWidget(this->nexus_plot);
+    layout->addWidget(line);
     layout->addWidget(scrollArea);
 
     // Set the layout for the central widget
@@ -98,11 +104,7 @@ void NexusAsset::load_asset_data()
 size_t NexusAsset::get_column_index(std::string const& column_name)
 {
     auto it = std::find(this->column_names.begin(), this->column_names.end(), column_name);
-
-    if (it != this->column_names.end()) {
-        return std::distance(this->column_names.begin(), it);
-
-    }
+    return std::distance(this->column_names.begin(), it);
 }
 
 NexusAssetPlot::NexusAssetPlot(QWidget* parent) : NexusPlot(parent)

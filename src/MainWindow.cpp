@@ -704,10 +704,6 @@ void MainWindow::closeEvent(QCloseEvent* event)
 {
 
     int Result = QMessageBox::question(this, "Closing Nexus", QString("Save State?"));
-    if (!QMessageBox::Accepted)
-    {
-        return;
-    }
     if (QMessageBox::Yes == Result)
     {
         this->saveState();

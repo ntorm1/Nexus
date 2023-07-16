@@ -14,10 +14,6 @@ NexusPlot::NexusPlot(QWidget* parent) :
 	this->yAxis->setRange(-5, 5);
 	this->axisRect()->setupFullAxesBox();
 
-	this->plotLayout()->insertRow(0);
-	QCPTextElement* title = new QCPTextElement(this, "Interaction Example", QFont("sans", 17, QFont::Bold));
-	this->plotLayout()->addElement(0, 0, title);
-
 	this->xAxis->setLabel("Time");
 	this->yAxis->setLabel("y Axis");
 	this->legend->setVisible(true);
@@ -48,7 +44,7 @@ NexusPlot::NexusPlot(QWidget* parent) :
 	// connect some interaction slots:
 	connect(this, SIGNAL(axisDoubleClick(QCPAxis*, QCPAxis::SelectablePart, QMouseEvent*)), this, SLOT(axisLabelDoubleClick(QCPAxis*, QCPAxis::SelectablePart)));
 	connect(this, SIGNAL(legendDoubleClick(QCPLegend*, QCPAbstractLegendItem*, QMouseEvent*)), this, SLOT(legendDoubleClick(QCPLegend*, QCPAbstractLegendItem*)));
-	connect(title, SIGNAL(doubleClicked(QMouseEvent*)), this, SLOT(titleDoubleClick(QMouseEvent*)));
+//	connect(title, SIGNAL(doubleClicked(QMouseEvent*)), this, SLOT(titleDoubleClick(QMouseEvent*)));
 
 	// connect slot that shows a message in the status bar when a graph is clicked:
 	connect(this, SIGNAL(plottableClick(QCPAbstractPlottable*, int, QMouseEvent*)), this, SLOT(graphClicked(QCPAbstractPlottable*, int)));

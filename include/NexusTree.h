@@ -68,6 +68,8 @@ signals:
     void itemDoubleClicked(const QString& itemName);
 };
 
+
+//============================================================================
 class ExchangeTree : public NexusTree
 {
     Q_OBJECT
@@ -76,6 +78,10 @@ protected:
     void mouseDoubleClickEvent(QMouseEvent* event) override;
 
 private:
+    /// <summary>
+    /// Create a new exchange from params using the popup window
+    /// </summary>
+    /// <param name="parentIndex"></param>
     virtual void create_new_item(const QModelIndex& parentIndex) override;
     void contextMenuEvent(QContextMenuEvent* event) override;
     

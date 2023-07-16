@@ -5,7 +5,7 @@
 NexusAsset::NexusAsset(
         NexusEnv const* nexus_env_,
         ads::CDockWidget* DockWidget_,
-        SharedAssetLockPtr asset_,
+        AssetPtr asset_,
         QWidget* parent) :
     QMainWindow(parent),
     ui(new Ui::NexusAsset),
@@ -35,21 +35,20 @@ NexusAsset::NexusAsset(
     this->nexus_plot = ui->widget;
     this->nexus_plot->load_asset(this);
 
-    // Set the size policy to occupy 65% of the available width
-    QSizePolicy sizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
-    sizePolicy.setHorizontalStretch(55); // Set the horizontal stretch factor
-    this->nexus_plot->setSizePolicy(sizePolicy);
+    QSplitter* splitter = new QSplitter(Qt::Horizontal, centralWidget);
+    layout->addWidget(splitter);
 
-    QSplitter* splitter = new QSplitter(Qt::Vertical);
-    QSplitterHandle* handle = splitter->handle(1);
-    QFrame* line = new QFrame(handle);
-    line->setFrameShape(QFrame::HLine);
-    line->setFrameShadow(QFrame::Sunken);
+    // Add the NexusPlot widget and table widget to the splitter
+    splitter->addWidget(this->nexus_plot);
+    splitter->addWidget(scrollArea);
 
-    // Add the NexusPlot widget and table widget to the layout
-    layout->addWidget(this->nexus_plot);
-    layout->addWidget(line);
-    layout->addWidget(scrollArea);
+    // Set the stretch factors for the widgets
+    layout->setStretchFactor(this->nexus_plot, 1); // Make the NexusPlot widget expand with available space
+    layout->setStretchFactor(scrollArea, 1); // Make the scrollArea expand with available space
+
+    this->nexus_plot->plotLayout()->insertRow(0);
+    QCPTextElement* title = new QCPTextElement(this->nexus_plot, this->asset->get_asset_id().c_str(), QFont("sans", 17, QFont::Bold));
+    this->nexus_plot->plotLayout()->addElement(0, 0, title);
 
     // Set the layout for the central widget
     centralWidget->setLayout(layout);
@@ -57,11 +56,10 @@ NexusAsset::NexusAsset(
 
 void NexusAsset::load_asset_data()
 {
-    auto asset_lock = this->asset->read().unwrap();
-    this->dt_index = asset_lock->__get_dt_index();
-    this->dt_index_str = asset_lock->__get_dt_index_str();
-    this->data = asset_lock->__get__data();
-    this->column_names = asset_lock->get_column_names();
+    this->dt_index = asset->__get_dt_index();
+    this->dt_index_str = asset->__get_dt_index_str();
+    this->data = asset->__get__data();
+    this->column_names = asset->get_column_names();
 
     // Create the model
     QStandardItemModel* model = new QStandardItemModel(this);
@@ -84,12 +82,12 @@ void NexusAsset::load_asset_data()
 
 
     // Set the data in the model
-    for (int i = 0; i < rows; ++i) {
-        auto row = this->data.row(i);
-        for (int j = 0; j < columns; ++j) {
-            double value = row[j];
+    for (int i = 0; i < columns; ++i) {
+        auto col = this->data.column(i);
+        for (int j = 0; j < rows; ++j) {
+            double value = col[j];
             QStandardItem* item = new QStandardItem(QString::number(value));
-            model->setItem(i, j, item);
+            model->setItem(j, i, item);
         }
     }
 

@@ -42,13 +42,13 @@ public:
     NexusAsset(
         NexusEnv const* nexus_env,
         ads::CDockWidget* DockWidget,
-        SharedAssetLockPtr asset,
+        AssetPtr asset,
         QWidget* parent = nullptr
     );
 
     void load_asset_data();
 
-    std::string get_asset_id() const { return this->asset->read().unwrap()->get_asset_id(); }
+    std::string get_asset_id() const { return this->asset->get_asset_id(); }
     size_t get_column_index(std::string const& column_name);
 
     Ui::NexusAsset* ui;
@@ -57,7 +57,7 @@ public:
     QTableView* table_view;
 
     NexusEnv const* nexus_env;
-    SharedAssetLockPtr asset;
+    AssetPtr asset;
 
     std::vector<std::string> column_names;
     std::vector<std::string> dt_index_str;

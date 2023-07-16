@@ -1,5 +1,6 @@
 #pragma once
 
+#include <unordered_map>
 #include <QMainWindow>
 #include <QtWidgets/QDockWidget>
 #include <QComboBox>

@@ -71,6 +71,8 @@ void NexusTree::new_item_accepted(const QModelIndex& parentIndex, const QString&
     parentItem->appendRow(newItem);
 }
 
+
+//============================================================================
 void NexusTree::remove_item(const QModelIndex& index)
 {
     QStandardItemModel* model = qobject_cast<QStandardItemModel*>(this->model);
@@ -81,6 +83,8 @@ void NexusTree::remove_item(const QModelIndex& index)
     }
 }
 
+
+//============================================================================
 void NexusTree::remove_item_accepeted(const QModelIndex& index)
 {
     QStandardItemModel* model = qobject_cast<QStandardItemModel*>(this->model);
@@ -90,6 +94,8 @@ void NexusTree::remove_item_accepeted(const QModelIndex& index)
     parentItem->removeRow(item->row());
 }
 
+
+//============================================================================
 ExchangeTree::ExchangeTree(QWidget* parent, std::shared_ptr<Hydra> const hydra_) :
     NexusTree(parent),
     hydra(hydra_)

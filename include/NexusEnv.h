@@ -58,7 +58,7 @@ public:
 	void reset_trees();
 
 	std::shared_ptr<Hydra> const get_hydra() { return this->hydra; }
-	std::optional<std::shared_ptr<Asset>> const get_asset(std::string const& asset_id);
+	std::optional<AssetPtr> const get_asset(std::string const& asset_id);
 
 	NexusStatusCode new_exchange(
 		const std::string& exchange_id,

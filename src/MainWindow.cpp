@@ -112,7 +112,7 @@ MainWindow::MainWindow(QWidget* parent):
     connect(DockManager, &CDockManager::focusedDockWidgetChanged,
         this, &MainWindow::on_widget_focus);
 
-    setWindowTitle(tr("Hyperion"));
+    setWindowTitle(tr("Nexus"));
     setup_help_menu();
     setup_toolbar();
 
@@ -130,7 +130,15 @@ MainWindow::MainWindow(QWidget* parent):
     //ExchangesWidget->setFeature(ads::CDockWidget::DockWidgetMovable, false);
     ExchangesWidget->setFeature(ads::CDockWidget::DockWidgetClosable, false);
     container = this->DockManager->addAutoHideDockWidget(ads::SideBarLeft, ExchangesWidget);
-    container->setSize(300);
+    container->setSize(200);
+
+    // create exchanges widget
+    auto PortfoliosWidget = create_portfolios_widget();
+    PortfoliosWidget->setFeature(ads::CDockWidget::DockWidgetFloatable, false);
+    //ExchangesWidget->setFeature(ads::CDockWidget::DockWidgetMovable, false);
+    PortfoliosWidget->setFeature(ads::CDockWidget::DockWidgetClosable, false);
+    container = this->DockManager->addAutoHideDockWidget(ads::SideBarLeft, PortfoliosWidget);
+    container->setSize(200);
 
     create_perspective_ui();
     applyVsStyle();
@@ -162,6 +170,56 @@ ads::CDockWidget* MainWindow::create_console_widget()
 
     return DockWidget;
 }
+
+
+//============================================================================
+ads::CDockWidget* MainWindow::create_portfolios_widget()
+{
+    static int exchanges_widgets_counter = 0;
+
+    PortfolioTree* w = new PortfolioTree(this, this->nexus_env.get_hydra());
+    this->nexus_env.new_tree(w);
+    this->portfolio_tree = w;
+
+    // Signal that requests new portfolio
+    QObject::connect(
+        w,
+        SIGNAL(new_item_requested(QModelIndex, QString, QString)),
+        this,
+        SLOT(on_new_portfolio_request(QModelIndex, QString, QString))
+    );
+    // Signal to accept new portfolio
+    QObject::connect(
+        this,
+        SIGNAL(new_portfolio_accepeted(QModelIndex, QString)),
+        w,
+        SLOT(new_item_accepted(QModelIndex, QString))
+    );
+    // Signal to request removal of portfolio
+    QObject::connect(
+        w,
+        SIGNAL(remove_item_requested(QString, QModelIndex)),
+        this,
+        SLOT(on_remove_portfolio_request(QString, QModelIndex))
+    );
+    // Signal to accept removal of portfolio
+    QObject::connect(
+        this,
+        SIGNAL(remove_portfolio_accepted(QModelIndex)),
+        w,
+        SLOT(remove_item_accepeted(QModelIndex))
+    );
+
+    ads::CDockWidget* DockWidget = new ads::CDockWidget(QString("Portfolios")
+        .arg(exchanges_widgets_counter++));
+    DockWidget->setWidget(w);
+    DockWidget->setIcon(svgIcon("./images/piechart.png"));
+
+    DockWidget->set_widget_type(WidgetType::Portfolios);
+    w->setFocusPolicy(Qt::NoFocus);
+    return DockWidget;
+}
+
 
 //============================================================================
 ads::CDockWidget* MainWindow::create_exchanges_widget()
@@ -211,7 +269,7 @@ ads::CDockWidget* MainWindow::create_exchanges_widget()
     ads::CDockWidget* DockWidget = new ads::CDockWidget(QString("Exchanges")
         .arg(exchanges_widgets_counter++));
     DockWidget->setWidget(w);
-    DockWidget->setIcon(svgIcon("./images/exchange.svg"));
+    DockWidget->setIcon(svgIcon("./images/exchange.png"));
     DockWidget->set_widget_type(WidgetType::Exchanges);
 
     w->setFocusPolicy(Qt::NoFocus);
@@ -471,6 +529,8 @@ void MainWindow::save_state()
     this->nexus_env.save_env(j);
 }
 
+
+//============================================================================
 std::optional<fs::path> get_editor_by_id(nlohmann::json const& open_editors, int id)
 {
     for (const auto& editor : open_editors)
@@ -652,6 +712,27 @@ void MainWindow::on_actionRestoreState_triggered(bool)
     restore_state();
 }
 
+
+//============================================================================
+void MainWindow::on_new_portfolio_request(
+    const QModelIndex& parentIndex,
+    const QString& portfolio_id,
+    const QString& starting_casj)
+{
+    auto res = this->nexus_env.new_portfolio(
+        portfolio_id.toStdString(),
+        starting_casj.toStdString()
+    );
+    if (res != NexusStatusCode::Ok)
+    {
+        QMessageBox::critical(this, "Error", "Failed to create exchange");
+    }
+    else
+    {
+        emit new_portfolio_accepeted(parentIndex, portfolio_id);
+    }
+}
+
 //============================================================================
 void MainWindow::on_new_exchange_request(const QModelIndex& parentIndex, 
     const QString& exchange_id,
@@ -674,6 +755,18 @@ void MainWindow::on_new_exchange_request(const QModelIndex& parentIndex,
     }
 }
 
+
+//============================================================================
+void MainWindow::on_remove_portfolio_request(const QString& name, const QModelIndex& parentIndex)
+{
+    auto res = this->nexus_env.remove_portfolio(name.toStdString());
+    if (res != NexusStatusCode::Ok)
+    {
+        QMessageBox::critical(this, "Error", "Failed to remove portfolio");
+    }
+    else { emit remove_portfolio_accepted(parentIndex); }
+}
+
 //============================================================================
 void MainWindow::on_remove_exchange_request(const QString& name, const QModelIndex& parentIndex)
 {
@@ -682,10 +775,7 @@ void MainWindow::on_remove_exchange_request(const QString& name, const QModelInd
     {
         QMessageBox::critical(this, "Error", "Failed to remove exchange");
     }
-    else
-    {
-        emit remove_exchange_accepted(parentIndex);
-    }
+    else { emit remove_exchange_accepted(parentIndex);}
 }
 
 //============================================================================

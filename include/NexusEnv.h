@@ -66,6 +66,12 @@ public:
 		const std::string& freq,
 		const std::string& dt_format
 	);
+	NexusStatusCode new_portfolio(
+		const std::string& portfolio_id,
+		const std::string& starting_cash
+	);
+
 	NexusStatusCode remove_exchange(const std::string& name);
+	NexusStatusCode remove_portfolio(const std::string& name);
 
 };

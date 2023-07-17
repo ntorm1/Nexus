@@ -42,6 +42,7 @@ enum class WidgetType {
     Asset,
     Editor,
     Exchanges,
+    Portfolios,
     FileTree
 };
 

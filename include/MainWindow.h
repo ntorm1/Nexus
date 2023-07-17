@@ -36,6 +36,14 @@ public:
 public slots:
     void about();
 
+
+signals:
+    void new_exchange_accepted(const QModelIndex& parentIndex, const QString& name);
+    void new_portfolio_accepeted(const QModelIndex& parentIndex, const QString& name);
+    void remove_exchange_accepted(const QModelIndex& parentIndex);
+    void remove_portfolio_accepted(const QModelIndex& parentIndex);
+
+
 private slots:
     void save_perspective();
     void create_editor();
@@ -44,11 +52,18 @@ private slots:
     void on_actionSaveState_triggered(bool);
     void on_actionRestoreState_triggered(bool);
 
+    void on_new_portfolio_request(const QModelIndex& parentIndex,
+        const QString& portfolio_id,
+        const QString& starting_casj
+    );
     void on_new_exchange_request(const QModelIndex& parentIndex,
         const QString& exchange_id,
         const QString& source,
         const QString& freq,
-        const QString& dt_format);
+        const QString& dt_format
+    );
+
+    void on_remove_portfolio_request(const QString& name, const QModelIndex& parentIndex);
     void on_remove_exchange_request(const QString& name, const QModelIndex& parentIndex);
     void on_new_asset_window_request(const QString& name);
 
@@ -83,19 +98,19 @@ private:
     NexusEnv                nexus_env;
     Ui::MainWindow*         ui;
     ExchangeTree*           exchange_tree;
+    PortfolioTree*          portfolio_tree;
 
     NexusDockManager*      DockManager;
     ads::CDockAreaWidget*   StatusDockArea;
     ads::CDockWidget*       TimelineDockWidget;
 
-signals:
-    void new_exchange_accepted(const QModelIndex& parentIndex, const QString& name);
-    void remove_exchange_accepted(const QModelIndex& parentIndex);
+
 
 public:
     ads::CDockWidget* create_console_widget();
     ads::CDockWidget* create_editor_widget();
     ads::CDockWidget* create_exchanges_widget();
+    ads::CDockWidget* create_portfolios_widget();
     ads::CDockWidget* create_file_system_tree_widget();
     ads::CDockWidget* create_asset_widget(const QString& asset_id);
 };

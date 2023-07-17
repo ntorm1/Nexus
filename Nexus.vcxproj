@@ -142,6 +142,7 @@
     <ClCompile Include="src\MainWindow.cpp" />
     <ClCompile Include="src\main.cpp" />
     <QtUic Include="ui\NewExchangePopup.ui" />
+    <QtUic Include="ui\NewPortfolioPopup.ui" />
     <QtUic Include="ui\NexusAsset.ui" />
   </ItemGroup>
   <ItemGroup>

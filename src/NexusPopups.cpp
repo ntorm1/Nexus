@@ -4,11 +4,55 @@
 
 #include "NexusPopups.h"
 #include "ui_NewExchangePopup.h"
+#include "ui_NewPortfolioPopup.h"
 
 bool isValidDirectory(const std::string& path)
 {
     std::filesystem::path directoryPath(path);
     return std::filesystem::is_directory(directoryPath);
+}
+
+
+NewPortfolioPopup::NewPortfolioPopup(QWidget* parent) :
+    QDialog(parent),
+    ui(new Ui::NewPortfolioPopup)
+{
+    ui->setupUi(this);
+
+    connect(ui->submit_button, &QPushButton::clicked, this, &NewPortfolioPopup::on_submit);
+
+}
+
+
+NewPortfolioPopup::~NewPortfolioPopup()
+{
+    delete ui;
+}
+
+
+QString NewPortfolioPopup::get_portfolio_id() const
+{
+    return ui->portfolio_id->text();
+}
+
+QString NewPortfolioPopup::get_starting_cash() const
+{
+    return ui->starting_cash->text();
+}
+
+void NewPortfolioPopup::on_submit()
+{
+    if (this->get_portfolio_id().isEmpty())
+    {
+        QMessageBox::critical(this, "Error", "Missing portfolio ID");
+        return;
+    }
+    if (this->get_starting_cash().isEmpty())
+    {
+        QMessageBox::critical(this, "Error", "Missing starting cash");
+        return;
+    }
+    QDialog::accept();
 }
 
 NewExchangePopup::NewExchangePopup(QWidget* parent) :
@@ -39,11 +83,11 @@ void NewExchangePopup::on_submit()
         QMessageBox::critical(this, "Error", "Missing source");
         return;
     }
-    if (!isValidDirectory(this->get_source().toStdString()))
-    {
-        QMessageBox::critical(this, "Error", "Invlaid Dir");
-        return;
-    }
+    //if (!isValidDirectory(this->get_source().toStdString()))
+    //{
+    //    QMessageBox::critical(this, "Error", "Invlaid Dir");
+    //    return;
+    //}
     QDialog::accept();
 }
 

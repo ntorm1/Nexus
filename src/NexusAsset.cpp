@@ -42,9 +42,11 @@ NexusAsset::NexusAsset(
     splitter->addWidget(this->nexus_plot);
     splitter->addWidget(scrollArea);
 
-    // Set the stretch factors for the widgets
-    layout->setStretchFactor(this->nexus_plot, 1); // Make the NexusPlot widget expand with available space
-    layout->setStretchFactor(scrollArea, 1); // Make the scrollArea expand with available space
+    // Calculate the initial size for the NexusPlot widget (e.g., 65% of the total size)
+    int initialNexusPlotWidth = centralWidget->width() * 0.65;
+
+    // Set the sizes for the widgets in the splitter
+    splitter->setSizes({ initialNexusPlotWidth, centralWidget->width() - initialNexusPlotWidth });
 
     this->nexus_plot->plotLayout()->insertRow(0);
     QCPTextElement* title = new QCPTextElement(this->nexus_plot, this->asset->get_asset_id().c_str(), QFont("sans", 17, QFont::Bold));

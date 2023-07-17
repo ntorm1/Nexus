@@ -11,6 +11,7 @@ enum CustomRoles {
 
 NexusTree::NexusTree(QWidget* parent) : QTreeView(parent)
 {
+    this->model = new QStandardItemModel(this);
 }
 
 void NexusTree::reset_tree()
@@ -96,6 +97,131 @@ void NexusTree::remove_item_accepeted(const QModelIndex& index)
 
 
 //============================================================================
+json NexusTree::to_json() const
+{
+    // Save the state of the tree to json
+    json j;
+    auto root_index = this->root->index();
+    j["root_expanded"] = this->isExpanded(root_index);
+
+    int rowCount = root_index.model()->rowCount(root_index);
+
+    for (int i = 0; i < rowCount; i++)
+    {
+        QModelIndex childIndex = root_index.model()->index(i, 0, root_index);
+        QModelIndex parentIndex = childIndex.parent();
+        const QAbstractItemModel* abstractModel = parentIndex.model();
+        const QStandardItemModel* parent_model = static_cast<const QStandardItemModel*>(abstractModel);
+        QStandardItem* childItem = parent_model->itemFromIndex(childIndex);
+        j[childItem->text().toStdString()] = this->isExpanded(childIndex);
+    }
+    return j;
+}
+
+
+//============================================================================
+PortfolioTree::PortfolioTree(QWidget* parent, std::shared_ptr<Hydra> const hydra_) :
+    NexusTree(parent),
+    hydra(hydra_)
+{
+    this->setObjectName("Portfolios");
+    QStandardItem* rootItem = this->model->invisibleRootItem();
+    this->root = new QStandardItem("Portfolios");
+    this->root->setEditable(false);
+    this->root->setData(QVariant::fromValue(rootItem), ParentItemRole);  // Set the parent item using custom role
+    rootItem->appendRow(this->root);
+
+    this->setModel(model);
+}
+
+
+//============================================================================
+void PortfolioTree::restore_tree(json const& j)
+{
+    json const& portfolios = j["portfolios"];
+    json const& portfolios_expanded = j["trees"][this->objectName().toStdString()];
+
+    // Is the root exchanges element expanded?
+    QModelIndex itemIndex = root->index();
+    if (portfolios_expanded["root_expanded"])
+    {
+        this->setExpanded(itemIndex, true);
+    }
+
+    for (const auto& portfolio : portfolios.items())
+    {
+        QString id = QString::fromStdString(portfolio.key());
+        QStandardItem* newItem = new QStandardItem(id);
+
+        // Set exchange tree item flags. Can not edit or create child exchanges (TODO)
+        Qt::ItemFlags rootFlags = newItem->flags();
+        rootFlags &= ~Qt::ItemIsDropEnabled;  // Remove the drop enabled flag
+        newItem->setFlags(rootFlags);
+        newItem->setEditable(false);
+        newItem->setData(QVariant::fromValue(root), ParentItemRole);  // Set the parent item using custom role
+
+        root->appendRow(newItem);
+        this->restore_strategies(newItem, id);
+
+        // Is the element expanded?
+        QModelIndex itemIndex = newItem->index();
+        if (portfolios_expanded[id.toStdString()])
+        {
+            this->setExpanded(itemIndex, true);
+        }
+    }
+}
+
+
+//============================================================================
+void PortfolioTree::create_new_item(const QModelIndex& parentIndex)
+{
+    NewPortfolioPopup* popup = new NewPortfolioPopup();
+    if (popup->exec() == QDialog::Accepted)
+    {
+        auto portfolio_id = popup->get_portfolio_id();
+        auto starting_cash = popup->get_starting_cash();
+
+        // Send signal to main window asking to create the new item
+        emit new_item_requested(parentIndex, portfolio_id, starting_cash);
+    }
+}
+
+
+//============================================================================
+void PortfolioTree::new_item_accepted(const QModelIndex& parentIndex, const QString& name)
+{
+    NexusTree::new_item_accepted(parentIndex, name);
+
+    QStandardItem* parentItem = model->itemFromIndex(parentIndex);
+    QStandardItem* addedItem = parentItem->child(parentItem->rowCount() - 1);
+
+    this->restore_strategies(addedItem, name);
+}
+
+
+//============================================================================
+void PortfolioTree::restore_strategies(QStandardItem* addedItem, QString portfolio_id)
+{
+    auto& portfolio = this->hydra->get_portfolio(portfolio_id.toStdString());
+    auto strategy_ids = portfolio->get_strategy_ids();
+
+    // Generate tree item for each asset listed on the exchange
+    for (auto const& strategy_id : strategy_ids)
+    {
+        auto q_id = QString::fromStdString(strategy_id);
+        QStandardItem* newItem = new QStandardItem(q_id);
+        Qt::ItemFlags rootFlags = newItem->flags();
+        rootFlags &= ~Qt::ItemIsDropEnabled;  // Remove the drop enabled flag
+        newItem->setFlags(rootFlags);
+        newItem->setEditable(false);
+        newItem->setData(QVariant::fromValue(addedItem), ParentItemRole);  // Set the parent item using custom role
+        addedItem->appendRow(newItem);
+    }
+}
+
+
+//============================================================================
 ExchangeTree::ExchangeTree(QWidget* parent, std::shared_ptr<Hydra> const hydra_) :
     NexusTree(parent),
     hydra(hydra_)
@@ -103,9 +229,7 @@ ExchangeTree::ExchangeTree(QWidget* parent, std::shared_ptr<Hydra> const hydra_)
     this->setObjectName("Exchanges");
     connect(this, &NexusTree::customContextMenuRequested, this, &NexusTree::handle_new_item_action);
 
-    this->model = new QStandardItemModel(this);
     QStandardItem* rootItem = this->model->invisibleRootItem();
-
     this->root = new QStandardItem("Exchanges");
     this->root->setEditable(false);
     this->root->setData(QVariant::fromValue(rootItem), ParentItemRole);  // Set the parent item using custom role
@@ -114,6 +238,8 @@ ExchangeTree::ExchangeTree(QWidget* parent, std::shared_ptr<Hydra> const hydra_)
     this->setModel(model);
 }
 
+
+//============================================================================
 void ExchangeTree::contextMenuEvent(QContextMenuEvent* event) {
     // If index is an exchange disable the context menu from popping up
     QModelIndex index = indexAt(event->pos());
@@ -128,6 +254,8 @@ void ExchangeTree::contextMenuEvent(QContextMenuEvent* event) {
     NexusTree::contextMenuEvent(event);
 }
 
+
+//============================================================================
 void ExchangeTree::new_item_accepted(const QModelIndex& parentIndex, const QString& name)
 {
     NexusTree::new_item_accepted(parentIndex, name);
@@ -138,6 +266,8 @@ void ExchangeTree::new_item_accepted(const QModelIndex& parentIndex, const QStri
     this->restore_ids(addedItem, name);
 }
 
+
+//============================================================================
 void ExchangeTree::mouseDoubleClickEvent(QMouseEvent* event)
 {
     QModelIndex index = indexAt(event->pos());
@@ -156,6 +286,8 @@ void ExchangeTree::mouseDoubleClickEvent(QMouseEvent* event)
     QTreeView::mouseDoubleClickEvent(event);
 }
 
+
+//============================================================================
 void ExchangeTree::restore_ids(QStandardItem* addedItem, QString exchange_id)
 {
     auto asset_ids = this->hydra->get_asset_ids(exchange_id.toStdString());
@@ -174,6 +306,8 @@ void ExchangeTree::restore_ids(QStandardItem* addedItem, QString exchange_id)
     }
 }
 
+
+//============================================================================
 void ExchangeTree::create_new_item(const QModelIndex& parentIndex)
 {
     NewExchangePopup* popup = new NewExchangePopup();
@@ -188,27 +322,8 @@ void ExchangeTree::create_new_item(const QModelIndex& parentIndex)
     }
 }
 
-json ExchangeTree::to_json() const
-{
-    // Save the state of the tree to json
-    json j;
-    auto root_index = this->root->index();
-    j["root_expanded"] = this->isExpanded(root_index);
 
-    int rowCount = root_index.model()->rowCount(root_index);
-
-    for (int i = 0; i < rowCount; i++)
-    {
-        QModelIndex childIndex = root_index.model()->index(i,0,root_index);
-        QModelIndex parentIndex = childIndex.parent();
-        const QAbstractItemModel* abstractModel = parentIndex.model();
-        const QStandardItemModel* parent_model = static_cast<const QStandardItemModel*>(abstractModel);
-        QStandardItem* childItem = parent_model->itemFromIndex(childIndex);
-        j[childItem->text().toStdString()] = this->isExpanded(childIndex);
-    }
-    return j;
-}
-
+//============================================================================
 void ExchangeTree::restore_tree(json const& j)
 {
     json const& exchanges = j["exchanges"];
@@ -244,3 +359,4 @@ void ExchangeTree::restore_tree(json const& j)
         }
     }
 }
+

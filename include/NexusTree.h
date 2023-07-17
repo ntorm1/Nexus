@@ -20,7 +20,7 @@ public:
     explicit NexusTree(QWidget* parent = nullptr);
     void reset_tree();
     virtual void restore_tree(json const& j) = 0;
-    virtual json to_json() const = 0;
+    virtual json to_json() const;
 
 protected:
     virtual void contextMenuEvent(QContextMenuEvent* event) override;
@@ -28,6 +28,7 @@ protected:
     void remove_item(const QModelIndex& parentIndex);
 
     QStandardItemModel* model;
+    QStandardItem* root;
 
 public slots:
     void handle_new_item_action();
@@ -39,40 +40,46 @@ signals:
 };
 
 
-class DoubleClickEventFilter : public QObject
+class PortfolioTree : public NexusTree
 {
     Q_OBJECT
 
 public:
-    explicit DoubleClickEventFilter(QObject* parent = nullptr)
-        : QObject(parent)
-    {
-    }
+    explicit PortfolioTree(QWidget* parent, std::shared_ptr<Hydra> const hydra);
+    void restore_tree(json const& j) override;
+    void restore_strategies(QStandardItem* addedItem, QString portfolio_id);
 
-    bool eventFilter(QObject* obj, QEvent* event) override
-    {
-        if (event->type() == QEvent::MouseButtonDblClick)
-        {
-            QMouseEvent* mouseEvent = static_cast<QMouseEvent*>(event);
-            if (mouseEvent->button() == Qt::LeftButton)
-            {
-                // Double-click occurred, emit signal with the item name
-                emit itemDoubleClicked(obj->objectName());
-                return true;  // Consume the event
-            }
-        }
-        return false;  // Let the event propagate further
-    }
+private:
+    /// <summary>
+    /// Create a new exchange from params using the popup window
+    /// </summary>
+    /// <param name="parentIndex"></param>
+    virtual void create_new_item(const QModelIndex& parentIndex) override;
+
+    /// <summary>
+    /// Parent hydra instance
+    /// </summary>
+    std::shared_ptr<Hydra> const hydra;
 
 signals:
-    void itemDoubleClicked(const QString& itemName);
-};
+    void new_item_requested(const QModelIndex& parentIndex,
+        const QString& portfolio_id,
+        const QString& starting_cash
+    );
 
+public slots:
+    void new_item_accepted(const QModelIndex& parentIndex, const QString& name) override;
+};
 
 //============================================================================
 class ExchangeTree : public NexusTree
 {
     Q_OBJECT
+
+public:
+    explicit ExchangeTree(QWidget* parent, std::shared_ptr<Hydra> const hydra);
+    void restore_tree(json const& j) override;
+    void restore_ids(QStandardItem* newItem, QString exchange_id);
 
 protected:
     void mouseDoubleClickEvent(QMouseEvent* event) override;
@@ -84,8 +91,10 @@ private:
     /// <param name="parentIndex"></param>
     virtual void create_new_item(const QModelIndex& parentIndex) override;
     void contextMenuEvent(QContextMenuEvent* event) override;
-    
-    QStandardItem* root;
+
+    /// <summary>
+    /// Parent hydra instance
+    /// </summary>
     std::shared_ptr<Hydra> const hydra;
 
 signals:
@@ -99,10 +108,4 @@ signals:
 
 public slots:
     void new_item_accepted(const QModelIndex& parentIndex, const QString& name) override;
-
-public:
-    explicit ExchangeTree(QWidget* parent, std::shared_ptr<Hydra> const hydra);
-    void restore_tree(json const& j) override;
-    json to_json() const;
-    void restore_ids(QStandardItem* newItem, QString exchange_id);
 };

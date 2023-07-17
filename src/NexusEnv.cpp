@@ -3,11 +3,14 @@
 #include "NexusEnv.h"
 
 
+//============================================================================
 NexusEnv::NexusEnv()
 {
 	this->hydra = std::make_shared<Hydra>();
 }
 
+
+//============================================================================
 void NexusEnv::load_env(std::string const& exe_path_, std::string const & env_name_)
 {
 	this->env_name = env_name_;
@@ -28,16 +31,22 @@ void NexusEnv::load_env(std::string const& exe_path_, std::string const & env_na
 	}
 }
 
+
+//============================================================================
 void NexusEnv::new_editor(TextEdit* new_editor)
 {
 	this->open_editors.push_back(new_editor);
 }
 
+
+//============================================================================
 void NexusEnv::new_tree(NexusTree* new_tree)
 {
 	this->open_trees.push_back(new_tree);
 }
 
+
+//============================================================================
 void NexusEnv::reset_trees()
 {
 	for (auto& tree : this->open_trees)
@@ -46,6 +55,8 @@ void NexusEnv::reset_trees()
 	}
 }
 
+
+//============================================================================
 bool NexusEnv::editor_open(QString const& file)
 {
 	for (auto editor : this->open_editors)
@@ -58,6 +69,8 @@ bool NexusEnv::editor_open(QString const& file)
 	return false;
 }
 
+
+//============================================================================
 std::optional<TextEdit*> NexusEnv::get_editor(QString const& file_name) const
 {
 	auto it = std::find_if(open_editors.begin(), open_editors.end(), [&](TextEdit* w) {
@@ -72,6 +85,8 @@ std::optional<TextEdit*> NexusEnv::get_editor(QString const& file_name) const
 	}
 }
 
+
+//============================================================================
 void NexusEnv::remove_editor(QString const& file_name)
 {
 	auto it = std::find_if(open_editors.begin(), open_editors.end(), [&](TextEdit* w) {
@@ -87,11 +102,15 @@ void NexusEnv::remove_editor(QString const& file_name)
 	}
 }
 
+
+//============================================================================
 std::optional<std::shared_ptr<Asset>> const NexusEnv::get_asset(std::string const& asset_id)
 {
 	return this->hydra->get_asset(asset_id);
 }
 
+
+//============================================================================
 NexusStatusCode NexusEnv::new_exchange(
 	const std::string& exchange_id,
 	const std::string& source,
@@ -109,12 +128,37 @@ NexusStatusCode NexusEnv::new_exchange(
 
 }
 
+
+//============================================================================
+NexusStatusCode NexusEnv::new_portfolio(const std::string& portfolio_id, const std::string& starting_cash)
+{
+	double result;
+	try {
+		result = std::stod(starting_cash);
+	}
+	catch (const std::invalid_argument& e) {
+		return NexusStatusCode::InvalidArgument;
+	}
+	this->hydra->new_portfolio(portfolio_id, result);
+	return NexusStatusCode::Ok;
+}
+
+
+//============================================================================
 NexusStatusCode NexusEnv::remove_exchange(const std::string& name)
 {
 	qDebug() << "Removing exchange: " << name;
 	return this->hydra->remove_exchange(name);
 }
 
+NexusStatusCode NexusEnv::remove_portfolio(const std::string& name)
+{
+	qDebug() << "Removing exchange: " << name;
+	return this->hydra->remove_portfolio(name);
+}
+
+
+//============================================================================
 void NexusEnv::clear()
 {
 	this->remove_editors();
@@ -122,6 +166,8 @@ void NexusEnv::clear()
 	this->hydra->clear();
 }
 
+
+//============================================================================
 void NexusEnv::restore(json const& j)
 {
 	this->hydra->restore(j);
@@ -132,6 +178,8 @@ void NexusEnv::restore(json const& j)
 	}
 }
 
+
+//============================================================================
 bool NexusEnv::save_env(json& j)
 {
 	qDebug() << "Saving environemnt...";

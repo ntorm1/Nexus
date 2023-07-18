@@ -145,6 +145,32 @@ NexusStatusCode NexusEnv::new_portfolio(const std::string& portfolio_id, const s
 
 
 //============================================================================
+NexusStatusCode NexusEnv::new_strategy(
+	const std::string& portfolio_id,
+	const std::string& strategy_id,
+	const std::string& allocation)
+{
+	double result;
+	try {
+		result = std::stod(allocation);
+	}
+	catch (const std::invalid_argument& e) {
+		return NexusStatusCode::InvalidArgument;
+	}
+	
+	auto& portfolio = this->hydra->get_portfolio(portfolio_id);
+	auto strategy = std::make_unique<AbstractAgisStrategy>(
+		portfolio,
+		strategy_id,
+		result
+	);
+	this->hydra->register_strategy(std::move(strategy));
+
+	return NexusStatusCode::Ok;
+}
+
+
+//============================================================================
 NexusStatusCode NexusEnv::remove_exchange(const std::string& name)
 {
 	qDebug() << "Removing exchange: " << name;

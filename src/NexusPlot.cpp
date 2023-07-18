@@ -196,11 +196,12 @@ void NexusPlot::plot(StridedPointer<long long> x, StridedPointer<double> y, std:
 	QVector<QCPGraphData> timeData(x.size());
 	for (int i = 0; i < x.size(); i++)
 	{
-		timeData[i].key = x[i] / static_cast<double>(1000000000);
+		//timeData[i].key = x[i] / static_cast<double>(1000000000);
+		timeData[i].key = i;
 		timeData[i].value = y[i];
 	}
 
-	this->graph()->data()->set(timeData);
+	this->graph()->data()->set(timeData, true);
 	this->rescaleAxes();
 	QPen graphPen;
 	graphPen.setColor(QColor(std::rand() % 245 + 10, std::rand() % 245 + 10, std::rand() % 245 + 10));

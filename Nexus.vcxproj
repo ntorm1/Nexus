@@ -65,17 +65,19 @@
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
-      <AdditionalIncludeDirectories>C:\Users\natha\OneDrive\Desktop\C++\AgisCore;C:\Users\natha\OneDrive\Desktop\C++\Nexus\include;C:\Users\natha\OneDrive\Desktop\C++\Nexus\ads;C:\Users\natha\OneDrive\Desktop\C++\Nexus\src\octave-gui;C:\Users\natha\OneDrive\Desktop\C++\external\qcustomplot;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Users\natha\OneDrive\Desktop\C++\external\nodeeditor\include;C:\Users\natha\OneDrive\Desktop\C++\AgisCore;C:\Users\natha\OneDrive\Desktop\C++\Nexus\include;C:\Users\natha\OneDrive\Desktop\C++\Nexus\ads;C:\Users\natha\OneDrive\Desktop\C++\external\qcustomplot;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>$(Qt_DEFINES_);%(PreprocessorDefinitions);NODE_EDITOR_SHARED</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <AdditionalDependencies>ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>C:\Users\natha\OneDrive\Desktop\C++\external\nodeeditor\out\build\x64-Release\bin;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
-      <AdditionalIncludeDirectories>C:\Users\natha\OneDrive\Desktop\C++\AgisCore;C:\Users\natha\OneDrive\Desktop\C++\Nexus\include;C:\Users\natha\OneDrive\Desktop\C++\Nexus\ads;C:\Users\natha\OneDrive\Desktop\C++\external\qcustomplot;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Users\natha\OneDrive\Desktop\C++\external\nodeeditor\out\build\x64-Release\include;C:\Users\natha\OneDrive\Desktop\C++\AgisCore;C:\Users\natha\OneDrive\Desktop\C++\Nexus\include;C:\Users\natha\OneDrive\Desktop\C++\Nexus\ads;C:\Users\natha\OneDrive\Desktop\C++\external\qcustomplot;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp20</LanguageStandard>
+      <PreprocessorDefinitions>$(Qt_DEFINES_);%(PreprocessorDefinitions);NODE_EDITOR_SHARED</PreprocessorDefinitions>
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'" Label="Configuration">
@@ -129,6 +131,7 @@
     <ClCompile Include="src\NexusAsset.cpp" />
     <ClCompile Include="src\NexusDockManager.cpp" />
     <ClCompile Include="src\NexusEnv.cpp" />
+    <ClCompile Include="src\NexusNode.cpp" />
     <ClCompile Include="src\NexusPlot.cpp" />
     <ClCompile Include="src\NexusPopups.cpp" />
     <ClCompile Include="src\QTerminal.cpp" />
@@ -144,6 +147,7 @@
     <QtUic Include="ui\NewExchangePopup.ui" />
     <QtUic Include="ui\NewPortfolioPopup.ui" />
     <QtUic Include="ui\NexusAsset.ui" />
+    <QtUic Include="ui\NexusNodeEditor.ui" />
   </ItemGroup>
   <ItemGroup>
     <QtMoc Include="include\CodeEditor.h" />
@@ -238,6 +242,7 @@
     <ClInclude Include="ads\DockingStateReader.h" />
     <ClInclude Include="ads\IconProvider.h" />
     <ClInclude Include="include\NexusDockManager.h" />
+    <QtMoc Include="include\NexusNode.h" />
     <ClInclude Include="include\NexusPch.h" />
     <QtMoc Include="QCustomPlot\qcustomplot.h" />
     <QtMoc Include="include\NexusPlot.h" />

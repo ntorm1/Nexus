@@ -49,12 +49,29 @@ public:
     void restore_tree(json const& j) override;
     void restore_strategies(QStandardItem* addedItem, QString portfolio_id);
 
+protected:
+    void mouseDoubleClickEvent(QMouseEvent* event) override;
+
+
 private:
     /// <summary>
-    /// Create a new exchange from params using the popup window
+    /// Create a new Portfolio from params using the popup window
     /// </summary>
     /// <param name="parentIndex"></param>
     virtual void create_new_item(const QModelIndex& parentIndex) override;
+
+    /// <summary>
+    /// Create a new strategy underneath a portfolio
+    /// </summary>
+    /// <param name="parentIndex"></param>
+    void create_new_strategy(const QModelIndex& parentIndex);
+
+    /// <summary>
+    /// Override context menu event to prevent nested portfolios
+    /// </summary>
+    /// <param name="event"></param>
+    void contextMenuEvent(QContextMenuEvent* event) override;
+
 
     /// <summary>
     /// Parent hydra instance
@@ -62,8 +79,15 @@ private:
     std::shared_ptr<Hydra> const hydra;
 
 signals:
+    void strategy_double_clicked(const QString& asset_id);
+
     void new_item_requested(const QModelIndex& parentIndex,
         const QString& portfolio_id,
+        const QString& starting_cash
+    );
+    void new_strategy_requested(const QModelIndex& parentIndex,
+        const QString& portfolio_id,
+        const QString& strategy_id,
         const QString& starting_cash
     );
 
@@ -90,6 +114,11 @@ private:
     /// </summary>
     /// <param name="parentIndex"></param>
     virtual void create_new_item(const QModelIndex& parentIndex) override;
+    
+    /// <summary>
+    /// Override context menu event method to prevent nested exchange
+    /// </summary>
+    /// <param name="event"></param>
     void contextMenuEvent(QContextMenuEvent* event) override;
 
     /// <summary>

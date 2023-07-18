@@ -70,6 +70,11 @@ public:
 		const std::string& portfolio_id,
 		const std::string& starting_cash
 	);
+	NexusStatusCode new_strategy(
+		const std::string& portfolio_id,
+		const std::string& strategy_id,
+		const std::string& allocation
+	);
 
 	NexusStatusCode remove_exchange(const std::string& name);
 	NexusStatusCode remove_portfolio(const std::string& name);

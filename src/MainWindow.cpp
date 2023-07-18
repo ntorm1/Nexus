@@ -181,6 +181,20 @@ ads::CDockWidget* MainWindow::create_portfolios_widget()
     this->nexus_env.new_tree(w);
     this->portfolio_tree = w;
 
+    // Signal that requests new strategy
+    QObject::connect(
+        w,
+        SIGNAL(new_strategy_requested(QModelIndex, QString, QString, QString)),
+        this,
+        SLOT(on_new_strategy_requested(QModelIndex, QString, QString, QString))
+    );
+    // Signal that accepets new strategy
+    QObject::connect(
+        this,
+        SIGNAL(new_strategy_accepeted(QModelIndex, QString)),
+        w,
+        SLOT(new_item_accepted(QModelIndex, QString))
+    );
     // Signal that requests new portfolio
     QObject::connect(
         w,
@@ -208,6 +222,13 @@ ads::CDockWidget* MainWindow::create_portfolios_widget()
         SIGNAL(remove_portfolio_accepted(QModelIndex)),
         w,
         SLOT(remove_item_accepeted(QModelIndex))
+    );
+    // Signal to create new asset window
+    QObject::connect(
+        w,
+        SIGNAL(strategy_double_clicked(QString)),
+        this,
+        SLOT(on_new_node_editor_request(QString))
     );
 
     ads::CDockWidget* DockWidget = new ads::CDockWidget(QString("Portfolios")
@@ -717,19 +738,42 @@ void MainWindow::on_actionRestoreState_triggered(bool)
 void MainWindow::on_new_portfolio_request(
     const QModelIndex& parentIndex,
     const QString& portfolio_id,
-    const QString& starting_casj)
+    const QString& starting_cash)
 {
     auto res = this->nexus_env.new_portfolio(
         portfolio_id.toStdString(),
-        starting_casj.toStdString()
+        starting_cash.toStdString()
     );
-    if (res != NexusStatusCode::Ok)
-    {
-        QMessageBox::critical(this, "Error", "Failed to create exchange");
+    if (res != NexusStatusCode::Ok){
+        QMessageBox::critical(this, "Error", "Failed to create portfolio");
     }
     else
     {
         emit new_portfolio_accepeted(parentIndex, portfolio_id);
+    }
+}
+
+
+//============================================================================
+void MainWindow::on_new_strategy_requested(
+    const QModelIndex & parentIndex,
+    const QString& portfolio_id,
+    const QString& strategy_id,
+    const QString& allocation)
+{
+    qDebug() << "NEW STRATEGY REQUESTED";
+    auto res = this->nexus_env.new_strategy(
+        portfolio_id.toStdString(),
+        strategy_id.toStdString(),
+        allocation.toStdString()
+    );
+    if (res != NexusStatusCode::Ok) {
+        QMessageBox::critical(this, "Error", "Failed to create strategy");
+    }
+    else
+    {
+        qDebug() << "NEW STRATEGY ACCEPETED";
+        emit new_strategy_accepeted(parentIndex, strategy_id);
     }
 }
 
@@ -789,6 +833,11 @@ void MainWindow::on_new_asset_window_request(const QString& name)
     this->place_widget(DockWidget, sender());
 }
 
+void MainWindow::on_new_node_editor_request(const QString& name)
+{
+    qDebug() << "HERE";
+}
+
 //============================================================================
 void MainWindow::closeEvent(QCloseEvent* event)
 {
@@ -805,10 +854,16 @@ void MainWindow::closeEvent(QCloseEvent* event)
             return;
         };
     }
-    // Delete dock manager here to delete all floating widgets. This ensures
-    // that all top level windows of the dock manager are properly closed
-    DockManager->deleteLater();
-    QMainWindow::closeEvent(event);
+    else if (Result == QMessageBox::No) {
+        // Delete dock manager here to delete all floating widgets. This ensures
+        // that all top level windows of the dock manager are properly closed
+        DockManager->deleteLater();
+        QMainWindow::closeEvent(event);
+    }
+    else {
+        event->ignore();
+        return;
+    }
 }
 
 //============================================================================

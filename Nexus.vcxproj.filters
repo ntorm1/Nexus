@@ -139,6 +139,9 @@
     <ClCompile Include="QCustomPlot\qcustomplot.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\NexusNode.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <QtMoc Include="include\CodeEditor.h">
@@ -223,6 +226,9 @@
       <Filter>Header Files</Filter>
     </QtMoc>
     <QtMoc Include="QCustomPlot\qcustomplot.h">
+      <Filter>Header Files</Filter>
+    </QtMoc>
+    <QtMoc Include="include\NexusNode.h">
       <Filter>Header Files</Filter>
     </QtMoc>
   </ItemGroup>
@@ -366,6 +372,9 @@
       <Filter>Form Files</Filter>
     </QtUic>
     <QtUic Include="ui\NewPortfolioPopup.ui">
+      <Filter>Form Files</Filter>
+    </QtUic>
+    <QtUic Include="ui\NexusNodeEditor.ui">
       <Filter>Form Files</Filter>
     </QtUic>
   </ItemGroup>

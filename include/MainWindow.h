@@ -15,6 +15,7 @@
 #include "CodeEditor.h"
 #include "NexusEnv.h"
 #include "NexusAsset.h"
+#include "NexusNode.h"
 
 
 class NexusDockManager;
@@ -40,6 +41,7 @@ public slots:
 signals:
     void new_exchange_accepted(const QModelIndex& parentIndex, const QString& name);
     void new_portfolio_accepeted(const QModelIndex& parentIndex, const QString& name);
+    void new_strategy_accepeted(const QModelIndex& parentIndex, const QString& name);
     void remove_exchange_accepted(const QModelIndex& parentIndex);
     void remove_portfolio_accepted(const QModelIndex& parentIndex);
 
@@ -56,6 +58,11 @@ private slots:
         const QString& portfolio_id,
         const QString& starting_casj
     );
+    void on_new_strategy_requested(const QModelIndex& parentIndex,
+        const QString& portfolio_id,
+        const QString& strategy_id,
+        const QString& allocation
+    );
     void on_new_exchange_request(const QModelIndex& parentIndex,
         const QString& exchange_id,
         const QString& source,
@@ -66,6 +73,7 @@ private slots:
     void on_remove_portfolio_request(const QString& name, const QModelIndex& parentIndex);
     void on_remove_exchange_request(const QString& name, const QModelIndex& parentIndex);
     void on_new_asset_window_request(const QString& name);
+    void on_new_node_editor_request(const QString& name);
 
 
 protected:

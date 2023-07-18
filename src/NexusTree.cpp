@@ -53,6 +53,8 @@ void NexusTree::contextMenuEvent(QContextMenuEvent* event)
     }
 }
 
+
+//============================================================================
 void NexusTree::handle_new_item_action()
 {
     // This slot is connected to the triggered signal of the New Item action
@@ -61,6 +63,8 @@ void NexusTree::handle_new_item_action()
     contextMenuEvent(event);
 }
 
+
+//============================================================================
 void NexusTree::new_item_accepted(const QModelIndex& parentIndex, const QString& name)
 {
     // New item has been accepeted by the main window
@@ -189,6 +193,49 @@ void PortfolioTree::create_new_item(const QModelIndex& parentIndex)
 
 
 //============================================================================
+void PortfolioTree::create_new_strategy(const QModelIndex& parentIndex)
+{
+    QVariant itemData = parentIndex.data(Qt::DisplayRole);
+    QString itemName = itemData.toString();
+
+    emit new_strategy_requested(parentIndex, itemName, "test1", "1000.0");
+}
+
+
+//============================================================================
+void PortfolioTree::contextMenuEvent(QContextMenuEvent* event)
+{
+    QModelIndex index = this->indexAt(event->pos());
+    if (index.isValid())
+    {
+        QStandardItemModel* model = static_cast<QStandardItemModel*>(this->model);
+        QStandardItem* item = model->itemFromIndex(index);
+        if (item != this->root) {
+
+            QMenu menu(this);
+            QAction* addAction = new QAction("Add Strategy", this);
+            connect(addAction, &QAction::triggered, [this, index]() { create_new_strategy(index); });
+            menu.addAction(addAction);
+            menu.exec(event->globalPos());
+            return;
+        }
+        else {
+            QMenu menu(this);
+            QAction* addAction = new QAction("Add Item", this);
+            connect(addAction, &QAction::triggered, [this, index]() { create_new_item(index); });
+            menu.addAction(addAction);
+
+
+            QAction* removeAction = new QAction("Delete Item", this);
+            connect(removeAction, &QAction::triggered, [this, index]() { remove_item(index); });
+            menu.addAction(removeAction);
+            menu.exec(event->globalPos());
+        }
+    }
+}
+
+
+//============================================================================
 void PortfolioTree::new_item_accepted(const QModelIndex& parentIndex, const QString& name)
 {
     NexusTree::new_item_accepted(parentIndex, name);
@@ -196,14 +243,15 @@ void PortfolioTree::new_item_accepted(const QModelIndex& parentIndex, const QStr
     QStandardItem* parentItem = model->itemFromIndex(parentIndex);
     QStandardItem* addedItem = parentItem->child(parentItem->rowCount() - 1);
 
+    if (!this->hydra->portfolio_exists(name.toStdString())) { return; }
     this->restore_strategies(addedItem, name);
 }
 
 
 //============================================================================
-void PortfolioTree::restore_strategies(QStandardItem* addedItem, QString portfolio_id)
+void PortfolioTree::restore_strategies(QStandardItem* addedItem, QString id)
 {
-    auto& portfolio = this->hydra->get_portfolio(portfolio_id.toStdString());
+    auto& portfolio = this->hydra->get_portfolio(id.toStdString());
     auto strategy_ids = portfolio->get_strategy_ids();
 
     // Generate tree item for each asset listed on the exchange
@@ -220,6 +268,25 @@ void PortfolioTree::restore_strategies(QStandardItem* addedItem, QString portfol
     }
 }
 
+
+//============================================================================
+void PortfolioTree::mouseDoubleClickEvent(QMouseEvent* event)
+{
+    QModelIndex index = indexAt(event->pos());
+    if (index.isValid())
+    {
+        QVariant itemData = index.data(Qt::DisplayRole);
+        if (itemData.canConvert<QString>())
+        {
+            QString itemName = itemData.toString();
+            if (this->hydra->strategy_exists(itemName.toStdString()))
+            {
+                emit strategy_double_clicked(itemName);
+            }
+        }
+    }
+    QTreeView::mouseDoubleClickEvent(event);
+}
 
 //============================================================================
 ExchangeTree::ExchangeTree(QWidget* parent, std::shared_ptr<Hydra> const hydra_) :

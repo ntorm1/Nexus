@@ -25,6 +25,12 @@ json NexusDockManager::save_widgets()
 			NexusAsset* asset_child = static_cast<NexusAsset*>(child);
 			widget["asset_id"] = asset_child->get_asset_id();
 		}
+		else if (dock_widget->get_widget_type() == WidgetType::NodeEditor)
+		{
+			auto child = dock_widget->widget();
+			NexusNodeEditor* asset_child = static_cast<NexusNodeEditor*>(child);
+			widget["strategy_id"] = asset_child->get_strategy_id();
+		}
 
 		widgets[dock_widget->objectName().toStdString()] = widget;
 	}
@@ -53,6 +59,11 @@ void NexusDockManager::restore_widgets(json const& j)
 			case WidgetType::Asset: {
 				auto asset_id = QString::fromStdString(widget_json["asset_id"]);
 				widget = this->main_window->create_asset_widget(asset_id);
+				break;
+			}
+			case WidgetType::NodeEditor:{
+				auto strategy_id = QString::fromStdString(widget_json["strategy_id"]);
+				widget = this->main_window->create_node_editor_widget(strategy_id);
 				break;
 			}
 			case WidgetType::Exchanges: {

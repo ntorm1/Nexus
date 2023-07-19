@@ -111,6 +111,15 @@ std::optional<std::shared_ptr<Asset>> const NexusEnv::get_asset(std::string cons
 
 
 //============================================================================
+std::optional<AgisStrategyRef const> NexusEnv::get_strategy(std::string const& strategy_id)
+{
+	if (!this->hydra->strategy_exists(strategy_id)) { return std::nullopt; }
+	auto strategy = this->hydra->get_strategy(strategy_id);
+	return strategy;
+}
+
+
+//============================================================================
 NexusStatusCode NexusEnv::new_exchange(
 	const std::string& exchange_id,
 	const std::string& source,

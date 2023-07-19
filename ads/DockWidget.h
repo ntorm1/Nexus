@@ -43,6 +43,7 @@ enum class WidgetType {
     Editor,
     Exchanges,
     Portfolios,
+    NodeEditor,
     FileTree
 };
 

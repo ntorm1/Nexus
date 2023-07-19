@@ -42,13 +42,13 @@
 #include "FloatingDockContainer.h"
 #include "DockComponentsFactory.h"
 #include "NexusDockManager.h"
-
+#include "NexusTree.h"
+#include "NexusNode.h"
 
 // Octave Win32 Terminal 
 #include "QTerminalImpl.h"
 
-// Tree view model
-#include "NexusTree.h"
+
 
 using namespace ads;
 
@@ -368,6 +368,27 @@ ads::CDockWidget* MainWindow::create_asset_widget(const QString& asset_id)
     DockWidget->setWidget(w);
     DockWidget->setIcon(svgIcon("./images/stock.png"));
     DockWidget->set_widget_type(WidgetType::Asset);
+    return DockWidget;
+}
+
+ads::CDockWidget* MainWindow::create_node_editor_widget(const QString& strategy_id)
+{
+    ads::CDockWidget* DockWidget = new ads::CDockWidget(QString("Strategy: %1").arg(strategy_id));
+    auto strategy_opt = this->nexus_env.get_strategy(strategy_id.toStdString());
+    if (!strategy_opt.has_value()) {
+        QMessageBox::critical(this, "Error", "Failed to find strategy listed");
+    }
+    AgisStrategyRef strategy = strategy_opt.value();
+
+    NexusNodeEditor* w = new NexusNodeEditor(
+        &this->nexus_env,
+        DockWidget,
+        strategy,
+        DockWidget
+    );
+    DockWidget->setWidget(w);
+    DockWidget->setIcon(svgIcon("./images/flow.png"));
+    DockWidget->set_widget_type(WidgetType::NodeEditor);
     return DockWidget;
 }
 
@@ -835,7 +856,12 @@ void MainWindow::on_new_asset_window_request(const QString& name)
 
 void MainWindow::on_new_node_editor_request(const QString& name)
 {
-    qDebug() << "HERE";
+    auto _sender = sender();
+    _sender->setProperty("Floating", false);
+    _sender->setProperty("Tabbed", false);
+
+    auto DockWidget = this->create_node_editor_widget(name);
+    this->place_widget(DockWidget, sender());
 }
 
 //============================================================================

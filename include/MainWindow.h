@@ -121,4 +121,5 @@ public:
     ads::CDockWidget* create_portfolios_widget();
     ads::CDockWidget* create_file_system_tree_widget();
     ads::CDockWidget* create_asset_widget(const QString& asset_id);
+    ads::CDockWidget* create_node_editor_widget(const QString& strategy_id);
 };

@@ -7,8 +7,12 @@
 
 #include <QtNodes/NodeData>
 #include <QtNodes/NodeDelegateModel>
+#include <QtNodes/NodeDelegateModelRegistry>
+#include <QtNodes/DataFlowGraphModel>
+#include <QtNodes/GraphicsView>
 
 #include "NexusEnv.h"
+#include "AgisStrategy.h"
 #include <memory>
 
 using QtNodes::NodeData;
@@ -16,10 +20,15 @@ using QtNodes::NodeDataType;
 using QtNodes::NodeDelegateModel;
 using QtNodes::PortIndex;
 using QtNodes::PortType;
+using QtNodes::NodeDelegateModelRegistry;
+using QtNodes::DataFlowGraphModel;
+using QtNodes::GraphicsView;
+
 
 namespace Ui {
     class NexusNodeEditor;
 }
+
 
 class NexusNodeEditor : public QMainWindow
 {
@@ -30,14 +39,22 @@ public:
     NexusNodeEditor(
         NexusEnv const* nexus_env,
         ads::CDockWidget* DockWidget,
+        AgisStrategyRef strategy,
         QWidget* parent = nullptr
     );
+    ~NexusNodeEditor();
+
+    std::string get_strategy_id() { return this->strategy.get()->get_strategy_id(); }
 
 private:
     static size_t counter;
     size_t id;
 
+    DataFlowGraphModel* dataFlowGraphModel;
+    GraphicsView* view;
+
     NexusEnv const* nexus_env;
+    AgisStrategyRef strategy;
     Ui::NexusNodeEditor* ui;
     ads::CDockWidget* DockWidget;
 

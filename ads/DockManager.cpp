@@ -539,8 +539,11 @@ CDockManager::~CDockManager()
     }
     for ( auto area : areas )
     {
-        for ( auto widget : area->dockWidgets() )
-            delete widget;
+		for (auto widget : area->dockWidgets()) {
+			// node editors are already freed
+			if (widget->get_widget_type() == WidgetType::NodeEditor) { continue; }
+			delete widget;
+		}
 
         delete area;
     }

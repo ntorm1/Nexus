@@ -43,6 +43,7 @@ public:
 	void restore(json const & j);
 
 	//============================================================================
+	fs::path const& get_env_path() const { return this->env_path; }
 	fs::path get_env_settings_path() const { return this->env_path / "env_settings.json"; }
 	bool save_env(json &j);
 	void load_env(std::string const & exe_path, std::string const & env_name);

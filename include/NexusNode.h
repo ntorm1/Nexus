@@ -4,7 +4,7 @@
 #include <QMainWindow>
 
 #include "DockWidget.h"
-
+#include <QtNodes/BasicGraphicsScene>
 #include <QtNodes/NodeData>
 #include <QtNodes/NodeDelegateModel>
 #include <QtNodes/NodeDelegateModelRegistry>
@@ -23,7 +23,7 @@ using QtNodes::PortType;
 using QtNodes::NodeDelegateModelRegistry;
 using QtNodes::DataFlowGraphModel;
 using QtNodes::GraphicsView;
-
+using QtNodes::BasicGraphicsScene;
 
 namespace Ui {
     class NexusNodeEditor;
@@ -44,6 +44,9 @@ public:
     );
     ~NexusNodeEditor();
 
+    void __save();
+    void __load(BasicGraphicsScene* scene);
+
     std::string get_strategy_id() { return this->strategy.get()->get_strategy_id(); }
 
 private:
@@ -57,6 +60,8 @@ private:
     AgisStrategyRef strategy;
     Ui::NexusNodeEditor* ui;
     ads::CDockWidget* DockWidget;
+
+    QMenuBar* createSaveRestoreMenu(BasicGraphicsScene* scene);
 
 };
 

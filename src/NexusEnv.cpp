@@ -205,6 +205,7 @@ void NexusEnv::clear()
 //============================================================================
 void NexusEnv::restore(json const& j)
 {
+	this->hydra->clear();
 	this->hydra->restore(j);
 	this->remove_editors();
 	for (auto& tree : this->open_trees)

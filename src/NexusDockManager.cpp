@@ -29,6 +29,7 @@ json NexusDockManager::save_widgets()
 		{
 			auto child = dock_widget->widget();
 			NexusNodeEditor* asset_child = static_cast<NexusNodeEditor*>(child);
+			asset_child->__save();
 			widget["strategy_id"] = asset_child->get_strategy_id();
 		}
 

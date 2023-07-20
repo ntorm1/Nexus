@@ -2,7 +2,6 @@
 #include <QtNodes/ConnectionStyle>
 
 #include <QtNodes/DataFlowGraphicsScene>
-
 #include <QtNodes/NodeData>
 
 #include <QAction>
@@ -23,28 +22,21 @@
 using QtNodes::ConnectionStyle;
 using QtNodes::DataFlowGraphicsScene;
 
+
 size_t NexusNodeEditor::counter(0);
 
 
-
+//============================================================================
 static std::shared_ptr<NodeDelegateModelRegistry> registerDataModels()
 {
 	auto ret = std::make_shared<NodeDelegateModelRegistry>();
 
 	ret->registerModel<NaiveDataModel>();
-
-	/*
-	 We could have more models registered.
-	 All of them become items in the context meny of the scene.
-
-	 ret->registerModel<AnotherDataModel>();
-	 ret->registerModel<OneMoreDataModel>();
-
-   */
-
 	return ret;
 }
 
+
+//============================================================================
 static void setStyle()
 {
 	ConnectionStyle::setConnectionStyle(
@@ -57,6 +49,25 @@ static void setStyle()
   )");
 }
 
+
+//============================================================================
+QMenuBar* NexusNodeEditor::createSaveRestoreMenu(BasicGraphicsScene* scene)
+{
+	auto menuBar = new QMenuBar();
+	QMenu* menu = menuBar->addMenu("File");
+	auto saveAction = menu->addAction("Save Scene");
+	auto loadAction = menu->addAction("Load Scene");
+
+	QObject::connect(saveAction, &QAction::triggered, scene, [this] {
+		this->__save();
+		});
+
+	QObject::connect(loadAction, &QAction::triggered, scene, [this, scene] {
+		this->__load(scene);
+		});
+
+	return menuBar;
+}
 
 //============================================================================
 NexusNodeEditor::NexusNodeEditor(
@@ -88,14 +99,80 @@ NexusNodeEditor::NexusNodeEditor(
 	DataFlowGraphicsScene* scene = new DataFlowGraphicsScene(*dataFlowGraphModel);
 	this->view = new GraphicsView(scene);
 
+	l->addWidget(createSaveRestoreMenu(scene));
 	l->addWidget(view);
 	centralWidget->setLayout(l);
+
+
+	// attempt to load existing flow graph if it exists
+	try {
+		this->__load(scene);
+	}
+	catch (...) {
+	}
 
 	this->id = counter++;
 }
 
+
+//============================================================================
 NexusNodeEditor::~NexusNodeEditor()
 {
 	delete dataFlowGraphModel;
 	delete view;
+}
+
+
+//============================================================================
+void NexusNodeEditor::__save()
+{
+	auto base_path = this->nexus_env->get_env_path() / "strategies";
+	if (!fs::exists(base_path)) { fs::create_directory(base_path); }
+
+
+	auto strat_path = base_path / this->strategy.get()->get_strategy_id();
+	if (!fs::exists(strat_path)) { fs::create_directory(strat_path); }
+
+	auto flow_path = strat_path / "graph.flow";
+	QFile file(flow_path);
+	if (file.open(QIODevice::WriteOnly)) {
+		file.write(QJsonDocument(dataFlowGraphModel->save()).toJson());
+	}
+}
+
+//============================================================================
+void NexusNodeEditor::__load(BasicGraphicsScene* scene)
+{
+	auto strat_path = this->nexus_env->get_env_path()
+		/ "strategies"
+		/ this->strategy.get()->get_strategy_id()
+		/ "graph.flow";
+
+	if (!fs::exists(strat_path)) {
+		throw std::runtime_error("Missing strategy flow file: " + strat_path.string());
+	}
+
+	scene->clearScene();
+
+	QFile file(strat_path);
+	if (!file.open(QIODevice::ReadOnly)) {
+		throw std::runtime_error("Failed to open the strategy flow file: " + strat_path.string());
+	}
+
+	QByteArray const wholeFile = file.readAll();
+	file.close();
+
+	QJsonParseError error;
+	QJsonDocument jsonDocument = QJsonDocument::fromJson(wholeFile, &error);
+	if (error.error != QJsonParseError::NoError) {
+		throw std::runtime_error("Failed to parse JSON in the strategy flow file: " + error.errorString().toStdString());
+	}
+
+	if (!jsonDocument.isObject()) {
+		throw std::runtime_error("Invalid JSON format in the strategy flow file.");
+	}
+
+	this->dataFlowGraphModel->load(jsonDocument.object());
+
+	view->centerScene();
 }

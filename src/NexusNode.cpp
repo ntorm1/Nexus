@@ -31,7 +31,7 @@ static std::shared_ptr<NodeDelegateModelRegistry> registerDataModels()
 {
 	auto ret = std::make_shared<NodeDelegateModelRegistry>();
 
-	ret->registerModel<NaiveDataModel>();
+	ret->registerModel<ExchangeDataModel>();
 	return ret;
 }
 
@@ -63,7 +63,7 @@ QMenuBar* NexusNodeEditor::createSaveRestoreMenu(BasicGraphicsScene* scene)
 		});
 
 	QObject::connect(loadAction, &QAction::triggered, scene, [this, scene] {
-		this->__load(scene);
+		RUN_WITH_ERROR_DIALOG(this->__load(scene));
 		});
 
 	return menuBar;
@@ -103,13 +103,11 @@ NexusNodeEditor::NexusNodeEditor(
 	l->addWidget(view);
 	centralWidget->setLayout(l);
 
+	// set the base hydra instance
+	ExchangeDataModel::hydra = nexus_env->get_hydra();
 
 	// attempt to load existing flow graph if it exists
-	try {
-		this->__load(scene);
-	}
-	catch (...) {
-	}
+	RUN_WITH_ERROR_DIALOG(this->__load(scene);)
 
 	this->id = counter++;
 }

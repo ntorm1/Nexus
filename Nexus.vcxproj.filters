@@ -145,6 +145,9 @@
     <ClCompile Include="src\NexusNodeModel.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\NexusNodeWidget.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <QtMoc Include="include\CodeEditor.h">
@@ -235,6 +238,9 @@
       <Filter>Header Files</Filter>
     </QtMoc>
     <QtMoc Include="include\NexusNodeModel.h">
+      <Filter>Header Files</Filter>
+    </QtMoc>
+    <QtMoc Include="include\NexusNodeWidget.h">
       <Filter>Header Files</Filter>
     </QtMoc>
   </ItemGroup>

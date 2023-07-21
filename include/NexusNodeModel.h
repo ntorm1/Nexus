@@ -5,7 +5,11 @@
 #include <QtNodes/NodeData>
 #include <QtNodes/NodeDelegateModel>
 
+#include "NexusNodeWidget.h"
+#include "Hydra.h"
+
 #include <memory>
+
 
 using QtNodes::NodeData;
 using QtNodes::NodeDataType;
@@ -13,35 +17,63 @@ using QtNodes::NodeDelegateModel;
 using QtNodes::PortIndex;
 using QtNodes::PortType;
 
+
+class ExchangeNode;
+
+// Custom exception class to store the error message
+class CustomException : public std::exception {
+public:
+    CustomException(const std::string& message) : errorMessage(message) {}
+    const char* what() const noexcept override {
+        return errorMessage.c_str();
+    }
+
+private:
+    std::string errorMessage;
+};
+// Custom macro to handle exceptions and display error messages
+#define NEXUS_UNWRAP_DIALOG(expression)                               \
+    {                                                              \
+        try {                                                      \
+            expression;                                            \
+        }                                                          \
+        catch (const std::exception& e) {                          \
+            QString errorMessage = "Error: " + QString(e.what());  \
+            QMessageBox::critical(nullptr, "Critical Error", errorMessage, QMessageBox::Ok); \
+            throw CustomException(errorMessage.toStdString());    \
+        }                                                          \
+    }
+
+
 /// The class can potentially incapsulate any user data which
 /// need to be transferred within the Node Editor graph
-class MyNodeData : public NodeData
+class ExchangeData : public NodeData
 {
 public:
-    NodeDataType type() const override { return NodeDataType{ "MyNodeData", "My Node Data" }; }
+    ExchangeData() = default;
+    ExchangeData(ExchangePtr const exchange_) : exchange_ptr(exchange_) {};
+
+    NodeDataType type() const override { return NodeDataType{ "Exchange", "Exchange" }; }
+    
+    ExchangePtr const exchange_ptr = nullptr;
 };
 
-class SimpleNodeData : public NodeData
-{
-public:
-    NodeDataType type() const override { return NodeDataType{ "SimpleData", "Simple Data" }; }
-};
 
-//------------------------------------------------------------------------------
-
-/// The model dictates the number of inputs and outputs for the Node.
-/// In this example it has no logic.
-class NaiveDataModel : public NodeDelegateModel
+/// Exchange data mdoel
+class ExchangeDataModel : public NodeDelegateModel
 {
     Q_OBJECT
 
 public:
-    virtual ~NaiveDataModel() {}
+    ExchangeDataModel() = default;
+    virtual ~ExchangeDataModel() {}
 
 public:
-    QString caption() const override { return QString("Naive Data Model"); }
+    QString caption() const override { return QString("Exchange"); }
 
-    QString name() const override { return QString("NaiveDataModel"); }
+    QString name() const override { return QString("Exchange"); }
+
+    QWidget* embeddedWidget() override;
 
 public:
     unsigned int nPorts(PortType const portType) const override
@@ -50,11 +82,11 @@ public:
 
         switch (portType) {
         case PortType::In:
-            result = 2;
+            result = 0;
             break;
 
         case PortType::Out:
-            result = 2;
+            result = 1;
             break;
         case PortType::None:
             break;
@@ -66,21 +98,10 @@ public:
     NodeDataType dataType(PortType const portType, PortIndex const portIndex) const override
     {
         switch (portType) {
-        case PortType::In:
-            switch (portIndex) {
-            case 0:
-                return MyNodeData().type();
-            case 1:
-                return SimpleNodeData().type();
-            }
-            break;
-
         case PortType::Out:
             switch (portIndex) {
             case 0:
-                return MyNodeData().type();
-            case 1:
-                return SimpleNodeData().type();
+                return ExchangeData().type();
             }
             break;
 
@@ -93,16 +114,26 @@ public:
 
     std::shared_ptr<NodeData> outData(PortIndex const port) override
     {
-        if (port < 1)
-            return std::make_shared<MyNodeData>();
-
-        return std::make_shared<SimpleNodeData>();
+        if (port == 0)
+        {
+            auto exchange_id = this->exchange_node->exchange_id->currentText().toStdString();
+            auto exchange = this->hydra->get_exchanges().get_exchange(exchange_id);
+            return std::make_shared<ExchangeData>(exchange);
+        }
     }
 
     void setInData(std::shared_ptr<NodeData>, PortIndex const) override
     {
-        //
     }
 
-    QWidget* embeddedWidget() override { return nullptr; }
+    void on_exchange_change();
+
+    static std::shared_ptr<Hydra> hydra;
+
+
+private:
+
+    ExchangeNode* exchange_node = nullptr;
+
 };
+

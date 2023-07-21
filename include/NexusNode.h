@@ -3,6 +3,11 @@
 #include <QtCore/QObject>
 #include <QMainWindow>
 
+#include <QApplication>
+#include <QMessageBox>
+#include <QString>
+#include <stdexcept>
+
 #include "DockWidget.h"
 #include <QtNodes/BasicGraphicsScene>
 #include <QtNodes/NodeData>
@@ -24,6 +29,8 @@ using QtNodes::NodeDelegateModelRegistry;
 using QtNodes::DataFlowGraphModel;
 using QtNodes::GraphicsView;
 using QtNodes::BasicGraphicsScene;
+
+
 
 namespace Ui {
     class NexusNodeEditor;
@@ -66,3 +73,16 @@ private:
 };
 
 
+// Macro to run a function and display QMessageBox if an exception is thrown
+#define RUN_WITH_ERROR_DIALOG(function)                                          \
+    try {                                                                       \
+        function;                                                               \
+    }                                                                           \
+    catch (const std::exception& e) {                                           \
+        QString errorMessage = "Error: " + QString(e.what());                   \
+        QMessageBox::critical(nullptr, "Critical Error", errorMessage, QMessageBox::Ok); \
+    }                                                                           \
+    catch (...) {                                                               \
+        QString errorMessage = "Unknown error occurred.";                        \
+        QMessageBox::critical(nullptr, "Critical Error", errorMessage, QMessageBox::Ok); \
+    }

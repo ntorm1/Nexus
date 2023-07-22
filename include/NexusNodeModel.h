@@ -6,6 +6,8 @@
 #include <QtNodes/NodeDelegateModel>
 
 #include "NexusNodeWidget.h"
+#include "AgisStrategyHelpers.h"
+
 #include "Hydra.h"
 
 #include <memory>
@@ -32,21 +34,21 @@ private:
     std::string errorMessage;
 };
 // Custom macro to handle exceptions and display error messages
-#define NEXUS_UNWRAP_DIALOG(expression)                               \
-    {                                                              \
-        try {                                                      \
-            expression;                                            \
-        }                                                          \
-        catch (const std::exception& e) {                          \
-            QString errorMessage = "Error: " + QString(e.what());  \
-            QMessageBox::critical(nullptr, "Critical Error", errorMessage, QMessageBox::Ok); \
-            throw CustomException(errorMessage.toStdString());    \
-        }                                                          \
+#define NEXUS_UNWRAP_DIALOG(expression, additionalInfo)                       \
+    {                                                                         \
+        try {                                                                 \
+            expression;                                                       \
+        }                                                                     \
+        catch (const std::exception& e) {                                     \
+            QString errorMessage = "Error in " + QString(__FILE__) + " at line " + QString::number(__LINE__) + ": " + QString(e.what()); \
+            QString fullErrorMessage = errorMessage + "\n" + QString(additionalInfo); \
+            QMessageBox::critical(nullptr, "Critical Error", fullErrorMessage, QMessageBox::Ok); \
+            throw CustomException(errorMessage.toStdString(), additionalInfo.toStdString()); \
+        }                                                                     \
     }
 
 
-/// The class can potentially incapsulate any user data which
-/// need to be transferred within the Node Editor graph
+/// Class to encapsulate exchange so it can be send through nodes
 class ExchangeData : public NodeData
 {
 public:
@@ -58,6 +60,96 @@ public:
     ExchangePtr const exchange_ptr = nullptr;
 };
 
+
+/// Class to encapsulate asset lambda chain so it can be send through nodes
+class AssetLambdaData : public NodeData
+{
+public:
+    AssetLambdaData() = default;
+    AssetLambdaData(AgisAssetLambdaChain lambda_chain_) : lambda_chain(lambda_chain_) {};
+
+    NodeDataType type() const override { return NodeDataType{ "Asset Lambda", "Asset Lambda" }; }
+
+    AgisAssetLambdaChain lambda_chain;
+};
+
+
+/// Exchange data mdoel
+class AssetLambdaModel : public NodeDelegateModel
+{
+    Q_OBJECT
+
+public:
+    AssetLambdaModel() = default;
+    virtual ~AssetLambdaModel() {}
+
+public:
+    QString caption() const override { return QString("Asset Lambda"); }
+
+    QString name() const override { return QString("Asset Lambda"); }
+
+    QWidget* embeddedWidget() override;
+
+public:
+    unsigned int nPorts(PortType const portType) const override
+    {
+        unsigned int result = 1;
+
+        switch (portType) {
+        case PortType::In:
+            result = 1;
+            break;
+
+        case PortType::Out:
+            result = 1;
+            break;
+        case PortType::None:
+            break;
+        }
+
+        return result;
+    }
+
+    NodeDataType dataType(PortType const portType, PortIndex const portIndex) const override
+    {
+        switch (portType) {
+        case PortType::Out:
+            switch (portIndex)
+            {
+            case 0:
+                return AssetLambdaData().type();
+            }
+            break;
+
+        case PortType::In:
+            switch (portIndex)
+            {
+            case 0:
+                return AssetLambdaData().type();
+            }
+            break;
+
+        case PortType::None:
+            break;
+        }
+        // FIXME: control may reach end of non-void function [-Wreturn-type]
+        return NodeDataType();
+    }
+
+    std::shared_ptr<NodeData> outData(PortIndex const port) override;
+    void setInData(std::shared_ptr<NodeData> data, PortIndex const port) override;
+
+    QJsonObject save() const override;
+    void load(QJsonObject const &p) override;
+
+    void on_lambda_change();
+
+private:
+
+    AssetLambdaNode* asset_lambda_node = nullptr;
+    AgisAssetLambdaChain lambda_chain;
+
+};
 
 /// Exchange data mdoel
 class ExchangeDataModel : public NodeDelegateModel

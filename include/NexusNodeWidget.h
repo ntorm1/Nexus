@@ -2,6 +2,10 @@
 
 #include <QPushButton>
 #include <QWidget>
+#include <QComboBox>
+#include <QLabel>
+#include <QLineEdit>
+#include <QSpinBox>
 
 #include <QtNodes/Definitions>
 
@@ -30,4 +34,19 @@ public:
 
     QHBoxLayout* layout;
     QComboBox* exchange_id;
+};
+
+class AssetLambdaNode : public QWidget
+{
+    Q_OBJECT
+public:
+    AssetLambdaNode(
+        QWidget* parent = nullptr);
+
+    ~AssetLambdaNode() { delete layout; };
+
+    QVBoxLayout* layout;
+    QComboBox* opperation;
+    QSpinBox* row;
+    QLineEdit* column;
 };

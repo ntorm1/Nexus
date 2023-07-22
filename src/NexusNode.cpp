@@ -32,6 +32,7 @@ static std::shared_ptr<NodeDelegateModelRegistry> registerDataModels()
 	auto ret = std::make_shared<NodeDelegateModelRegistry>();
 
 	ret->registerModel<ExchangeDataModel>();
+	ret->registerModel<ExchangeViewDataModel>();
 	ret->registerModel<AssetLambdaModel>();
 
 	return ret;

@@ -60,6 +60,19 @@ QWidget* AssetLambdaModel::embeddedWidget()
 }
 
 
+
+//============================================================================
+QWidget* ExchangeViewDataModel::embeddedWidget()
+{
+	if (!this->exchange_view_node) {
+		this->exchange_view_node = new ExchangeViewNode(
+			nullptr
+		);
+	}
+	return this->exchange_view_node;
+}
+
+
 //============================================================================
 void AssetLambdaModel::on_lambda_change()
 {
@@ -120,6 +133,61 @@ void AssetLambdaModel::load(QJsonObject const& p)
 
 
 //============================================================================
+QJsonObject ExchangeViewDataModel::save() const
+{
+	QJsonObject modelJson = NodeDelegateModel::save();
+	modelJson["query_type"] = this->exchange_view_node->query_type->currentText();
+	modelJson["N"] = QString::number(this->exchange_view_node->N->value());
+	return modelJson;
+}
+
+
+//============================================================================
+void ExchangeViewDataModel::load(QJsonObject const& p)
+{
+	QJsonValue query_type = p["query_type"];
+	QJsonValue N = p["N"];
+
+	if (!query_type.isUndefined()) {
+		QString str_opp = query_type.toString();
+		if (exchange_view_node)
+		{
+			exchange_view_node->query_type->setCurrentText(str_opp);
+		}
+	}
+	if (!N.isUndefined()) {
+		auto N_num = N.toString().toInt();
+		if (exchange_view_node)
+		{
+			exchange_view_node->N->setValue(N_num);
+		}
+	}
+}
+
+//============================================================================
+QJsonObject ExchangeDataModel::save() const
+{
+	QJsonObject modelJson = NodeDelegateModel::save();
+	modelJson["exchange_id"] = this->exchange_node->exchange_id->currentText();
+	return modelJson;
+}
+
+
+//============================================================================
+void ExchangeDataModel::load(QJsonObject const& p)
+{
+	QJsonValue exchange_id = p["exchange_id"];
+
+	if (!exchange_id.isUndefined()) {
+		QString str_exchange_id = exchange_id.toString();
+		if (exchange_node)
+		{
+			exchange_node->exchange_id->setCurrentText(str_exchange_id);
+		}
+	}
+}
+
+//============================================================================
 std::shared_ptr<NodeData> AssetLambdaModel::outData(PortIndex const port)
 {
 	if (port == 0)
@@ -132,7 +200,8 @@ std::shared_ptr<NodeData> AssetLambdaModel::outData(PortIndex const port)
 		AssetLambda l = AssetLambda(op, [&](const AssetPtr& asset) {
 			return asset_feature_lambda(asset, column_name, row);
 		});
-		this->lambda_chain.push_back(l);
+		if (this->lambda_chain.size()) { this->lambda_chain.back() = l; }
+		else { this->lambda_chain.push_back(l); }
 		return std::make_shared<AssetLambdaData>(this->lambda_chain);
 	}
 }
@@ -148,3 +217,5 @@ void AssetLambdaModel::setInData(std::shared_ptr<NodeData> data, PortIndex const
 		this->lambda_chain = assetData->lambda_chain;
 	}
 }
+
+

@@ -74,6 +74,17 @@ public:
 };
 
 
+class ExchangeViewData : public NodeData
+{
+public:
+    ExchangeViewData() = default;
+    //ExchangeViewData(){};
+
+    NodeDataType type() const override { return NodeDataType{ "Exchange View", "Exchange View" }; }
+
+    //AgisAssetLambdaChain lambda_chain;
+};
+
 /// Exchange data mdoel
 class AssetLambdaModel : public NodeDelegateModel
 {
@@ -220,12 +231,101 @@ public:
 
     void on_exchange_change();
 
+    QJsonObject save() const override;
+    void load(QJsonObject const& p) override;
+
     static std::shared_ptr<Hydra> hydra;
 
 
 private:
 
     ExchangeNode* exchange_node = nullptr;
+
+};
+
+/// Exchange view data mdoel
+class ExchangeViewDataModel : public NodeDelegateModel
+{
+    Q_OBJECT
+
+public:
+    ExchangeViewDataModel() = default;
+    virtual ~ExchangeViewDataModel() {}
+
+public:
+    QString caption() const override { return QString("Exchange View"); }
+
+    QString name() const override { return QString("Exchange View"); }
+
+    QWidget* embeddedWidget() override;
+
+public:
+    unsigned int nPorts(PortType const portType) const override
+    {
+        unsigned int result = 1;
+
+        switch (portType) {
+        case PortType::In:
+            result = 2;
+            break;
+
+        case PortType::Out:
+            result = 1;
+            break;
+        case PortType::None:
+            break;
+        }
+
+        return result;
+    }
+
+    NodeDataType dataType(PortType const portType, PortIndex const portIndex) const override
+    {
+        switch (portType) {
+        case PortType::Out:
+            switch (portIndex)
+            {
+            case 0:
+                return ExchangeViewData().type();
+            }
+            break;
+
+        case PortType::In:
+            switch (portIndex)
+            {
+            case 0:
+                return AssetLambdaData().type();
+            case 1:
+                return ExchangeData().type();
+            }
+            break;
+
+        case PortType::None:
+            break;
+        }
+        // FIXME: control may reach end of non-void function [-Wreturn-type]
+        return NodeDataType();
+    }
+
+    std::shared_ptr<NodeData> outData(PortIndex const port) override
+    {
+        if (port == 0)
+        {
+            return nullptr;
+        }
+    }
+
+    void setInData(std::shared_ptr<NodeData>, PortIndex const) override
+    {
+    }
+
+    QJsonObject save() const override;
+    void load(QJsonObject const& p) override;
+
+
+private:
+
+    ExchangeViewNode* exchange_view_node = nullptr;
 
 };
 

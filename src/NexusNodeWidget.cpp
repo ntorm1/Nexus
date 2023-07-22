@@ -72,3 +72,38 @@ AssetLambdaNode::AssetLambdaNode(
 
     this->setFixedSize(layout->sizeHint());
 }
+
+
+ExchangeViewNode::ExchangeViewNode(
+    QWidget* parent_)
+    : QWidget(parent_)
+    , layout(nullptr)
+{
+    setSizePolicy(QSizePolicy::Policy::Minimum, QSizePolicy::Policy::Minimum);
+
+    this->layout = new QVBoxLayout(this);
+
+    // operation type
+    QHBoxLayout* rowLayout = new QHBoxLayout(this);
+    this->query_type = new QComboBox();
+    for (const auto& item : agis_query_strings) {
+        query_type->addItem(QString::fromStdString(item));
+    }
+    QLabel* label = new QLabel("Query Type: ");
+    rowLayout->addWidget(label);
+    rowLayout->addWidget(this->query_type);
+    layout->addLayout(rowLayout);
+
+    // row value
+    QHBoxLayout* row_layout = new QHBoxLayout(this);
+    QLabel* row_label = new QLabel("Count: ");
+    this->N = new QSpinBox(this);
+    this->N->setMinimum(1); // Set the minimum value to the minimum possible integer value (most negative value)
+    this->N->setMaximum(1e5); // Set the maximum value to 0
+    row_layout->addWidget(row_label);
+    row_layout->addWidget(this->N);
+    layout->addLayout(row_layout);
+
+
+    this->setFixedSize(layout->sizeHint());
+}

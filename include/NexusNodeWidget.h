@@ -50,3 +50,17 @@ public:
     QSpinBox* row;
     QLineEdit* column;
 };
+
+class ExchangeViewNode : public QWidget
+{
+    Q_OBJECT
+public:
+    ExchangeViewNode(
+        QWidget* parent = nullptr);
+
+    ~ExchangeViewNode() { delete layout; };
+
+    QVBoxLayout* layout;
+    QComboBox* query_type;
+    QSpinBox* N;
+};

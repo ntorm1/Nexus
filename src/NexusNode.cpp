@@ -31,7 +31,7 @@ static std::shared_ptr<NodeDelegateModelRegistry> registerDataModels()
 {
 	auto ret = std::make_shared<NodeDelegateModelRegistry>();
 
-	ret->registerModel<ExchangeDataModel>();
+	ret->registerModel<ExchangeModel>();
 	ret->registerModel<ExchangeViewModel>();
 	ret->registerModel<AssetLambdaModel>();
 	ret->registerModel<StrategyAllocationModel>();
@@ -108,10 +108,11 @@ NexusNodeEditor::NexusNodeEditor(
 	centralWidget->setLayout(l);
 
 	// set the base hydra instance
-	ExchangeDataModel::hydra = nexus_env->get_hydra();
+	ExchangeModel::hydra = nexus_env->get_hydra();
 
 	// attempt to load existing flow graph if it exists
 	RUN_WITH_ERROR_DIALOG(this->__load(scene);)
+
 
 	this->id = counter++;
 }
@@ -177,4 +178,26 @@ void NexusNodeEditor::__load(BasicGraphicsScene* scene)
 	this->dataFlowGraphModel->load(jsonDocument.object());
 
 	view->centerScene();
+}
+
+
+//============================================================================
+bool NexusNodeEditor::__extract_abstract_strategy()
+{
+	auto ids = this->dataFlowGraphModel->allNodeIds();
+	// probably better way to find the strategy node
+	StrategyAllocationModel* node = nullptr;
+	for (auto& id : ids)
+	{
+		try {
+			node = this->dataFlowGraphModel->delegateModel<StrategyAllocationModel>(id);
+			break;
+		}
+		catch (...){}
+	}
+
+	if (!node) { return false; }
+
+
+
 }

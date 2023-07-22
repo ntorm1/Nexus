@@ -93,7 +93,7 @@ public:
     ExchangeViewLambdaStruct exchange_view_lambda;
 };
 
-/// Exchange data mdoel
+/// Asset Lambda data mdoel
 class AssetLambdaModel : public NodeDelegateModel
 {
     Q_OBJECT
@@ -170,14 +170,14 @@ private:
 
 };
 
-/// Exchange data mdoel
-class ExchangeDataModel : public NodeDelegateModel
+/// Exchange model
+class ExchangeModel : public NodeDelegateModel
 {
     Q_OBJECT
 
 public:
-    ExchangeDataModel() = default;
-    virtual ~ExchangeDataModel() {}
+    ExchangeModel() = default;
+    virtual ~ExchangeModel() {}
 
 public:
     QString caption() const override { return QString("Exchange"); }
@@ -334,7 +334,7 @@ private:
 
 
 
-/// Exchange view data mdoel
+/// Strategy Allocation Model
 class StrategyAllocationModel : public NodeDelegateModel
 {
     Q_OBJECT
@@ -392,15 +392,14 @@ public:
     }
 
     std::shared_ptr<NodeData> outData(PortIndex const port) override { return nullptr; };
+    void setInData(std::shared_ptr<NodeData> data, PortIndex const port);
 
-    void setInData(std::shared_ptr<NodeData> data, PortIndex const port) override {};
+    QJsonObject save() const override;
+    void load(QJsonObject const& p) override;
 
-    //QJsonObject save() const override;
-    //void load(QJsonObject const& p) override;
-
-
+    std::optional<ExchangeViewLambdaStruct> ev_lambda_struct;
 
 private:
-    StrategyAllocationNode* strateg_allocation_node = nullptr;
-
+    StrategyAllocationNode* strategy_allocation_node = nullptr;
+    
 };

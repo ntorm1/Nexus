@@ -4,15 +4,15 @@
 
 #include <QVBoxLayout>
 
-std::shared_ptr<Hydra> ExchangeDataModel::hydra = nullptr;
+std::shared_ptr<Hydra> ExchangeModel::hydra = nullptr;
 
 
 //============================================================================
-QWidget* ExchangeDataModel::embeddedWidget()
+QWidget* ExchangeModel::embeddedWidget()
 {
 	if (!this->exchange_node) {
 		this->exchange_node = new ExchangeNode(
-			ExchangeDataModel::hydra,
+			ExchangeModel::hydra,
 			nullptr
 		);
 
@@ -20,7 +20,7 @@ QWidget* ExchangeDataModel::embeddedWidget()
 			exchange_node->exchange_id,
 			QOverload<int>::of(&QComboBox::currentIndexChanged),
 			this,
-			&ExchangeDataModel::on_exchange_change
+			&ExchangeModel::on_exchange_change
 		);
 	}
 
@@ -88,12 +88,12 @@ QWidget* ExchangeViewModel::embeddedWidget()
 //============================================================================
 QWidget* StrategyAllocationModel::embeddedWidget()
 {
-	if (!this->strateg_allocation_node) {
-		this->strateg_allocation_node = new StrategyAllocationNode(
+	if (!this->strategy_allocation_node) {
+		this->strategy_allocation_node = new StrategyAllocationNode(
 			nullptr
 		);
 	}
-	return this->strateg_allocation_node;
+	return this->strategy_allocation_node;
 }
 
 
@@ -105,7 +105,7 @@ void AssetLambdaModel::on_lambda_change()
 
 
 //============================================================================
-void ExchangeDataModel::on_exchange_change()
+void ExchangeModel::on_exchange_change()
 {
 
 	Q_EMIT dataUpdated(0);
@@ -117,6 +117,7 @@ void ExchangeViewModel::on_exchange_view_change()
 {
 	Q_EMIT dataUpdated(0);
 }
+
 
 //============================================================================
 QJsonObject AssetLambdaModel::save() const
@@ -132,6 +133,78 @@ QJsonObject AssetLambdaModel::save() const
 
 
 //============================================================================
+QJsonObject ExchangeViewModel::save() const
+{
+	QJsonObject modelJson = NodeDelegateModel::save();
+	modelJson["query_type"] = this->exchange_view_node->query_type->currentText();
+	modelJson["N"] = QString::number(this->exchange_view_node->N->value());
+	return modelJson;
+}
+
+
+
+//============================================================================
+QJsonObject ExchangeModel::save() const
+{
+	QJsonObject modelJson = NodeDelegateModel::save();
+	modelJson["exchange_id"] = this->exchange_node->exchange_id->currentText();
+	return modelJson;
+}
+
+
+//============================================================================
+QJsonObject StrategyAllocationModel::save() const
+{
+	QJsonObject modelJson = NodeDelegateModel::save();
+
+	modelJson["epsilon"] =this->strategy_allocation_node->epsilon->text();
+	modelJson["target_leverage"] = this->strategy_allocation_node->target_leverage->text();
+	modelJson["clear_missing"] = this->strategy_allocation_node->clear_missing->isChecked();
+	modelJson["alloc_type"] = this->strategy_allocation_node->alloc_type->currentText();
+	modelJson["ev_opp_type"] = this->strategy_allocation_node->ev_opp_type->currentText();
+
+	return modelJson;
+}
+
+
+//============================================================================
+void StrategyAllocationModel::load(QJsonObject const& p)
+{
+	QJsonValue epsilon = p["opperation"];
+	QJsonValue target_leverage = p["column"];
+	QJsonValue clear_missing = p["row"];
+	QJsonValue alloc_type = p["opperation"];
+	QJsonValue ev_opp_type = p["column"];
+
+	if (!epsilon.isUndefined()) {
+		QString _epsilon = epsilon.toString();
+		if (strategy_allocation_node)
+			strategy_allocation_node->epsilon->setText(_epsilon);
+	}
+	if (!target_leverage.isUndefined()) {
+		auto _target_leverage = target_leverage.toString();
+		if (strategy_allocation_node)
+			strategy_allocation_node->target_leverage->setText(_target_leverage);
+	}
+	if (!clear_missing.isUndefined()) {
+		bool _clear_missing = clear_missing.toBool();
+		if (strategy_allocation_node)
+			strategy_allocation_node->clear_missing->setChecked(_clear_missing);
+	}	
+	if (!alloc_type.isUndefined()) {
+		QString _alloc_type = alloc_type.toString();
+		if (strategy_allocation_node)
+			strategy_allocation_node->alloc_type->setCurrentText(_alloc_type);
+	}
+	if (!ev_opp_type.isUndefined()) {
+		auto _ev_opp_type = ev_opp_type.toString();
+		if (strategy_allocation_node)
+			strategy_allocation_node->ev_opp_type->setCurrentText(_ev_opp_type);
+	}
+}
+
+
+//============================================================================
 void AssetLambdaModel::load(QJsonObject const& p)
 {
 	QJsonValue opp = p["opperation"];
@@ -141,34 +214,18 @@ void AssetLambdaModel::load(QJsonObject const& p)
 	if (!opp.isUndefined()) {
 		QString str_opp = opp.toString();
 		if (asset_lambda_node)
-		{
 			asset_lambda_node->opperation->setCurrentText(str_opp);
-		}
 	}
 	if (!row.isUndefined()) {
 		auto row_num = row.toString().toInt();
 		if (asset_lambda_node)
-		{
 			asset_lambda_node->row->setValue(row_num);
-		}
 	}
 	if (!column.isUndefined()) {
 		QString str_column = column.toString();
 		if (asset_lambda_node)
-		{
 			asset_lambda_node->column->setText(str_column);
-		}
 	}
-}
-
-
-//============================================================================
-QJsonObject ExchangeViewModel::save() const
-{
-	QJsonObject modelJson = NodeDelegateModel::save();
-	modelJson["query_type"] = this->exchange_view_node->query_type->currentText();
-	modelJson["N"] = QString::number(this->exchange_view_node->N->value());
-	return modelJson;
 }
 
 
@@ -194,17 +251,9 @@ void ExchangeViewModel::load(QJsonObject const& p)
 	}
 }
 
-//============================================================================
-QJsonObject ExchangeDataModel::save() const
-{
-	QJsonObject modelJson = NodeDelegateModel::save();
-	modelJson["exchange_id"] = this->exchange_node->exchange_id->currentText();
-	return modelJson;
-}
-
 
 //============================================================================
-void ExchangeDataModel::load(QJsonObject const& p)
+void ExchangeModel::load(QJsonObject const& p)
 {
 	QJsonValue exchange_id = p["exchange_id"];
 
@@ -296,15 +345,34 @@ void ExchangeViewModel::setInData(std::shared_ptr<NodeData> data, PortIndex cons
 	switch (port)
 	{
 		case 0: {
+			if (!data) { this->lambda_chain.clear(); return; }
 			std::shared_ptr<AssetLambdaData> assetData = std::dynamic_pointer_cast<AssetLambdaData>(data);
 			this->lambda_chain = assetData->lambda_chain;
-			break;
+			return;
 		}
 		
 		case 1:{
+			if (!data) { this->exchange = nullptr; return; }
 			std::shared_ptr<ExchangeData> exchange_data = std::dynamic_pointer_cast<ExchangeData>(data);
 			this->exchange = exchange_data->exchange_ptr;
-			break;
+			return;
 		}
 	}
+	NEXUS_THROW("unexpected out port");
+}
+
+
+//============================================================================
+void StrategyAllocationModel::setInData(std::shared_ptr<NodeData> data, PortIndex const port)
+{
+	switch (port)
+	{
+		case 0: {
+			if (!data) { this->ev_lambda_struct = std::nullopt; return; }
+			std::shared_ptr<ExchangeViewData> ev_ptr = std::dynamic_pointer_cast<ExchangeViewData>(data);
+			this->ev_lambda_struct = ev_ptr->exchange_view_lambda;
+			return;
+		}
+	}
+	NEXUS_THROW("unexpected out port");
 }

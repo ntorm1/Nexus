@@ -47,6 +47,14 @@ private:
         }                                                                     \
     }
 
+#define NEXUS_THROW(msg)                            \
+    do {                                                \
+        std::ostringstream oss;                         \
+        oss << "Error in " << __FILE__                  \
+            << " at line " << __LINE__ << ": " << msg;  \
+        throw std::runtime_error(oss.str());            \
+    } while (false)
+
 
 /// Class to encapsulate exchange so it can be send through nodes
 class ExchangeData : public NodeData
@@ -78,11 +86,11 @@ class ExchangeViewData : public NodeData
 {
 public:
     ExchangeViewData() = default;
-    //ExchangeViewData(){};
+    ExchangeViewData(ExchangeViewLambdaStruct my_struct) { exchange_view_lambda = my_struct; };
 
     NodeDataType type() const override { return NodeDataType{ "Exchange View", "Exchange View" }; }
 
-    //AgisAssetLambdaChain lambda_chain;
+    ExchangeViewLambdaStruct exchange_view_lambda;
 };
 
 /// Exchange data mdoel
@@ -244,13 +252,13 @@ private:
 };
 
 /// Exchange view data mdoel
-class ExchangeViewDataModel : public NodeDelegateModel
+class ExchangeViewModel : public NodeDelegateModel
 {
     Q_OBJECT
 
 public:
-    ExchangeViewDataModel() = default;
-    virtual ~ExchangeViewDataModel() {}
+    ExchangeViewModel() = default;
+    virtual ~ExchangeViewModel() {}
 
 public:
     QString caption() const override { return QString("Exchange View"); }
@@ -307,25 +315,92 @@ public:
         return NodeDataType();
     }
 
-    std::shared_ptr<NodeData> outData(PortIndex const port) override
-    {
-        if (port == 0)
-        {
-            return nullptr;
-        }
-    }
+    std::shared_ptr<NodeData> outData(PortIndex const port) override;
 
-    void setInData(std::shared_ptr<NodeData>, PortIndex const) override
-    {
-    }
+    void setInData(std::shared_ptr<NodeData> data, PortIndex const port) override;
 
     QJsonObject save() const override;
     void load(QJsonObject const& p) override;
 
+    void on_exchange_view_change();
+
 
 private:
-
+    ExchangePtr exchange;
+    AgisAssetLambdaChain lambda_chain;
     ExchangeViewNode* exchange_view_node = nullptr;
 
 };
 
+
+
+/// Exchange view data mdoel
+class StrategyAllocationModel : public NodeDelegateModel
+{
+    Q_OBJECT
+
+public:
+    StrategyAllocationModel() = default;
+    virtual ~StrategyAllocationModel() {}
+
+public:
+    QString caption() const override { return QString("Strategy Allocation"); }
+
+    QString name() const override { return QString("Strategy Allocation"); }
+
+    QWidget* embeddedWidget() override;
+
+public:
+    unsigned int nPorts(PortType const portType) const override
+    {
+        unsigned int result = 1;
+
+        switch (portType) {
+        case PortType::In:
+            result = 1;
+            break;
+
+        case PortType::Out:
+            result = 0;
+            break;
+        case PortType::None:
+            break;
+        }
+
+        return result;
+    }
+
+    NodeDataType dataType(PortType const portType, PortIndex const portIndex) const override
+    {
+        switch (portType) {
+        case PortType::Out:
+            break;
+
+        case PortType::In:
+            switch (portIndex)
+            {
+            case 0:
+                return ExchangeViewData().type();
+            }
+            break;
+
+        case PortType::None:
+            break;
+        }
+        // FIXME: control may reach end of non-void function [-Wreturn-type]
+        return NodeDataType();
+    }
+
+    std::shared_ptr<NodeData> outData(PortIndex const port) override { return nullptr; };
+
+    void setInData(std::shared_ptr<NodeData> data, PortIndex const port) override {};
+
+    //QJsonObject save() const override;
+    //void load(QJsonObject const& p) override;
+
+
+
+private:
+    StrategyAllocationNode* strateg_allocation_node = nullptr;
+
+};

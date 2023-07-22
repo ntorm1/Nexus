@@ -62,14 +62,38 @@ QWidget* AssetLambdaModel::embeddedWidget()
 
 
 //============================================================================
-QWidget* ExchangeViewDataModel::embeddedWidget()
+QWidget* ExchangeViewModel::embeddedWidget()
 {
 	if (!this->exchange_view_node) {
 		this->exchange_view_node = new ExchangeViewNode(
 			nullptr
 		);
+		connect(
+			exchange_view_node->N,
+			&QSpinBox::valueChanged,
+			this,
+			&ExchangeViewModel::on_exchange_view_change
+		);
+		connect(
+			exchange_view_node->query_type,
+			QOverload<int>::of(&QComboBox::currentIndexChanged),
+			this,
+			&ExchangeViewModel::on_exchange_view_change
+		);
 	}
 	return this->exchange_view_node;
+}
+
+
+//============================================================================
+QWidget* StrategyAllocationModel::embeddedWidget()
+{
+	if (!this->strateg_allocation_node) {
+		this->strateg_allocation_node = new StrategyAllocationNode(
+			nullptr
+		);
+	}
+	return this->strateg_allocation_node;
 }
 
 
@@ -87,6 +111,12 @@ void ExchangeDataModel::on_exchange_change()
 	Q_EMIT dataUpdated(0);
 }
 
+
+//============================================================================
+void ExchangeViewModel::on_exchange_view_change()
+{
+	Q_EMIT dataUpdated(0);
+}
 
 //============================================================================
 QJsonObject AssetLambdaModel::save() const
@@ -133,7 +163,7 @@ void AssetLambdaModel::load(QJsonObject const& p)
 
 
 //============================================================================
-QJsonObject ExchangeViewDataModel::save() const
+QJsonObject ExchangeViewModel::save() const
 {
 	QJsonObject modelJson = NodeDelegateModel::save();
 	modelJson["query_type"] = this->exchange_view_node->query_type->currentText();
@@ -143,7 +173,7 @@ QJsonObject ExchangeViewDataModel::save() const
 
 
 //============================================================================
-void ExchangeViewDataModel::load(QJsonObject const& p)
+void ExchangeViewModel::load(QJsonObject const& p)
 {
 	QJsonValue query_type = p["query_type"];
 	QJsonValue N = p["N"];
@@ -204,6 +234,47 @@ std::shared_ptr<NodeData> AssetLambdaModel::outData(PortIndex const port)
 		else { this->lambda_chain.push_back(l); }
 		return std::make_shared<AssetLambdaData>(this->lambda_chain);
 	}
+	NEXUS_THROW("unexpected out port");
+}
+
+
+//============================================================================
+std::shared_ptr<NodeData> ExchangeViewModel::outData(PortIndex const port)
+{
+	if (port == 0)
+	{
+		std::function<double(AssetPtr const&)> lambda_chain = [this](AssetPtr const& asset) -> double {
+			double result = asset_feature_lambda_chain(
+				asset,
+				this->lambda_chain // Capturing this->lambda_chain by reference
+			);
+			return result;
+		};
+
+		auto query_string = this->exchange_view_node->query_type->currentText().toStdString();
+		auto query_type = agis_query_map.at(query_string);
+
+		ExchangeViewLambda chain = [this](
+			std::function<double(AssetPtr const&)> lambda_chain,
+			ExchangePtr const exchange,
+			ExchangeQueryType query_type) -> ExchangeView 
+		{
+			auto exchange_view = exchange->get_exchange_view(
+				lambda_chain,
+				query_type
+			);
+			return exchange_view;
+		};
+
+		ExchangeViewLambdaStruct my_struct = {
+			chain,
+			this->exchange,
+			query_type,
+			lambda_chain
+		};
+		return std::make_shared<ExchangeViewData>(my_struct);
+	}
+	NEXUS_THROW("unexpected out port");
 }
 
 
@@ -219,3 +290,21 @@ void AssetLambdaModel::setInData(std::shared_ptr<NodeData> data, PortIndex const
 }
 
 
+//============================================================================
+void ExchangeViewModel::setInData(std::shared_ptr<NodeData> data, PortIndex const port)
+{
+	switch (port)
+	{
+		case 0: {
+			std::shared_ptr<AssetLambdaData> assetData = std::dynamic_pointer_cast<AssetLambdaData>(data);
+			this->lambda_chain = assetData->lambda_chain;
+			break;
+		}
+		
+		case 1:{
+			std::shared_ptr<ExchangeData> exchange_data = std::dynamic_pointer_cast<ExchangeData>(data);
+			this->exchange = exchange_data->exchange_ptr;
+			break;
+		}
+	}
+}

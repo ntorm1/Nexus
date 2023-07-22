@@ -6,6 +6,8 @@
 #include <QLabel>
 #include <QLineEdit>
 #include <QSpinBox>
+#include <QCheckBox>
+#include <QDoubleValidator>
 
 #include <QtNodes/Definitions>
 
@@ -63,4 +65,21 @@ public:
     QVBoxLayout* layout;
     QComboBox* query_type;
     QSpinBox* N;
+};
+
+class StrategyAllocationNode : public QWidget
+{
+    Q_OBJECT
+public:
+    StrategyAllocationNode(
+        QWidget* parent = nullptr);
+
+    ~StrategyAllocationNode() { delete layout; };
+
+    QVBoxLayout* layout;
+    QLineEdit* epsilon;
+    QLineEdit* target_leverage;
+    QCheckBox* clear_missing;
+    QComboBox* alloc_type;
+    QComboBox* ev_opp_type;
 };

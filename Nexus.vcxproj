@@ -83,7 +83,8 @@
       <PreprocessorDefinitions>$(Qt_DEFINES_);%(PreprocessorDefinitions);NODE_EDITOR_SHARED</PreprocessorDefinitions>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>%(AdditionalDependencies);$(Qt_LIBS_);QtNodes.dll</AdditionalDependencies>
+      <AdditionalDependencies>%(AdditionalDependencies);$(Qt_LIBS_);QtNodes.lib</AdditionalDependencies>
+      <AdditionalLibraryDirectories>C:\Users\natha\OneDrive\Desktop\C++\external\nodeeditor\out\build\x64-Release\bin</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'" Label="Configuration">

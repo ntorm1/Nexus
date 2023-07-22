@@ -107,3 +107,68 @@ ExchangeViewNode::ExchangeViewNode(
 
     this->setFixedSize(layout->sizeHint());
 }
+
+
+StrategyAllocationNode::StrategyAllocationNode(
+    QWidget* parent_)
+    : QWidget(parent_)
+    , layout(nullptr)
+{
+    setSizePolicy(QSizePolicy::Policy::Minimum, QSizePolicy::Policy::Minimum);
+
+    this->layout = new QVBoxLayout(this);
+
+    // operation type
+    QHBoxLayout* row_layout = new QHBoxLayout(this);
+    this->alloc_type = new QComboBox();
+    for (const auto& item : agis_strat_alloc_strings) {
+        this->alloc_type->addItem(QString::fromStdString(item));
+    }
+    QLabel* label = new QLabel("Alloc Type: ");
+    row_layout->addWidget(label);
+    row_layout->addWidget(this->alloc_type);
+    layout->addLayout(row_layout);
+
+    // function to generate weights from the view
+    row_layout = new QHBoxLayout(this);
+    this->ev_opp_type = new QComboBox();
+    std::vector<std::string> opps = { "UNIFORM", "LINEAR_DECREASE", "LINEAR_INCREASE" };
+    for (const auto& item : opps) {
+        this->ev_opp_type->addItem(QString::fromStdString(item));
+    }
+    label = new QLabel("Ev Opp Type: ");
+    row_layout->addWidget(label);
+    row_layout->addWidget(this->ev_opp_type);
+    layout->addLayout(row_layout);
+
+    // row value
+    row_layout = new QHBoxLayout(this);
+    QLabel* row_label = new QLabel("Epsilon: ");
+    this->epsilon = new QLineEdit(this);
+    QDoubleValidator* validator = new QDoubleValidator(0.0, 1.0, 2, epsilon); // 2 decimal places
+    this->epsilon->setValidator(validator);
+    this->epsilon->setText(".01");
+    row_layout->addWidget(row_label);
+    row_layout->addWidget(this->epsilon);
+    layout->addLayout(row_layout);
+
+    // target leverage
+    row_layout = new QHBoxLayout(this);
+    row_label = new QLabel("Target Lev: ");
+    this->target_leverage = new QLineEdit(this);
+    validator = new QDoubleValidator(0.0, 10.0, 2, target_leverage); // 2 decimal places
+    this->target_leverage->setValidator(validator);
+    this->target_leverage->setText("1.00");
+    row_layout->addWidget(row_label);
+    row_layout->addWidget(this->target_leverage);
+    layout->addLayout(row_layout);
+
+    row_layout = new QHBoxLayout(this);
+    this->clear_missing = new QCheckBox("Clear Missing: ");
+    this->clear_missing->setChecked(true);
+    layout->addWidget(this->clear_missing);
+    layout->addLayout(row_layout);
+
+
+    this->setFixedSize(layout->sizeHint());
+}

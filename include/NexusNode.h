@@ -37,6 +37,7 @@ namespace Ui {
 }
 
 
+
 class NexusNodeEditor : public QMainWindow
 {
     Q_OBJECT
@@ -53,7 +54,7 @@ public:
 
     void __save();
     void __load(BasicGraphicsScene* scene);
-    bool __extract_abstract_strategy();
+    std::optional<ExchangeViewLambdaStruct>  __extract_abstract_strategy();
 
     std::string get_strategy_id() { return this->strategy.get()->get_strategy_id(); }
 

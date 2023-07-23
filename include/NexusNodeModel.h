@@ -6,7 +6,7 @@
 #include <QtNodes/NodeDelegateModel>
 
 #include "NexusNodeWidget.h"
-#include "AgisStrategyHelpers.h"
+#include "AgisStrategy.h"
 
 #include "Hydra.h"
 
@@ -398,8 +398,6 @@ public:
     void load(QJsonObject const& p) override;
 
     std::optional<ExchangeViewLambdaStruct> ev_lambda_struct;
-
-private:
     StrategyAllocationNode* strategy_allocation_node = nullptr;
     
 };

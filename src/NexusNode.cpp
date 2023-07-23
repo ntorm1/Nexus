@@ -113,6 +113,10 @@ NexusNodeEditor::NexusNodeEditor(
 	// attempt to load existing flow graph if it exists
 	RUN_WITH_ERROR_DIALOG(this->__load(scene);)
 
+	auto abstract_strategy = dynamic_cast<AbstractAgisStrategy*>(strategy.get().get());
+	abstract_strategy->set_abstract_ev_lambda([this]() {
+		return this->__extract_abstract_strategy();
+	});
 
 	this->id = counter++;
 }
@@ -121,6 +125,9 @@ NexusNodeEditor::NexusNodeEditor(
 //============================================================================
 NexusNodeEditor::~NexusNodeEditor()
 {
+	auto abstract_strategy = dynamic_cast<AbstractAgisStrategy*>(strategy.get().get());
+	abstract_strategy->extract_ev_lambda();
+
 	delete dataFlowGraphModel;
 	delete view;
 }
@@ -141,6 +148,9 @@ void NexusNodeEditor::__save()
 	if (file.open(QIODevice::WriteOnly)) {
 		file.write(QJsonDocument(dataFlowGraphModel->save()).toJson());
 	}
+
+	auto abstract_strategy = dynamic_cast<AbstractAgisStrategy*>(strategy.get().get());
+	abstract_strategy->extract_ev_lambda();
 }
 
 //============================================================================
@@ -176,28 +186,42 @@ void NexusNodeEditor::__load(BasicGraphicsScene* scene)
 	}
 
 	this->dataFlowGraphModel->load(jsonDocument.object());
-
 	view->centerScene();
 }
 
 
 //============================================================================
-bool NexusNodeEditor::__extract_abstract_strategy()
+std::optional<ExchangeViewLambdaStruct> NexusNodeEditor::__extract_abstract_strategy()
 {
 	auto ids = this->dataFlowGraphModel->allNodeIds();
 	// probably better way to find the strategy node
-	StrategyAllocationModel* node = nullptr;
+	std::optional<StrategyAllocationModel> node = std::nullopt;
 	for (auto& id : ids)
 	{
 		try {
-			node = this->dataFlowGraphModel->delegateModel<StrategyAllocationModel>(id);
+			auto node = this->dataFlowGraphModel->delegateModel<StrategyAllocationModel>(id);
 			break;
 		}
 		catch (...){}
 	}
+	if (!node.has_value()) { return std::nullopt; }
+	if (!node.value().ev_lambda_struct.has_value()) { return std::nullopt; }
 
-	if (!node) { return false; }
+	auto epsilon = stod(node.value().strategy_allocation_node->epsilon->text().toStdString());
+	auto target_leverage = stod(node.value().strategy_allocation_node->target_leverage->text().toStdString());
+	auto clear_missing = node.value().strategy_allocation_node->clear_missing->isChecked();
+	auto ev_opp_type = node.value().strategy_allocation_node->ev_opp_type->currentText().toStdString();
+	auto str_alloc_type = node.value().strategy_allocation_node->alloc_type->currentText().toStdString();
 
 
-
+	StrategyAllocLambdaStruct _struct{
+		epsilon,
+		target_leverage,
+		clear_missing,
+		ev_opp_type,
+		str_alloc_type
+	};
+	auto ev_lambda_struct = node->ev_lambda_struct;
+	ev_lambda_struct.value().strat_alloc_struct = _struct;
+	return ev_lambda_struct;
 }

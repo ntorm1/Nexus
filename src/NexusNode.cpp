@@ -198,7 +198,7 @@ std::optional<ExchangeViewLambdaStruct> NexusNodeEditor::__extract_abstract_stra
 	StrategyAllocationModel* node = nullptr;
 	for (auto& id : ids)
 	{
-		auto node = this->dataFlowGraphModel->delegateModel<StrategyAllocationModel>(id);
+		node = this->dataFlowGraphModel->delegateModel<StrategyAllocationModel>(id);
 		if(node) break;
 	}
 	if (!node) { return std::nullopt; }

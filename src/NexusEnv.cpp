@@ -199,8 +199,8 @@ void NexusEnv::__run()
 		this->hydra->__reset();
 		this->hydra->__run();
 	}
-	catch (...) {
-		throw;
+	catch (const std::exception& e) {
+		throw e;
 	}
 }
 

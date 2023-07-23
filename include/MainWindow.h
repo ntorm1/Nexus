@@ -7,6 +7,9 @@
 #include <QWidgetAction>
 #include <QPointer>
 #include <QStandardItemModel>
+#include <QThread>
+#include <QObject>
+#include <QtConcurrent/QtConcurrent>
 
 #include "DockManager.h"
 #include "DockAreaWidget.h"
@@ -19,6 +22,8 @@
 
 
 class NexusDockManager;
+
+
 
 QT_BEGIN_NAMESPACE
 namespace Ui {
@@ -36,6 +41,11 @@ public:
 
 public slots:
     void about();
+
+    void showErrorMessageBox(const QString& errorMessage)
+    {
+        QMessageBox::critical(nullptr, "Critical Error", errorMessage, QMessageBox::Ok);
+    }
 
 
 signals:
@@ -114,6 +124,7 @@ private:
     ads::CDockWidget*       TimelineDockWidget;
 
     void __run();
+    void __run_lambda();
 
 public:
     ads::CDockWidget* create_console_widget();

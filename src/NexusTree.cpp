@@ -198,7 +198,7 @@ void PortfolioTree::create_new_strategy(const QModelIndex& parentIndex)
     QVariant itemData = parentIndex.data(Qt::DisplayRole);
     QString itemName = itemData.toString();
 
-    emit new_strategy_requested(parentIndex, itemName, "test1", "1000.0");
+    emit new_strategy_requested(parentIndex, itemName, "test1", "1.0");
 }
 
 

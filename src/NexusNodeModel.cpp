@@ -276,7 +276,7 @@ std::shared_ptr<NodeData> AssetLambdaModel::outData(PortIndex const port)
 		auto column_name = this->asset_lambda_node->column->text().toStdString();
 		auto row = this->asset_lambda_node->row->value();
 
-		AssetLambda l = AssetLambda(op, [&](const AssetPtr& asset) {
+		AssetLambda l = AssetLambda(op, [column_name, row](const AssetPtr& asset) {
 			return asset_feature_lambda(asset, column_name, row);
 		});
 		if (this->lambda_chain.size()) { this->lambda_chain.back() = l; }

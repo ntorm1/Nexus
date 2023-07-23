@@ -28,7 +28,8 @@
 #include <QPointer>
 #include <QMap>
 #include <QElapsedTimer>
-
+#include <QEventLoop>
+#include <QDateTime>
 #include "AgisPointers.h"
 
 #include "MainWindow.h"
@@ -535,7 +536,7 @@ void MainWindow::setup_command_bar()
     a->setProperty("Tabbed", true);
     a->setToolTip("Executes Hyda instance run");
     a->setIcon(svgIcon("./images/run.png"));
-    connect(a, &QAction::triggered, this, &MainWindow::__run);
+    connect(a, &QAction::triggered, this, &MainWindow::__run_lambda);
     ui->toolBar->addAction(a);
 }
 
@@ -913,14 +914,34 @@ void MainWindow::closeEvent(QCloseEvent* event)
 
 
 //============================================================================
-void MainWindow::__run()
+void MainWindow::__run_lambda()
 {
-    try { this->nexus_env.__run(); }
-    catch (const std::exception& e){
-        QMessageBox::critical(nullptr, "Critical Error", e.what(), QMessageBox::Ok); \
-    }
-}
+    QEventLoop eventLoop;
 
+    QFuture<long long> future = QtConcurrent::run([this, &eventLoop]() {
+        qDebug() << "BEGINNING HYDRA RUN" << QDateTime::currentDateTimeUtc().toString("yyyy-MM-dd HH:mm:ss.zzzzzz");
+        auto startTime = std::chrono::high_resolution_clock::now();
+
+        // Long-running operation that may block the CPU
+        try {
+            this->nexus_env.__run();
+        }
+        catch (const std::exception& e) {
+            this->showErrorMessageBox(e.what());
+        }
+        qDebug() << "HYDRA RUN COMPLETE" << QDateTime::currentDateTimeUtc().toString("yyyy-MM-dd HH:mm:ss.zzzzzz");
+        auto endTime = std::chrono::high_resolution_clock::now();
+        auto durationMs = std::chrono::duration_cast<std::chrono::milliseconds>(endTime - startTime).count();
+
+        // Unblock the event loop when the operation is completed
+        eventLoop.quit();
+        return durationMs;
+        });
+    // Block the event loop until the long-running operation is completed
+    future.waitForFinished(); // Wait for the future to finish before getting the result
+    long long durationMs = future.result();
+    QMessageBox::information(nullptr, "Execution Time", "Execution time: " + QString::number(durationMs) + " ms", QMessageBox::Ok);
+}
 
 //============================================================================
 void MainWindow::applyVsStyle()

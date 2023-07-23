@@ -13,6 +13,7 @@
 
 
 #include "NexusNodeModel.h"
+#include "NexusEnv.h"
 #include "NexusNode.h"
 
 #include "ui_NexusNodeEditor.h"
@@ -27,7 +28,7 @@ size_t NexusNodeEditor::counter(0);
 
 
 //============================================================================
-static std::shared_ptr<NodeDelegateModelRegistry> registerDataModels()
+std::shared_ptr<NodeDelegateModelRegistry> registerDataModels()
 {
 	auto ret = std::make_shared<NodeDelegateModelRegistry>();
 
@@ -115,7 +116,7 @@ NexusNodeEditor::NexusNodeEditor(
 
 	auto abstract_strategy = dynamic_cast<AbstractAgisStrategy*>(strategy.get().get());
 	abstract_strategy->set_abstract_ev_lambda([this]() {
-		return this->__extract_abstract_strategy();
+		return this->__extract_abstract_strategy(this->dataFlowGraphModel);
 	});
 
 	this->id = counter++;
@@ -191,14 +192,14 @@ void NexusNodeEditor::__load(BasicGraphicsScene* scene)
 
 
 //============================================================================
-std::optional<ExchangeViewLambdaStruct> NexusNodeEditor::__extract_abstract_strategy()
+std::optional<ExchangeViewLambdaStruct> NexusNodeEditor::__extract_abstract_strategy(DataFlowGraphModel* model)
 {
-	auto ids = this->dataFlowGraphModel->allNodeIds();
+	auto ids = model->allNodeIds();
 	// probably better way to find the strategy node
 	StrategyAllocationModel* node = nullptr;
 	for (auto& id : ids)
 	{
-		node = this->dataFlowGraphModel->delegateModel<StrategyAllocationModel>(id);
+		node = model->delegateModel<StrategyAllocationModel>(id);
 		if(node) break;
 	}
 	if (!node) { return std::nullopt; }

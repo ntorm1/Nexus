@@ -633,8 +633,13 @@ void MainWindow::restore_state()
     this->nexus_env.clear();
 
     // Restore Nexus env from the given json
-    //TODO editors are throwing file already open errors 
-    this->nexus_env.restore(j);
+    try {
+        this->nexus_env.restore(j);
+    }
+    catch (const std::exception& e) {
+        QMessageBox::critical(nullptr, "Error", e.what());
+        return;
+    }
 
     // Restore widgets
     this->DockManager->restore_widgets(j);

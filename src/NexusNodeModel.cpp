@@ -170,14 +170,15 @@ QJsonObject StrategyAllocationModel::save() const
 //============================================================================
 void StrategyAllocationModel::load(QJsonObject const& p)
 {
-	QJsonValue epsilon = p["opperation"];
-	QJsonValue target_leverage = p["column"];
-	QJsonValue clear_missing = p["row"];
-	QJsonValue alloc_type = p["opperation"];
-	QJsonValue ev_opp_type = p["column"];
+	QJsonValue epsilon = p["epsilon"];
+	QJsonValue target_leverage = p["target_leverage"];
+	QJsonValue clear_missing = p["clear_missing"];
+	QJsonValue alloc_type = p["alloc_type"];
+	QJsonValue ev_opp_type = p["ev_opp_type"];
 
 	if (!epsilon.isUndefined()) {
 		QString _epsilon = epsilon.toString();
+		if (!strategy_allocation_node) { this->embeddedWidget(); }
 		if (strategy_allocation_node)
 			strategy_allocation_node->epsilon->setText(_epsilon);
 	}
@@ -213,6 +214,7 @@ void AssetLambdaModel::load(QJsonObject const& p)
 
 	if (!opp.isUndefined()) {
 		QString str_opp = opp.toString();
+		if (!asset_lambda_node) { this->embeddedWidget(); }
 		if (asset_lambda_node)
 			asset_lambda_node->opperation->setCurrentText(str_opp);
 	}
@@ -237,6 +239,7 @@ void ExchangeViewModel::load(QJsonObject const& p)
 
 	if (!query_type.isUndefined()) {
 		QString str_opp = query_type.toString();
+		if (!exchange_view_node) { this->embeddedWidget(); }
 		if (exchange_view_node)
 		{
 			exchange_view_node->query_type->setCurrentText(str_opp);
@@ -259,6 +262,7 @@ void ExchangeModel::load(QJsonObject const& p)
 
 	if (!exchange_id.isUndefined()) {
 		QString str_exchange_id = exchange_id.toString();
+		if (!exchange_node) { this->embeddedWidget(); }
 		if (exchange_node)
 		{
 			exchange_node->exchange_id->setCurrentText(str_exchange_id);

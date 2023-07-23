@@ -16,7 +16,6 @@
 #include <QtNodes/DataFlowGraphModel>
 #include <QtNodes/GraphicsView>
 
-#include "NexusEnv.h"
 #include "AgisStrategy.h"
 #include <memory>
 
@@ -30,13 +29,13 @@ using QtNodes::DataFlowGraphModel;
 using QtNodes::GraphicsView;
 using QtNodes::BasicGraphicsScene;
 
-
+class NexusEnv;
 
 namespace Ui {
     class NexusNodeEditor;
 }
 
-
+std::shared_ptr<NodeDelegateModelRegistry> registerDataModels();
 
 class NexusNodeEditor : public QMainWindow
 {
@@ -54,7 +53,7 @@ public:
 
     void __save();
     void __load(BasicGraphicsScene* scene);
-    std::optional<ExchangeViewLambdaStruct>  __extract_abstract_strategy();
+    static std::optional<ExchangeViewLambdaStruct>  __extract_abstract_strategy(DataFlowGraphModel* dataFlowGraphModel);
 
     std::string get_strategy_id() { return this->strategy.get()->get_strategy_id(); }
 

@@ -1,7 +1,8 @@
 #include <fstream>
 
 #include "NexusEnv.h"
-
+#include "NexusNode.h"
+#include "NexusNodeModel.h"
 
 //============================================================================
 NexusEnv::NexusEnv()
@@ -217,11 +218,57 @@ void NexusEnv::clear()
 void NexusEnv::restore(json const& j)
 {
 	this->hydra->clear();
-	this->hydra->restore(j);
+	try { this->hydra->restore(j); }
+	catch (const std::exception& e) { throw e; }
+
 	this->remove_editors();
 	for (auto& tree : this->open_trees)
 	{
 		tree->restore_tree(j);
+	}
+
+	// restore abstract strategy tree
+	auto strat_folder = this->env_path / "strategies";
+	auto& strategy_map = this->hydra->__get_strategy_map();
+	auto& strategies = strategy_map.__get_strategies();
+
+	// node currently widgets are created for each one in order to restore the strategy
+	// probably way to this without creating them.
+	for (auto& strategy_pair : strategies)
+	{
+		auto& strategy = strategy_pair.second;
+		auto strat_path = strat_folder / strategy->get_strategy_id() / "graph.flow";
+		
+		// use node model to load in flow graph to set absract strategy lambda
+		std::shared_ptr<NodeDelegateModelRegistry> registry = registerDataModels();
+		DataFlowGraphModel dataFlowGraphModel = DataFlowGraphModel(registry);
+		ExchangeModel::hydra = this->get_hydra();
+
+		QFile file(strat_path);
+		if (!file.open(QIODevice::ReadOnly)) {
+			throw std::runtime_error("Failed to open the strategy flow file: " + strat_path.string());
+		}
+
+		QByteArray const wholeFile = file.readAll();
+		file.close();
+
+		QJsonParseError error;
+		QJsonDocument jsonDocument = QJsonDocument::fromJson(wholeFile, &error);
+		if (error.error != QJsonParseError::NoError) {
+			throw std::runtime_error("Failed to parse JSON in the strategy flow file: " + error.errorString().toStdString());
+		}
+
+		if (!jsonDocument.isObject()) {
+			throw std::runtime_error("Invalid JSON format in the strategy flow file.");
+		}
+		dataFlowGraphModel.load(jsonDocument.object());
+
+		// case to abstract strategy and extract strategy
+		auto abstract_strategy = dynamic_cast<AbstractAgisStrategy*>(strategy.get());
+		abstract_strategy->set_abstract_ev_lambda([&dataFlowGraphModel]() {
+			return NexusNodeEditor::__extract_abstract_strategy(&dataFlowGraphModel);
+		});
+		abstract_strategy->extract_ev_lambda();
 	}
 }
 

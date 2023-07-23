@@ -152,7 +152,7 @@ class ExchangeModel : public NodeDelegateModel
 
 public:
     ExchangeModel() = default;
-    virtual ~ExchangeModel() {}
+    virtual ~ExchangeModel() { delete this->exchange_node; }
 
 public:
     QString caption() const override { return QString("Exchange"); }
@@ -233,7 +233,7 @@ class ExchangeViewModel : public NodeDelegateModel
 
 public:
     ExchangeViewModel() = default;
-    virtual ~ExchangeViewModel() {}
+    virtual ~ExchangeViewModel() { delete this->exchange_view_node; }
 
 public:
     QString caption() const override { return QString("Exchange View"); }
@@ -316,7 +316,7 @@ class StrategyAllocationModel : public NodeDelegateModel
 
 public:
     StrategyAllocationModel() = default;
-    virtual ~StrategyAllocationModel() {}
+    virtual ~StrategyAllocationModel() { delete this->strategy_allocation_node; }
 
 public:
     QString caption() const override { return QString("Strategy Allocation"); }

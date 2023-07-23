@@ -300,22 +300,26 @@ std::shared_ptr<NodeData> ExchangeViewModel::outData(PortIndex const port)
 			return result;
 		};
 
+		auto N =stoi(this->exchange_view_node->N->text().toStdString());
 		auto query_string = this->exchange_view_node->query_type->currentText().toStdString();
 		auto query_type = agis_query_map.at(query_string);
 
-		ExchangeViewLambda chain = [this](
+		ExchangeViewLambda chain = [](
 			std::function<double(AssetPtr const&)> lambda_chain,
 			ExchangePtr const exchange,
-			ExchangeQueryType query_type) -> ExchangeView 
+			ExchangeQueryType query_type,
+			int N) -> ExchangeView 
 		{
 			auto exchange_view = exchange->get_exchange_view(
 				lambda_chain,
-				query_type
+				query_type,
+				N
 			);
 			return exchange_view;
 		};
 
 		ExchangeViewLambdaStruct my_struct = {
+			N,
 			chain,
 			this->exchange,
 			query_type,

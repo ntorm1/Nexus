@@ -193,6 +193,17 @@ NexusStatusCode NexusEnv::remove_portfolio(const std::string& name)
 }
 
 
+void NexusEnv::__run()
+{
+	try {
+		this->hydra->__reset();
+		this->hydra->__run();
+	}
+	catch (...) {
+		throw;
+	}
+}
+
 //============================================================================
 void NexusEnv::clear()
 {

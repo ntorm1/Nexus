@@ -114,7 +114,10 @@ MainWindow::MainWindow(QWidget* parent):
 
     setWindowTitle(tr("Nexus"));
     setup_help_menu();
+
     setup_toolbar();
+    create_perspective_ui();
+    setup_command_bar();
 
     // create file system widget
     auto FileSystemWidget = create_file_system_tree_widget();
@@ -140,7 +143,7 @@ MainWindow::MainWindow(QWidget* parent):
     container = this->DockManager->addAutoHideDockWidget(ads::SideBarLeft, PortfoliosWidget);
     container->setSize(200);
 
-    create_perspective_ui();
+    
     applyVsStyle();
 }
 
@@ -154,6 +157,7 @@ void MainWindow::about()
             "the QSyntaxHighlighter class and describing " \
             "highlighting rules using regular expressions.</p>"));
 }
+
 
 //============================================================================
 ads::CDockWidget* MainWindow::create_console_widget()
@@ -518,6 +522,21 @@ void MainWindow::setup_help_menu()
 
     helpMenu->addAction(tr("&About"), this, &MainWindow::about);
     helpMenu->addAction(tr("About &Qt"), qApp, &QApplication::aboutQt);
+}
+
+void MainWindow::setup_command_bar()
+{
+    QWidget* spacerWidget = new QWidget(ui->toolBar);
+    spacerWidget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
+    ui->toolBar->addWidget(spacerWidget);
+
+    QAction* a = new QAction("Run", ui->toolBar);
+    a->setProperty("Floating", false);
+    a->setProperty("Tabbed", true);
+    a->setToolTip("Executes Hyda instance run");
+    a->setIcon(svgIcon("./images/run.png"));
+    connect(a, &QAction::triggered, this, &MainWindow::__run);
+    ui->toolBar->addAction(a);
 }
 
 //============================================================================
@@ -891,6 +910,17 @@ void MainWindow::closeEvent(QCloseEvent* event)
         return;
     }
 }
+
+
+//============================================================================
+void MainWindow::__run()
+{
+    try { this->nexus_env.__run(); }
+    catch (const std::exception& e){
+        QMessageBox::critical(nullptr, "Critical Error", e.what(), QMessageBox::Ok); \
+    }
+}
+
 
 //============================================================================
 void MainWindow::applyVsStyle()

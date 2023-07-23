@@ -22,31 +22,6 @@ using QtNodes::PortType;
 
 class ExchangeNode;
 
-// Custom exception class to store the error message
-class CustomException : public std::exception {
-public:
-    CustomException(const std::string& message) : errorMessage(message) {}
-    const char* what() const noexcept override {
-        return errorMessage.c_str();
-    }
-
-private:
-    std::string errorMessage;
-};
-// Custom macro to handle exceptions and display error messages
-#define NEXUS_UNWRAP_DIALOG(expression, additionalInfo)                       \
-    {                                                                         \
-        try {                                                                 \
-            expression;                                                       \
-        }                                                                     \
-        catch (const std::exception& e) {                                     \
-            QString errorMessage = "Error in " + QString(__FILE__) + " at line " + QString::number(__LINE__) + ": " + QString(e.what()); \
-            QString fullErrorMessage = errorMessage + "\n" + QString(additionalInfo); \
-            QMessageBox::critical(nullptr, "Critical Error", fullErrorMessage, QMessageBox::Ok); \
-            throw CustomException(errorMessage.toStdString(), additionalInfo.toStdString()); \
-        }                                                                     \
-    }
-
 #define NEXUS_THROW(msg)                            \
     do {                                                \
         std::ostringstream oss;                         \

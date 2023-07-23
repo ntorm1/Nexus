@@ -85,6 +85,7 @@ private:
 
     void setup_toolbar();
     void setup_help_menu();
+    void setup_command_bar();
     void create_perspective_ui();
 
     void place_widget(ads::CDockWidget* docket_widget, QObject* Sender);
@@ -112,7 +113,7 @@ private:
     ads::CDockAreaWidget*   StatusDockArea;
     ads::CDockWidget*       TimelineDockWidget;
 
-
+    void __run();
 
 public:
     ads::CDockWidget* create_console_widget();

@@ -195,23 +195,20 @@ std::optional<ExchangeViewLambdaStruct> NexusNodeEditor::__extract_abstract_stra
 {
 	auto ids = this->dataFlowGraphModel->allNodeIds();
 	// probably better way to find the strategy node
-	std::optional<StrategyAllocationModel> node = std::nullopt;
+	StrategyAllocationModel* node = nullptr;
 	for (auto& id : ids)
 	{
-		try {
-			auto node = this->dataFlowGraphModel->delegateModel<StrategyAllocationModel>(id);
-			break;
-		}
-		catch (...){}
+		auto node = this->dataFlowGraphModel->delegateModel<StrategyAllocationModel>(id);
+		if(node) break;
 	}
-	if (!node.has_value()) { return std::nullopt; }
-	if (!node.value().ev_lambda_struct.has_value()) { return std::nullopt; }
+	if (!node) { return std::nullopt; }
+	if (!node->ev_lambda_struct.has_value()) { return std::nullopt; }
 
-	auto epsilon = stod(node.value().strategy_allocation_node->epsilon->text().toStdString());
-	auto target_leverage = stod(node.value().strategy_allocation_node->target_leverage->text().toStdString());
-	auto clear_missing = node.value().strategy_allocation_node->clear_missing->isChecked();
-	auto ev_opp_type = node.value().strategy_allocation_node->ev_opp_type->currentText().toStdString();
-	auto str_alloc_type = node.value().strategy_allocation_node->alloc_type->currentText().toStdString();
+	auto epsilon = stod(node->strategy_allocation_node->epsilon->text().toStdString());
+	auto target_leverage = stod(node->strategy_allocation_node->target_leverage->text().toStdString());
+	auto clear_missing = node->strategy_allocation_node->clear_missing->isChecked();
+	auto ev_opp_type = node->strategy_allocation_node->ev_opp_type->currentText().toStdString();
+	auto str_alloc_type = node->strategy_allocation_node->alloc_type->currentText().toStdString();
 
 
 	StrategyAllocLambdaStruct _struct{
@@ -219,7 +216,7 @@ std::optional<ExchangeViewLambdaStruct> NexusNodeEditor::__extract_abstract_stra
 		target_leverage,
 		clear_missing,
 		ev_opp_type,
-		str_alloc_type
+		agis_strat_alloc_map.at(str_alloc_type)
 	};
 	auto ev_lambda_struct = node->ev_lambda_struct;
 	ev_lambda_struct.value().strat_alloc_struct = _struct;

@@ -69,7 +69,12 @@ private:
     Ui::NexusNodeEditor* ui;
     ads::CDockWidget* DockWidget;
 
+    QLineEdit* allocation;
+    QComboBox* trading_window;
+
     QMenuBar* createSaveRestoreMenu(BasicGraphicsScene* scene);
+
+    void on_tw_change(int index);
 
 };
 

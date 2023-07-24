@@ -3,7 +3,7 @@
 
 #include <QtNodes/DataFlowGraphicsScene>
 #include <QtNodes/NodeData>
-
+#include <QSpacerItem>
 #include <QAction>
 #include <QFileDialog>
 #include <QScreen>
@@ -74,6 +74,18 @@ QMenuBar* NexusNodeEditor::createSaveRestoreMenu(BasicGraphicsScene* scene)
 	return menuBar;
 }
 
+void NexusNodeEditor::on_tw_change(int index)
+{
+	auto str_tw = trading_window->currentText().toStdString();
+	if (str_tw == "") {
+		this->strategy.get()->set_trading_window(std::nullopt);
+	}
+	else {
+		TradingWindow tw = agis_trading_window_map.at(str_tw);
+		this->strategy.get()->set_trading_window(tw);
+	}
+}
+
 //============================================================================
 NexusNodeEditor::NexusNodeEditor(
 		NexusEnv const* nexus_env_,
@@ -96,6 +108,9 @@ NexusNodeEditor::NexusNodeEditor(
 	 )");
 	ui->setupUi(this);
 	QWidget* centralWidget = ui->centralwidget;
+	QHBoxLayout* h = new QHBoxLayout(centralWidget);
+
+	// node editor layout
 	QVBoxLayout* l = new QVBoxLayout(centralWidget);
 
 	std::shared_ptr<NodeDelegateModelRegistry> registry = registerDataModels();
@@ -106,7 +121,45 @@ NexusNodeEditor::NexusNodeEditor(
 
 	l->addWidget(createSaveRestoreMenu(scene));
 	l->addWidget(view);
-	centralWidget->setLayout(l);
+	h->addLayout(l);
+
+	//strategy settings layout
+	l = new QVBoxLayout(centralWidget);
+	l->setAlignment(Qt::AlignTop); // Set the alignment to top
+	QSpacerItem* spacer = new QSpacerItem(20, 40, QSizePolicy::Minimum, QSizePolicy::Fixed);
+	l->addItem(spacer);
+
+	// strat allocation
+	QHBoxLayout* row_layout = new QHBoxLayout(this);
+	QLabel* row_label = new QLabel("Allocation: ");
+	this->allocation = new QLineEdit(this);
+	QDoubleValidator* validator = new QDoubleValidator(0.0, 2.0, 3, this->allocation); // 2 decimal places
+	allocation->setValidator(validator);
+	row_layout->addWidget(row_label);
+	row_layout->addWidget(this->allocation);
+	l->addLayout(row_layout);
+
+	// trading window
+	row_layout = new QHBoxLayout(this);
+	this->trading_window = new QComboBox();
+	for (const auto& item : agis_trading_windows) {
+		this->trading_window->addItem(QString::fromStdString(item));
+	}
+	QLabel* label = new QLabel("Trading Window: ");
+	row_layout->addWidget(label);
+	row_layout->addWidget(this->trading_window);
+	l->addLayout(row_layout);
+
+	// listen to changes in strategy settings widgets
+	connect(
+		trading_window,
+		QOverload<int>::of(&QComboBox::currentIndexChanged),
+		this,
+		&NexusNodeEditor::on_tw_change);
+
+
+	h->addLayout(l);
+	centralWidget->setLayout(h);
 
 	// set the base hydra instance
 	ExchangeModel::hydra = nexus_env->get_hydra();
@@ -119,6 +172,7 @@ NexusNodeEditor::NexusNodeEditor(
 		return this->__extract_abstract_strategy(this->dataFlowGraphModel);
 	});
 
+	this->allocation->setText(QString::fromStdString(std::to_string(strategy.get()->get_allocation())));
 	this->id = counter++;
 }
 

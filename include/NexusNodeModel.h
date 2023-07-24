@@ -49,11 +49,12 @@ class AssetLambdaData : public NodeData
 {
 public:
     AssetLambdaData() = default;
-    AssetLambdaData(AgisAssetLambdaChain lambda_chain_) : lambda_chain(lambda_chain_) {};
+    AssetLambdaData(AgisAssetLambdaChain lambda_chain_, int warmup) : lambda_chain(lambda_chain_) {};
 
     NodeDataType type() const override { return NodeDataType{ "Asset Lambda", "Asset Lambda" }; }
 
     AgisAssetLambdaChain lambda_chain;
+    int warmup = 0;
 };
 
 
@@ -142,6 +143,7 @@ private:
 
     AssetLambdaNode* asset_lambda_node = nullptr;
     AgisAssetLambdaChain lambda_chain;
+    int warmup = 0;
 
 };
 
@@ -223,7 +225,6 @@ public:
 private:
 
     ExchangeNode* exchange_node = nullptr;
-
 };
 
 /// Exchange view data mdoel
@@ -304,7 +305,7 @@ private:
     ExchangePtr exchange;
     AgisAssetLambdaChain lambda_chain;
     ExchangeViewNode* exchange_view_node = nullptr;
-
+    int warmup = 0;
 };
 
 

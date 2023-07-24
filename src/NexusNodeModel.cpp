@@ -285,7 +285,7 @@ std::shared_ptr<NodeData> AssetLambdaModel::outData(PortIndex const port)
 		});
 		if (this->lambda_chain.size()) { this->lambda_chain.back() = l; }
 		else { this->lambda_chain.push_back(l); }
-		return std::make_shared<AssetLambdaData>(this->lambda_chain);
+		return std::make_shared<AssetLambdaData>(this->lambda_chain, this->warmup);
 	}
 	NEXUS_THROW("unexpected out port");
 }
@@ -296,26 +296,30 @@ std::shared_ptr<NodeData> ExchangeViewModel::outData(PortIndex const port)
 {
 	if (port == 0)
 	{
-		std::function<double(AssetPtr const&)> lambda_chain = [this](AssetPtr const& asset) -> double {
-			double result = asset_feature_lambda_chain(
-				asset,
-				this->lambda_chain // Capturing this->lambda_chain by reference
-			);
-			return result;
-		};
-
-		auto N =stoi(this->exchange_view_node->N->text().toStdString());
+		auto N = stoi(this->exchange_view_node->N->text().toStdString());
 		auto query_string = this->exchange_view_node->query_type->currentText().toStdString();
 		auto query_type = agis_query_map.at(query_string);
 
-		ExchangeViewLambda chain = [](
-			std::function<double(AssetPtr const&)> lambda_chain,
+		ExchangeViewLambda ev_chain = [](
+			AgisAssetLambdaChain const& lambda_opps,
 			ExchangePtr const exchange,
 			ExchangeQueryType query_type,
-			int N) -> ExchangeView 
+			int N) -> ExchangeView
 		{
+			// function that takes in serious of operations to apply to as asset and outputs
+			// a double value that is result of said opps
+			auto asset_chain = [&](AssetPtr const& asset) -> double {
+				double result = asset_feature_lambda_chain(
+					asset,
+					lambda_opps
+				);
+				return result;
+			};
+
+			// function that takes an exchange an applys the asset chain to each element when 
+			// generating the exchange view
 			auto exchange_view = exchange->get_exchange_view(
-				lambda_chain,
+				asset_chain,
 				query_type,
 				N
 			);
@@ -324,16 +328,16 @@ std::shared_ptr<NodeData> ExchangeViewModel::outData(PortIndex const port)
 
 		ExchangeViewLambdaStruct my_struct = {
 			N,
-			chain,
+			this->warmup,
+			this->lambda_chain,
+			ev_chain,
 			this->exchange,
-			query_type,
-			lambda_chain
+			query_type
 		};
 		return std::make_shared<ExchangeViewData>(my_struct);
 	}
 	NEXUS_THROW("unexpected out port");
 }
-
 
 //============================================================================
 void AssetLambdaModel::setInData(std::shared_ptr<NodeData> data, PortIndex const port)
@@ -343,6 +347,7 @@ void AssetLambdaModel::setInData(std::shared_ptr<NodeData> data, PortIndex const
 		if (!data) { this->lambda_chain.clear(); return; }
 		std::shared_ptr<AssetLambdaData> assetData = std::dynamic_pointer_cast<AssetLambdaData>(data);
 		this->lambda_chain = assetData->lambda_chain;
+		if (assetData->warmup < this->warmup) { this->warmup = assetData->warmup; }
 	}
 }
 
@@ -356,6 +361,7 @@ void ExchangeViewModel::setInData(std::shared_ptr<NodeData> data, PortIndex cons
 			if (!data) { this->lambda_chain.clear(); return; }
 			std::shared_ptr<AssetLambdaData> assetData = std::dynamic_pointer_cast<AssetLambdaData>(data);
 			this->lambda_chain = assetData->lambda_chain;
+			this->warmup = assetData->warmup;
 			return;
 		}
 		

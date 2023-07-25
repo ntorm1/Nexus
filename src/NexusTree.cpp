@@ -211,7 +211,6 @@ void PortfolioTree::contextMenuEvent(QContextMenuEvent* event)
         QStandardItemModel* model = static_cast<QStandardItemModel*>(this->model);
         QStandardItem* item = model->itemFromIndex(index);
         if (item != this->root) {
-
             QMenu menu(this);
             QAction* addAction = new QAction("Add Strategy", this);
             connect(addAction, &QAction::triggered, [this, index]() { create_new_strategy(index); });
@@ -282,6 +281,10 @@ void PortfolioTree::mouseDoubleClickEvent(QMouseEvent* event)
             if (this->hydra->strategy_exists(itemName.toStdString()))
             {
                 emit strategy_double_clicked(itemName);
+            }
+            else if (this->hydra->portfolio_exists(itemName.toStdString()))
+            {
+                emit portfolio_double_clicked(itemName);
             }
         }
     }

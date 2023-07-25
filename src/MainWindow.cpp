@@ -45,6 +45,7 @@
 #include "NexusDockManager.h"
 #include "NexusTree.h"
 #include "NexusNode.h"
+#include "NexusPortfolio.h"
 
 // Octave Win32 Terminal 
 #include "QTerminalImpl.h"
@@ -228,12 +229,19 @@ ads::CDockWidget* MainWindow::create_portfolios_widget()
         w,
         SLOT(remove_item_accepeted(QModelIndex))
     );
-    // Signal to create new asset window
+    // Signal to create new node editor window
     QObject::connect(
         w,
         SIGNAL(strategy_double_clicked(QString)),
         this,
         SLOT(on_new_node_editor_request(QString))
+    );
+    // Signal to create new portfolio window
+    QObject::connect(
+        w,
+        SIGNAL(portfolio_double_clicked(QString)),
+        this,
+        SLOT(on_new_portfolio_window_request(QString))
     );
 
     ads::CDockWidget* DockWidget = new ads::CDockWidget(QString("Portfolios")
@@ -373,6 +381,22 @@ ads::CDockWidget* MainWindow::create_asset_widget(const QString& asset_id)
     DockWidget->setWidget(w);
     DockWidget->setIcon(svgIcon("./images/stock.png"));
     DockWidget->set_widget_type(WidgetType::Asset);
+    return DockWidget;
+}
+
+ads::CDockWidget* MainWindow::create_portfolio_widget(const QString& portfolio_id)
+{
+    ads::CDockWidget* DockWidget = new ads::CDockWidget(QString("Portfolio: %1").arg(portfolio_id));
+    NexusPortfolio* w = new NexusPortfolio(
+        &this->nexus_env,
+        DockWidget,
+        portfolio_id.toStdString(),
+        DockWidget
+    );
+
+    DockWidget->setWidget(w);
+    DockWidget->setIcon(svgIcon("./images/piechart.png"));
+    DockWidget->set_widget_type(WidgetType::Portfolio);
     return DockWidget;
 }
 
@@ -879,6 +903,17 @@ void MainWindow::on_new_asset_window_request(const QString& name)
     this->place_widget(DockWidget, sender());
 }
 
+//============================================================================
+void MainWindow::on_new_portfolio_window_request(const QString& name)
+{
+    auto _sender = sender();
+    _sender->setProperty("Floating", false);
+    _sender->setProperty("Tabbed", false);
+
+    auto DockWidget = this->create_portfolio_widget(name);
+    this->place_widget(DockWidget, sender());
+}
+
 void MainWindow::on_new_node_editor_request(const QString& name)
 {
     auto _sender = sender();
@@ -934,9 +969,9 @@ void MainWindow::__run_lambda()
         catch (const std::exception& e) {
             this->showErrorMessageBox(e.what());
         }
-        qDebug() << "HYDRA RUN COMPLETE" << QDateTime::currentDateTimeUtc().toString("yyyy-MM-dd HH:mm:ss.zzzzzz");
         auto endTime = std::chrono::high_resolution_clock::now();
         auto durationMs = std::chrono::duration_cast<std::chrono::milliseconds>(endTime - startTime).count();
+        qDebug() << "HYDRA RUN COMPLETE" << QDateTime::currentDateTimeUtc().toString("yyyy-MM-dd HH:mm:ss.zzzzzz");
 
         // Unblock the event loop when the operation is completed
         eventLoop.quit();

@@ -83,6 +83,7 @@ private slots:
     void on_remove_portfolio_request(const QString& name, const QModelIndex& parentIndex);
     void on_remove_exchange_request(const QString& name, const QModelIndex& parentIndex);
     void on_new_asset_window_request(const QString& name);
+    void on_new_portfolio_window_request(const QString& name);
     void on_new_node_editor_request(const QString& name);
 
 
@@ -133,5 +134,6 @@ public:
     ads::CDockWidget* create_portfolios_widget();
     ads::CDockWidget* create_file_system_tree_widget();
     ads::CDockWidget* create_asset_widget(const QString& asset_id);
+    ads::CDockWidget* create_portfolio_widget(const QString& portfolio_id);
     ads::CDockWidget* create_node_editor_widget(const QString& strategy_id);
 };

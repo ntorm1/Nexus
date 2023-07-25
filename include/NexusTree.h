@@ -80,6 +80,7 @@ private:
 
 signals:
     void strategy_double_clicked(const QString& asset_id);
+    void portfolio_double_clicked(const QString& portfolio_id);
 
     void new_item_requested(const QModelIndex& parentIndex,
         const QString& portfolio_id,

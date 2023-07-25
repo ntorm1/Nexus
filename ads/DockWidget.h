@@ -44,7 +44,8 @@ enum class WidgetType {
     Exchanges,
     Portfolios,
     NodeEditor,
-    FileTree
+    FileTree,
+    Portfolio,
 };
 
 namespace ads

@@ -148,6 +148,9 @@
     <ClCompile Include="src\NexusNodeWidget.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\NexusPortfolio.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <QtMoc Include="include\CodeEditor.h">
@@ -241,6 +244,9 @@
       <Filter>Header Files</Filter>
     </QtMoc>
     <QtMoc Include="include\NexusNodeWidget.h">
+      <Filter>Header Files</Filter>
+    </QtMoc>
+    <QtMoc Include="include\NexusPortfolio.h">
       <Filter>Header Files</Filter>
     </QtMoc>
   </ItemGroup>
@@ -387,6 +393,9 @@
       <Filter>Form Files</Filter>
     </QtUic>
     <QtUic Include="ui\NexusNodeEditor.ui">
+      <Filter>Form Files</Filter>
+    </QtUic>
+    <QtUic Include="ui\NexusPortfolio.ui">
       <Filter>Form Files</Filter>
     </QtUic>
   </ItemGroup>

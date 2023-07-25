@@ -3,6 +3,7 @@
 #include "NexusDockManager.h"
 #include "MainWindow.h"
 #include "DockWidget.h"
+#include "NexusPortfolio.h"
 
 NexusDockManager::NexusDockManager(MainWindow* main_window_, QWidget* parent) :
 	main_window(main_window_),
@@ -31,6 +32,12 @@ json NexusDockManager::save_widgets()
 			NexusNodeEditor* asset_child = static_cast<NexusNodeEditor*>(child);
 			asset_child->__save();
 			widget["strategy_id"] = asset_child->get_strategy_id();
+		}
+		else if (dock_widget->get_widget_type() == WidgetType::Portfolio)
+		{
+			auto child = dock_widget->widget();
+			NexusPortfolio* p = static_cast<NexusPortfolio*>(child);
+			widget["portfolio_id"] = p->get_portfolio_id();
 		}
 
 		widgets[dock_widget->objectName().toStdString()] = widget;
@@ -65,6 +72,11 @@ void NexusDockManager::restore_widgets(json const& j)
 			case WidgetType::NodeEditor:{
 				auto strategy_id = QString::fromStdString(widget_json["strategy_id"]);
 				widget = this->main_window->create_node_editor_widget(strategy_id);
+				break;
+			}
+			case WidgetType::Portfolio: {
+				auto portfolio_id = QString::fromStdString(widget_json["portfolio_id"]);
+				widget = this->main_window->create_portfolio_widget(portfolio_id);
 				break;
 			}
 			case WidgetType::Exchanges: {

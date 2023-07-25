@@ -143,6 +143,7 @@
     <ClCompile Include="src\NexusNodeWidget.cpp" />
     <ClCompile Include="src\NexusPlot.cpp" />
     <ClCompile Include="src\NexusPopups.cpp" />
+    <ClCompile Include="src\NexusPortfolio.cpp" />
     <ClCompile Include="src\QTerminal.cpp" />
     <ClCompile Include="src\QTerminalImpl.cpp" />
     <ClCompile Include="src\NexusTree.cpp" />
@@ -157,6 +158,7 @@
     <QtUic Include="ui\NewPortfolioPopup.ui" />
     <QtUic Include="ui\NexusAsset.ui" />
     <QtUic Include="ui\NexusNodeEditor.ui" />
+    <QtUic Include="ui\NexusPortfolio.ui" />
   </ItemGroup>
   <ItemGroup>
     <QtMoc Include="include\CodeEditor.h" />
@@ -250,6 +252,7 @@
     <ClInclude Include="ads\DockComponentsFactory.h" />
     <ClInclude Include="ads\DockingStateReader.h" />
     <ClInclude Include="ads\IconProvider.h" />
+    <QtMoc Include="include\NexusPortfolio.h" />
     <ClInclude Include="include\NexusDockManager.h" />
     <QtMoc Include="include\NexusNode.h" />
     <QtMoc Include="include\NexusNodeModel.h" />

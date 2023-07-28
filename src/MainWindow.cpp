@@ -967,7 +967,7 @@ void MainWindow::__run_lambda()
             this->nexus_env.__run();
         }
         catch (const std::exception& e) {
-            this->showErrorMessageBox(e.what());
+            QMessageBox::critical(nullptr, "Critical Error", e.what(), QMessageBox::Ok);
         }
         auto endTime = std::chrono::high_resolution_clock::now();
         auto durationMs = std::chrono::duration_cast<std::chrono::milliseconds>(endTime - startTime).count();

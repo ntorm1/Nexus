@@ -44,7 +44,7 @@ public slots:
 
     void showErrorMessageBox(const QString& errorMessage)
     {
-        QMessageBox::critical(nullptr, "Critical Error", errorMessage, QMessageBox::Ok);
+       
     }
 
 

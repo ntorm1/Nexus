@@ -280,12 +280,12 @@ std::shared_ptr<NodeData> AssetLambdaModel::outData(PortIndex const port)
 		auto column_name = this->asset_lambda_node->column->text().toStdString();
 		auto row = this->asset_lambda_node->row->value();
 
-		AssetLambda l = AssetLambda(op, [column_name, row](const AssetPtr& asset) {
+		AssetLambda l = AssetLambda(op, [=](const AssetPtr& asset) {
 			return asset_feature_lambda(asset, column_name, row);
 		});
-		if (this->lambda_chain.size()) { this->lambda_chain.back() = l; }
-		else { this->lambda_chain.push_back(l); }
-		return std::make_shared<AssetLambdaData>(this->lambda_chain, this->warmup);
+		AgisAssetLambdaChain new_chain = this->lambda_chain;
+		new_chain.push_back(l);
+		return std::make_shared<AssetLambdaData>(new_chain, this->warmup);
 	}
 	NEXUS_THROW("unexpected out port");
 }

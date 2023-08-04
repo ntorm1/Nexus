@@ -508,14 +508,14 @@ void MainWindow::setup_toolbar()
     ui->actionRestoreState->setIcon(svgIcon("./images/restore.svg"));
     ui->toolBar->addSeparator();
 
-    QAction* a = new QAction("New Console", ui->toolBar);
-    a->setProperty("Floating", true);
-    a->setToolTip("Creates a new Nexus Env console window");
-    a->setIcon(svgIcon("./images/console.png"));
-    connect(a, &QAction::triggered, this, &MainWindow::create_console_widget);
-    ui->toolBar->addAction(a);
+    //QAction* a = new QAction("New Console", ui->toolBar);
+    //a->setProperty("Floating", true);
+    //a->setToolTip("Creates a new Nexus Env console window");
+    //a->setIcon(svgIcon("./images/console.png"));
+    //connect(a, &QAction::triggered, this, &MainWindow::create_console_widget);
+    //ui->toolBar->addAction(a);
 
-    a = new QAction("Create Floating Editor", ui->toolBar);
+    QAction* a = new QAction("Create Floating Editor", ui->toolBar);
     a->setProperty("Floating", true);
     a->setToolTip("Creates a docked editor windows that are deleted on close");
     a->setIcon(svgIcon("./images/note_add.svg"));
@@ -555,7 +555,15 @@ void MainWindow::setup_command_bar()
     spacerWidget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
     ui->toolBar->addWidget(spacerWidget);
 
-    QAction* a = new QAction("Run", ui->toolBar);
+
+    QAction* a = new QAction("Compile", ui->toolBar);
+    a->setProperty("Floating", true);
+    a->setToolTip("Compile Agis strategies");
+    a->setIcon(svgIcon("./images/console.png"));
+    connect(a, &QAction::triggered, this, &MainWindow::__run_compile);
+    ui->toolBar->addAction(a);
+
+    a = new QAction("Run", ui->toolBar);
     a->setProperty("Floating", false);
     a->setProperty("Tabbed", true);
     a->setToolTip("Executes Hyda instance run");
@@ -657,14 +665,8 @@ void MainWindow::restore_state()
     this->nexus_env.clear();
 
     // Restore Nexus env from the given json
-    try {
-        this->nexus_env.restore(j);
-    }
-    catch (const std::exception& e) {
-        QMessageBox::critical(nullptr, "Error", e.what());
-        return;
-    }
-
+    NEXUS_TRY(this->nexus_env.restore(j);)
+  
     // Restore widgets
     this->DockManager->restore_widgets(j);
 
@@ -981,6 +983,11 @@ void MainWindow::__run_lambda()
     future.waitForFinished(); // Wait for the future to finish before getting the result
     long long durationMs = future.result();
     QMessageBox::information(nullptr, "Execution Time", "Execution time: " + QString::number(durationMs) + " ms", QMessageBox::Ok);
+}
+
+void MainWindow::__run_compile()
+{
+
 }
 
 //============================================================================

@@ -284,7 +284,7 @@ std::shared_ptr<NodeData> AssetLambdaModel::outData(PortIndex const port)
 			return asset_feature_lambda(asset, column_name, row);
 		});
 		AgisAssetLambdaChain new_chain = this->lambda_chain;
-		new_chain.push_back(l);
+		new_chain.push_back({ l, column_name, row });
 		return std::make_shared<AssetLambdaData>(new_chain, this->warmup);
 	}
 	NEXUS_THROW("unexpected out port");

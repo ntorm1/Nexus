@@ -40,6 +40,7 @@ public:
 	NexusEnv();
 
 	void __run();
+	void __compile();
 	void clear();
 	void restore(json const & j);
 

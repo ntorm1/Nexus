@@ -126,6 +126,7 @@ private:
 
     void __run();
     void __run_lambda();
+    void __run_compile();
 
 public:
     ads::CDockWidget* create_console_widget();
@@ -137,3 +138,11 @@ public:
     ads::CDockWidget* create_portfolio_widget(const QString& portfolio_id);
     ads::CDockWidget* create_node_editor_widget(const QString& strategy_id);
 };
+
+
+#define NEXUS_TRY(action) \
+    try { \
+        action; \
+    } catch (const std::exception& e) { \
+        QMessageBox::critical(nullptr, "Error", e.what());\
+    }

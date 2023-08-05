@@ -22,14 +22,6 @@ using QtNodes::PortType;
 
 class ExchangeNode;
 
-#define NEXUS_THROW(msg)                            \
-    do {                                                \
-        std::ostringstream oss;                         \
-        oss << "Error in " << __FILE__                  \
-            << " at line " << __LINE__ << ": " << msg;  \
-        throw std::runtime_error(oss.str());            \
-    } while (false)
-
 
 /// Class to encapsulate exchange so it can be send through nodes
 class ExchangeData : public NodeData

@@ -378,6 +378,9 @@
     <ClInclude Include="include\NexusDockManager.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="include\NexusErrors.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Text Include="images\material_icons_license.txt" />

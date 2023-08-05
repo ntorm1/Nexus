@@ -45,6 +45,7 @@
 #include "NexusDockManager.h"
 #include "NexusTree.h"
 #include "NexusNode.h"
+#include "NexusErrors.h"
 #include "NexusPortfolio.h"
 
 // Octave Win32 Terminal 
@@ -985,10 +986,13 @@ void MainWindow::__run_lambda()
     QMessageBox::information(nullptr, "Execution Time", "Execution time: " + QString::number(durationMs) + " ms", QMessageBox::Ok);
 }
 
+
+//============================================================================
 void MainWindow::__run_compile()
 {
-
+    NEXUS_TRY(this->nexus_env.__compile());
 }
+
 
 //============================================================================
 void MainWindow::applyVsStyle()

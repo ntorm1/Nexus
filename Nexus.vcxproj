@@ -257,6 +257,7 @@
     <QtMoc Include="include\NexusNode.h" />
     <QtMoc Include="include\NexusNodeModel.h" />
     <QtMoc Include="include\NexusNodeWidget.h" />
+    <ClInclude Include="include\NexusErrors.h" />
     <ClInclude Include="include\NexusPch.h" />
     <QtMoc Include="QCustomPlot\qcustomplot.h" />
     <QtMoc Include="include\NexusPlot.h" />

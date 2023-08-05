@@ -140,9 +140,3 @@ public:
 };
 
 
-#define NEXUS_TRY(action) \
-    try { \
-        action; \
-    } catch (const std::exception& e) { \
-        QMessageBox::critical(nullptr, "Error", e.what());\
-    }

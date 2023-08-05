@@ -11,7 +11,7 @@
 #include <QtWidgets/QMenuBar>
 #include <QtWidgets/QVBoxLayout>
 
-
+#include "NexusErrors.h"
 #include "NexusNodeModel.h"
 #include "NexusEnv.h"
 #include "NexusNode.h"
@@ -180,8 +180,8 @@ NexusNodeEditor::NexusNodeEditor(
 //============================================================================
 NexusNodeEditor::~NexusNodeEditor()
 {
-	auto abstract_strategy = dynamic_cast<AbstractAgisStrategy*>(strategy.get().get());
-	abstract_strategy->extract_ev_lambda();
+	//auto abstract_strategy = dynamic_cast<AbstractAgisStrategy*>(strategy.get().get());
+	//abstract_strategy->extract_ev_lambda();
 
 	delete dataFlowGraphModel;
 	delete view;
@@ -205,7 +205,7 @@ void NexusNodeEditor::__save()
 	}
 
 	auto abstract_strategy = dynamic_cast<AbstractAgisStrategy*>(strategy.get().get());
-	abstract_strategy->extract_ev_lambda();
+	NEXUS_TRY(abstract_strategy->extract_ev_lambda(););
 }
 
 //============================================================================
@@ -258,6 +258,10 @@ std::optional<ExchangeViewLambdaStruct> NexusNodeEditor::__extract_abstract_stra
 	}
 	if (!node) { return std::nullopt; }
 	if (!node->ev_lambda_struct.has_value()) { return std::nullopt; }
+	if (node->ev_lambda_struct.value().asset_lambda.size() == 0)
+	{
+		NEXUS_THROW("Attempting to extract strategy with no asset lambdas");
+	}
 
 	auto epsilon = stod(node->strategy_allocation_node->epsilon->text().toStdString());
 	auto target_leverage = stod(node->strategy_allocation_node->target_leverage->text().toStdString());

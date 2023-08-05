@@ -1,8 +1,10 @@
-#include "NexusNodeModel.h"
-#include "NexusNodeWidget.h"
-
 
 #include <QVBoxLayout>
+
+#include "NexusNodeModel.h"
+#include "NexusNodeWidget.h"
+#include "NexusErrors.h"
+
 
 std::shared_ptr<Hydra> ExchangeModel::hydra = nullptr;
 
@@ -279,6 +281,7 @@ std::shared_ptr<NodeData> AssetLambdaModel::outData(PortIndex const port)
 		AgisOperation op = agis_function_map.at(op_str);
 		auto column_name = this->asset_lambda_node->column->text().toStdString();
 		auto row = this->asset_lambda_node->row->value();
+		this->warmup = abs(row);
 
 		AssetLambda l = AssetLambda(op, [=](const AssetPtr& asset) {
 			return asset_feature_lambda(asset, column_name, row);
@@ -339,6 +342,7 @@ std::shared_ptr<NodeData> ExchangeViewModel::outData(PortIndex const port)
 	NEXUS_THROW("unexpected out port");
 }
 
+
 //============================================================================
 void AssetLambdaModel::setInData(std::shared_ptr<NodeData> data, PortIndex const port)
 {
@@ -347,7 +351,7 @@ void AssetLambdaModel::setInData(std::shared_ptr<NodeData> data, PortIndex const
 		if (!data) { this->lambda_chain.clear(); return; }
 		std::shared_ptr<AssetLambdaData> assetData = std::dynamic_pointer_cast<AssetLambdaData>(data);
 		this->lambda_chain = assetData->lambda_chain;
-		if (assetData->warmup < this->warmup) { this->warmup = assetData->warmup; }
+		if (assetData->warmup > this->warmup) { this->warmup = assetData->warmup; }
 	}
 }
 

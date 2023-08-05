@@ -134,8 +134,7 @@ NexusStatusCode NexusEnv::new_exchange(
 		string_to_freq(freq),
 		dt_format
 		);
-	if (res != NexusStatusCode::Ok) return res;
-
+	return res;
 }
 
 
@@ -194,19 +193,36 @@ NexusStatusCode NexusEnv::remove_portfolio(const std::string& name)
 }
 
 
+//============================================================================
 void NexusEnv::__run()
 {
-	try {
+	AGIS_TRY(
 		this->hydra->__reset();
 		this->hydra->__run();
-	}
-	catch (const std::exception& e) {
-		throw e;
-	}
+	);
 }
 
+
+//============================================================================
 void NexusEnv::__compile()
 {
+	qDebug() << "============================================================================";
+	qDebug() << "Compiling strategies...";
+	auto strat_folder = this->env_path / "strategies";
+	auto& strategies = this->hydra->__get_strategy_map().__get_strategies();
+	
+	// compile all abtract strategies down to concrete realizations
+	for (auto& strategy_pair : strategies)
+	{
+		auto& strategy = strategy_pair.second;
+		auto strat_path = strat_folder / strategy->get_strategy_id();
+		if (!strategy->__is_abstract_class()) { continue; }
+
+		auto* abstract_strategy = dynamic_cast<AbstractAgisStrategy*>(strategy.get());
+		AGIS_TRY(abstract_strategy->code_gen(strat_path);)
+	}
+	qDebug() << "Compiling strategies complete";
+	qDebug() << "============================================================================";
 }
 
 //============================================================================
@@ -222,8 +238,7 @@ void NexusEnv::clear()
 void NexusEnv::restore(json const& j)
 {
 	this->hydra->clear();
-	try { this->hydra->restore(j); }
-	catch (const std::exception& e) { throw e; }
+	AGIS_TRY(this->hydra->restore(j);)
 
 	this->remove_editors();
 	for (auto& tree : this->open_trees)
@@ -250,7 +265,7 @@ void NexusEnv::restore(json const& j)
 
 		QFile file(strat_path);
 		if (!file.open(QIODevice::ReadOnly)) {
-			throw std::runtime_error("Failed to open the strategy flow file: " + strat_path.string());
+			AGIS_THROW("Failed to open the strategy flow file: " + strat_path.string());
 		}
 
 		QByteArray const wholeFile = file.readAll();
@@ -259,11 +274,11 @@ void NexusEnv::restore(json const& j)
 		QJsonParseError error;
 		QJsonDocument jsonDocument = QJsonDocument::fromJson(wholeFile, &error);
 		if (error.error != QJsonParseError::NoError) {
-			throw std::runtime_error("Failed to parse JSON in the strategy flow file: " + error.errorString().toStdString());
+			AGIS_THROW("Failed to parse JSON in the strategy flow file: " + error.errorString().toStdString());
 		}
 
 		if (!jsonDocument.isObject()) {
-			throw std::runtime_error("Invalid JSON format in the strategy flow file.");
+			AGIS_THROW("Invalid JSON format in the strategy flow file.");
 		}
 		dataFlowGraphModel.load(jsonDocument.object());
 

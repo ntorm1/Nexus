@@ -284,7 +284,7 @@ std::shared_ptr<NodeData> AssetLambdaModel::outData(PortIndex const port)
 		this->warmup = abs(row);
 
 		AssetLambda l = AssetLambda(op, [=](const AssetPtr& asset) {
-			return asset_feature_lambda(asset, column_name, row);
+			return asset_feature_lambda(asset, column_name, row).unwrap();
 		});
 		AgisAssetLambdaChain new_chain = this->lambda_chain;
 		new_chain.push_back({ l, column_name, row });
@@ -303,7 +303,7 @@ std::shared_ptr<NodeData> ExchangeViewModel::outData(PortIndex const port)
 		auto query_string = this->exchange_view_node->query_type->currentText().toStdString();
 		auto query_type = agis_query_map.at(query_string);
 
-		ExchangeViewLambda ev_chain = [](
+		ExchangeViewLambda ev_chain = [=](
 			AgisAssetLambdaChain const& lambda_opps,
 			ExchangePtr const exchange,
 			ExchangeQueryType query_type,
@@ -321,12 +321,15 @@ std::shared_ptr<NodeData> ExchangeViewModel::outData(PortIndex const port)
 
 			// function that takes an exchange an applys the asset chain to each element when 
 			// generating the exchange view
-			auto exchange_view = exchange->get_exchange_view(
-				asset_chain,
-				query_type,
-				N
+			AGIS_TRY(
+				auto exchange_view = exchange->get_exchange_view(
+					asset_chain,
+					query_type,
+					N,
+					warmup = this->warmup
+				);
+				return exchange_view;
 			);
-			return exchange_view;
 		};
 
 		ExchangeViewLambdaStruct my_struct = {
@@ -341,7 +344,6 @@ std::shared_ptr<NodeData> ExchangeViewModel::outData(PortIndex const port)
 	}
 	NEXUS_THROW("unexpected out port");
 }
-
 
 //============================================================================
 void AssetLambdaModel::setInData(std::shared_ptr<NodeData> data, PortIndex const port)
@@ -365,7 +367,11 @@ void ExchangeViewModel::setInData(std::shared_ptr<NodeData> data, PortIndex cons
 			if (!data) { this->lambda_chain.clear(); return; }
 			std::shared_ptr<AssetLambdaData> assetData = std::dynamic_pointer_cast<AssetLambdaData>(data);
 			this->lambda_chain = assetData->lambda_chain;
-			this->warmup = assetData->warmup;
+			auto smallestRowIt = std::min_element(lambda_chain.begin(), lambda_chain.end(),
+				[](const AssetLambdaScruct& lhs, const AssetLambdaScruct& rhs) {
+					return lhs.row < rhs.row;
+				});
+			this->warmup = abs(smallestRowIt->row);
 			return;
 		}
 		

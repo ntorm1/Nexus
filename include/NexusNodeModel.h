@@ -135,7 +135,7 @@ private:
 
     AssetLambdaNode* asset_lambda_node = nullptr;
     AgisAssetLambdaChain lambda_chain;
-    int warmup = 0;
+    int warmup = -1;
 
 };
 

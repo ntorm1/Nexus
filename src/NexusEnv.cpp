@@ -1,5 +1,6 @@
 #include <fstream>
-
+#include <cstdlib>
+#include <direct.h> // For Windows chdir
 #include "NexusEnv.h"
 #include "NexusNode.h"
 #include "NexusNodeModel.h"
@@ -210,8 +211,8 @@ void NexusEnv::__compile()
 	qDebug() << "Compiling strategies...";
 	auto strat_folder = this->env_path / "strategies";
 	auto& strategies = this->hydra->__get_strategy_map().__get_strategies();
-	
-	// compile all abtract strategies down to concrete realizations
+
+	// generate code for all abstract strategies
 	for (auto& strategy_pair : strategies)
 	{
 		auto& strategy = strategy_pair.second;
@@ -221,6 +222,128 @@ void NexusEnv::__compile()
 		auto* abstract_strategy = dynamic_cast<AbstractAgisStrategy*>(strategy.get());
 		AGIS_TRY(abstract_strategy->code_gen(strat_path);)
 	}
+
+	// create build folder
+	auto build_folder = this->env_path / "build";
+
+	if (!fs::exists(build_folder))
+	{
+		fs::create_directories(build_folder);
+	}
+
+	// AgisCore dll file
+	fs::path output_dir = this->env_path.parent_path().parent_path();
+	fs::path agis_dll = output_dir / "AgisCore.lib";
+	std::string agis_dll_str = agis_dll.string();
+	std::replace(agis_dll_str.begin(), agis_dll_str.end(), '\\', '/');
+
+	// CMake file contents
+	// cmake -G "Visual Studio 17 2022" ..
+	std::string cmake_content = R"(
+cmake_minimum_required(VERSION 3.26)
+
+# Enable C++20
+set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
+
+project(AgisStrategies)
+
+# Include the Vcpkg toolchain file
+set(VCPKG_TOOLCHAIN_FILE "C:/dev/vcpkg/scripts/buildsystems/vcpkg.cmake" CACHE STRING "")
+include_directories("C:/dev/vcpkg/installed/x64-windows/include")
+
+# Set the path to the AgisCore DLL
+set(AGIS_CORE_PATH "{AGIS_CORE_PATH}")
+
+# Set the path to the adjacent folder
+set(ADJACENT_FOLDER "${CMAKE_CURRENT_SOURCE_DIR}/strategies")
+
+# Gather source files from the 'adjacent_folder' and its subdirectories
+file(GLOB_RECURSE SOURCE_FILES "${ADJACENT_FOLDER}/*.cpp")
+
+# Gather header files from the 'adjacent_folder' and its subdirectories
+file(GLOB_RECURSE HEADER_FILES "${ADJACENT_FOLDER}/*.h")
+
+# Create the shared library (DLL)
+add_library(AgisStrategy SHARED ${SOURCE_FILES} ${HEADER_FILES})
+
+target_compile_definitions(AgisStrategy PRIVATE AGISSTRATEGY_EXPORTS)
+
+# Include AgisCore header files 
+target_include_directories(AgisStrategy PUBLIC
+    "C:/Users/natha/OneDrive/Desktop/C++/AgisCore"
+)
+
+# Windows-specific configurations
+if (WIN32)
+    # Export symbols to create a .def file (needed for Windows)
+    target_compile_definitions(AgisStrategy PRIVATE MYDLL_EXPORTS)
+	
+	# Link the AgisCore DLL to the strategy DLL (use .lib for MSVC)
+	if (MSVC)
+		target_link_libraries(AgisStrategy PRIVATE "${AGIS_CORE_PATH}")
+	else ()
+		message(FATAL_ERROR "AgisStrategy can only be built with MSVC")
+	endif()
+
+else ()
+    # Throw an error if the target platform is not Windows (WIN32)
+    message(FATAL_ERROR "AgisStrategy requires a Windows (WIN32) platform.")
+endif()
+
+# Installation to the build directory
+install(TARGETS AgisStrategy
+    LIBRARY DESTINATION ${CMAKE_BINARY_DIR}/lib
+    ARCHIVE DESTINATION ${CMAKE_BINARY_DIR}/lib
+    RUNTIME DESTINATION ${CMAKE_BINARY_DIR}/bin
+)
+
+# Specify the output directory for the strategy DLL
+set_target_properties(AgisStrategy PROPERTIES
+    LIBRARY_OUTPUT_DIRECTORY "{OUTPUT_DIR}"
+)
+)";
+
+	// Replace the placeholder with the BUILD_METHOD
+	auto pos = cmake_content.find("{AGIS_CORE_PATH}");
+	cmake_content.replace(pos, 16, agis_dll_str);
+
+	// Replace the output dir
+	pos = cmake_content.find("{OUTPUT_DIR}");
+	cmake_content.replace(pos, 12, output_dir.string());
+
+	// create cmake file
+	auto cmake_file = this->env_path / "CmakeLists.txt";
+
+	std::ofstream file(cmake_file);
+	if (file.is_open()) {
+		file << cmake_content;
+		file.close();
+	}
+	else {
+		AGIS_THROW("Failed to generate CMake file");
+	}
+
+	// generate cmake build files
+	// Define the specific folder where you want to build the CMake files
+	std::string build_folder_str = build_folder.string();
+	std::replace(build_folder_str.begin(), build_folder_str.end(), '\\', '/');
+	auto cd_command = "cd " + build_folder_str;
+
+	// Concatenate the commands using the && operator
+	std::string full_command = cd_command + " && cmake -G \"Visual Studio 17 2022\" .. && cmake --build .";
+
+	qDebug() << "==== Building AgisStrategy CMake ====";
+	qDebug() << full_command;
+
+	int result = std::system(full_command.c_str());
+
+	if (result != 0) {
+		AGIS_THROW("Failed to generate CMake build files or build AgisStrategy dll");
+	}
+	qDebug() << "========================";
+
 	qDebug() << "Compiling strategies complete";
 	qDebug() << "============================================================================";
 }

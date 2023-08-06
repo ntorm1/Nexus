@@ -1,5 +1,6 @@
 #pragma once
 #include "NexusPch.h"
+#include <windows.h>
 #include <filesystem>
 #include <unordered_map>
 
@@ -36,8 +37,15 @@ private:
 
 	void remove_editors() { this->open_editors.clear(); }
 
+	/// <summary>
+	/// AgisStrategy dll
+	/// </summary>
+	HINSTANCE AgisStrategyDLL;
+	bool agis_strategy_dll_loaded = false;
+
 public:
 	NexusEnv();
+	~NexusEnv();
 
 	void __run();
 	void __compile();
@@ -64,6 +72,7 @@ public:
 	std::shared_ptr<Hydra> const get_hydra() const { return this->hydra; }
 	std::optional<AssetPtr> const get_asset(std::string const& asset_id);
 	std::optional<AgisStrategyRef const> get_strategy(std::string const& strategy_id); 
+	std::vector<std::string> get_portfolio_ids();
 
 	NexusStatusCode new_exchange(
 		const std::string& exchange_id,

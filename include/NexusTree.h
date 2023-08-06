@@ -47,6 +47,7 @@ class PortfolioTree : public NexusTree
 public:
     explicit PortfolioTree(QWidget* parent, std::shared_ptr<Hydra> const hydra);
     void restore_tree(json const& j) override;
+    void relink_tree(std::vector<std::string> const& portfolios);
     void restore_strategies(QStandardItem* addedItem, QString portfolio_id);
 
 protected:

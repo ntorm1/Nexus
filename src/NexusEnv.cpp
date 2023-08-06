@@ -1,6 +1,5 @@
 #include <fstream>
 #include <cstdlib>
-#include <windows.h>
 #include "NexusEnv.h"
 #include "NexusNode.h"
 #include "NexusNodeModel.h"
@@ -10,6 +9,16 @@
 NexusEnv::NexusEnv()
 {
 	this->hydra = std::make_shared<Hydra>();
+}
+
+
+//============================================================================
+NexusEnv::~NexusEnv()
+{
+	if (this->agis_strategy_dll_loaded)
+	{
+		FreeLibrary(this->AgisStrategyDLL);
+	}
 }
 
 
@@ -121,6 +130,12 @@ std::optional<AgisStrategyRef const> NexusEnv::get_strategy(std::string const& s
 	return strategy;
 }
 
+std::vector<std::string> NexusEnv::get_portfolio_ids()
+{
+	auto& portfolios = this->hydra->get_portfolios();
+	return portfolios.get_portfolio_ids();
+}
+
 
 //============================================================================
 NexusStatusCode NexusEnv::new_exchange(
@@ -227,9 +242,8 @@ void NexusEnv::__compile()
 	// include strategy classes
 	std::string strategy_include = R"()";
 	std::string strategy_create = R"(
-    [](std::string id, PortfolioPtr const& p, double alloc) {
-        // Use the captured arguments (arg1, arg2, and arg3) to construct the instance
-        return std::make_unique<{STRAT}>(id, p, alloc);
+    [](PortfolioPtr const& p) {
+        return std::make_unique<{STRAT}>(p);
     }
 )";
 	for (auto& strategy_pair : strategies)
@@ -237,10 +251,16 @@ void NexusEnv::__compile()
 		// add include paths for pch.h
 		std::string strat_include_mid = "#include \"strategies/" + strategy_pair.second->get_strategy_id() + "/"
 			+ strategy_pair.second->get_strategy_id() + "Class.h\"\n";
-		strat_include_mid += "static bool registered = StrategyRegistry::registerStrategy(\"{STRAT}\"," + strategy_create + ");";
+		
+		// register the strategy to the registry
+		strat_include_mid += "static bool registered = StrategyRegistry::registerStrategy(\"{STRAT}\"," + strategy_create + ", \"{PORTFOLIO}\");";
 		std::string place_holder = "{STRAT}";
 		std::string strategy_class = strategy_pair.second->get_strategy_id() + "Class";
 		str_replace_all(strat_include_mid, place_holder, strategy_class);
+
+		// Set the static portfolio id
+		auto pos = strat_include_mid.find("{PORTFOLIO}");
+		strat_include_mid.replace(pos, 11, strategy_pair.second->get_portfolio_id());
 
 		strategy_include += strat_include_mid;
 	}
@@ -263,6 +283,12 @@ void NexusEnv::__compile()
 // Wrapper function to return the RegistryMap
 extern "C" AGIS_STRATEGY_API StrategyRegistry::RegistryMap& getRegistryWrapper() {
     return StrategyRegistry::getRegistry();
+};
+
+
+// Wrapper function to return the ID RegistryMap
+extern "C" AGIS_STRATEGY_API StrategyRegistry::PortfolioIdMap& getIDRegistryWrapper() {
+    return StrategyRegistry::getIDMap();
 };
 
 #endif //PCH_H
@@ -429,27 +455,40 @@ void NexusEnv::__link()
 	fs::path output_dir = this->env_path / "build" / "debug";
 	fs::path agis_strategy_dll = output_dir / "AgisStrategy.dll";
 
-	HINSTANCE hDLL = LoadLibrary(StringToLPCWSTR(agis_strategy_dll.string()));
-	if (!hDLL) AGIS_THROW("Failed to locate AgisStrategy.dll");
+	this->AgisStrategyDLL = LoadLibrary(StringToLPCWSTR(agis_strategy_dll.string()));
+	if (!AgisStrategyDLL) AGIS_THROW("Failed to locate AgisStrategy.dll");
 
 	// Get the function pointer for getRegistry
 	using GetRegistryWrapperFunc = StrategyRegistry::RegistryMap & (*)();
-	GetRegistryWrapperFunc getRegistryWrapperFunc = reinterpret_cast<GetRegistryWrapperFunc>(GetProcAddress(hDLL, "getRegistryWrapper"));
-	if (!getRegistryWrapperFunc)
+	using GetIDRegistryWrapperFunc = StrategyRegistry::PortfolioIdMap& (*)();
+
+	GetRegistryWrapperFunc getRegistryWrapperFunc = reinterpret_cast<GetRegistryWrapperFunc>(GetProcAddress(AgisStrategyDLL, "getRegistryWrapper"));
+	GetIDRegistryWrapperFunc getIDRegistryWrapperFunc = reinterpret_cast<GetIDRegistryWrapperFunc>(GetProcAddress(AgisStrategyDLL, "getIDRegistryWrapper"));
+	if (!getRegistryWrapperFunc || !getIDRegistryWrapperFunc)
 	{
-		AGIS_THROW("Failed to get function pointer for getRegistryWrapper");
+		AGIS_THROW("Failed to get function pointer for strategy registries");
 	}
 
 	StrategyRegistry::RegistryMap& registryMap = getRegistryWrapperFunc();
+	StrategyRegistry::PortfolioIdMap& IDRegistryMap = getIDRegistryWrapperFunc();
 	// Now you can access all the classes in the registryMap and do whatever you need with them
 	for (const auto& entry : registryMap)
 	{
-		const std::string& className = entry.first;
-		qDebug() << "Linking strategy: " + className;
-		// You can use the function pointer entry.second to create instances of the classes if needed
+		const std::string& strategy_id = entry.first;
+		qDebug() << "Linking strategy: " + strategy_id;
+		
+		std::string portfolio_id = IDRegistryMap.at(strategy_id);
+		if (!this->hydra->portfolio_exists(portfolio_id))
+		{
+			AGIS_THROW("Attempting to link strategy to portfolio: " + portfolio_id + " doesn't eixst");
+		}
+		auto& portfolio = this->hydra->get_portfolio(portfolio_id);
+		auto strategy = entry.second(portfolio);
+		this->hydra->register_strategy(std::move(strategy));
+		
+		qDebug() << "Strategy: " + strategy_id + " linked";
 	}
 
-	FreeLibrary(hDLL);
 	qDebug() << "Linking strategies complete";
 	qDebug() << "============================================================================";
 }

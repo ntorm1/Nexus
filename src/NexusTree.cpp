@@ -176,6 +176,32 @@ void PortfolioTree::restore_tree(json const& j)
     }
 }
 
+void PortfolioTree::relink_tree(std::vector<std::string> const& portfolios)
+{
+    QModelIndex itemIndex = root->index();
+    this->setExpanded(itemIndex, true);
+    
+    for (auto& id_str : portfolios)
+    {
+        QString id = QString::fromStdString(id_str);
+        QStandardItem* newItem = new QStandardItem(id);
+
+        // Set exchange tree item flags. Can not edit or create child exchanges (TODO)
+        Qt::ItemFlags rootFlags = newItem->flags();
+        rootFlags &= ~Qt::ItemIsDropEnabled;  // Remove the drop enabled flag
+        newItem->setFlags(rootFlags);
+        newItem->setEditable(false);
+        newItem->setData(QVariant::fromValue(root), ParentItemRole);  // Set the parent item using custom role
+
+        root->appendRow(newItem);
+        this->restore_strategies(newItem, id);
+
+        // Is the element expanded?
+        QModelIndex itemIndex = newItem->index();
+        this->setExpanded(itemIndex, true);
+    }
+}
+
 
 //============================================================================
 void PortfolioTree::create_new_item(const QModelIndex& parentIndex)

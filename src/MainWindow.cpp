@@ -1005,6 +1005,8 @@ void MainWindow::__run_compile()
 void MainWindow::__run_link()
 {
     NEXUS_TRY(this->nexus_env.__link());
+    auto portfolio_ids = this->nexus_env.get_portfolio_ids();
+    this->portfolio_tree->relink_tree(portfolio_ids);
 }
 
 

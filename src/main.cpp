@@ -1,3 +1,4 @@
+#include "NexusPch.h"
 #include <Windows.h>
 
 #include <QtWidgets/QApplication>

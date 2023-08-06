@@ -41,6 +41,7 @@ public:
 
 	void __run();
 	void __compile();
+	void __link();
 	void clear();
 	void restore(json const & j);
 
@@ -84,3 +85,5 @@ public:
 	NexusStatusCode remove_portfolio(const std::string& name);
 
 };
+
+LPCWSTR StringToLPCWSTR(const std::string& str);

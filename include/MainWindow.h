@@ -127,6 +127,7 @@ private:
     void __run();
     void __run_lambda();
     void __run_compile();
+    void __run_link();
 
 public:
     ads::CDockWidget* create_console_widget();

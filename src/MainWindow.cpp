@@ -564,6 +564,13 @@ void MainWindow::setup_command_bar()
     connect(a, &QAction::triggered, this, &MainWindow::__run_compile);
     ui->toolBar->addAction(a);
 
+    a = new QAction("Link", ui->toolBar);
+    a->setProperty("Floating", true);
+    a->setToolTip("Link Agis strategies");
+    a->setIcon(svgIcon("./images/link.png"));
+    connect(a, &QAction::triggered, this, &MainWindow::__run_link);
+    ui->toolBar->addAction(a);
+
     a = new QAction("Run", ui->toolBar);
     a->setProperty("Floating", false);
     a->setProperty("Tabbed", true);
@@ -991,6 +998,13 @@ void MainWindow::__run_lambda()
 void MainWindow::__run_compile()
 {
     NEXUS_TRY(this->nexus_env.__compile());
+}
+
+
+//============================================================================
+void MainWindow::__run_link()
+{
+    NEXUS_TRY(this->nexus_env.__link());
 }
 
 

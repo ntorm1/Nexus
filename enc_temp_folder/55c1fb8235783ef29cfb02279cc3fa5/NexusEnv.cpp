@@ -445,7 +445,7 @@ void NexusEnv::__link()
 	for (const auto& entry : registryMap)
 	{
 		const std::string& className = entry.first;
-		qDebug() << "Linking strategy: " + className;
+		qDebug() << className;
 		// You can use the function pointer entry.second to create instances of the classes if needed
 	}
 

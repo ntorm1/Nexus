@@ -67,7 +67,7 @@
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
-      <AdditionalIncludeDirectories>C:\Users\natha\OneDrive\Desktop\C++\external\nodeeditor\include;C:\Users\natha\OneDrive\Desktop\C++\AgisCore;C:\Users\natha\OneDrive\Desktop\C++\Nexus\include;C:\Users\natha\OneDrive\Desktop\C++\Nexus\ads;C:\Users\natha\OneDrive\Desktop\C++\external\qcustomplot;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Users\natha\OneDrive\Desktop\C++\external\nodeeditor\include;$(SolutionDir)AgisCore;$(SolutionDir)include;$(SolutionDir)ads;C:\Users\natha\OneDrive\Desktop\C++\external\qcustomplot;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>$(Qt_DEFINES_);%(PreprocessorDefinitions);NODE_EDITOR_SHARED</PreprocessorDefinitions>
       <LanguageStandard>stdcpp20</LanguageStandard>
     </ClCompile>
@@ -282,11 +282,6 @@
   </ItemGroup>
   <ItemGroup>
     <Text Include="images\material_icons_license.txt" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\AgisCore\AgisCore.vcxproj">
-      <Project>{580f9cb3-a7ba-418f-abe1-5865b3071d6a}</Project>
-    </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Condition="Exists('$(QtMsBuild)\qt.targets')">

@@ -11,6 +11,9 @@ EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "AgisCore", "..\AgisCore\AgisCore.vcxproj", "{580F9CB3-A7BA-418F-ABE1-5865B3071D6A}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "AgisCoreTest", "..\AgisCoreTest\AgisCoreTest.vcxproj", "{939DA327-5AE8-4499-B79F-69F041B085FF}"
+	ProjectSection(ProjectDependencies) = postProject
+		{580F9CB3-A7BA-418F-ABE1-5865B3071D6A} = {580F9CB3-A7BA-418F-ABE1-5865B3071D6A}
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

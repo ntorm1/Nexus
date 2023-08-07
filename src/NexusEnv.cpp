@@ -250,15 +250,20 @@ void NexusEnv::__compile()
 )";
 	for (auto& strategy_pair : strategies)
 	{
+		if (!strategy_pair.second->__is_live()) continue;
+		bool is_abstract = strategy_pair.second->__is_abstract_class();
 		// add include paths for pch.h
 		std::string strat_include_mid = "#include \"strategies/" + strategy_pair.second->get_strategy_id() + "/"
-			+ strategy_pair.second->get_strategy_id() + "Class.h\"\n";
+			+ strategy_pair.second->get_strategy_id();
+		if (is_abstract) strat_include_mid += +"Class.h\"\n";
+		else strat_include_mid += +".h\"\n";
 		
 		// register the strategy to the registry
 		strat_include_mid += "static bool registered = StrategyRegistry::registerStrategy(\"{STRAT}\"," + \
 			strategy_create + ", \"{PORTFOLIO}\");\n";
 		std::string place_holder = "{STRAT}";
-		std::string strategy_class = strategy_pair.second->get_strategy_id() + "Class";
+		std::string strategy_class = strategy_pair.second->get_strategy_id();
+		if (is_abstract) strategy_class += "Class";
 		str_replace_all(strat_include_mid, place_holder, strategy_class);
 
 		// Set the static portfolio id

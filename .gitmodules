@@ -1,0 +1,6 @@
+[submodule "AgisCore"]
+	path = AgisCore
+	url = https://github.com/ntorm1/AgisCore
+[submodule "AgisCoreTest"]
+	path = AgisCoreTest
+	url = https://github.com/ntorm1/AgisCoreTest.git

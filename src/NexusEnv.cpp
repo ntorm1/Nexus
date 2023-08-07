@@ -5,6 +5,8 @@
 #include "NexusNodeModel.h"
 #include <AgisStrategyRegistry.h>
 
+std::string build_method = "debug";
+
 //============================================================================
 NexusEnv::NexusEnv()
 {
@@ -253,7 +255,8 @@ void NexusEnv::__compile()
 			+ strategy_pair.second->get_strategy_id() + "Class.h\"\n";
 		
 		// register the strategy to the registry
-		strat_include_mid += "static bool registered = StrategyRegistry::registerStrategy(\"{STRAT}\"," + strategy_create + ", \"{PORTFOLIO}\");";
+		strat_include_mid += "static bool registered = StrategyRegistry::registerStrategy(\"{STRAT}\"," + \
+			strategy_create + ", \"{PORTFOLIO}\");\n";
 		std::string place_holder = "{STRAT}";
 		std::string strategy_class = strategy_pair.second->get_strategy_id() + "Class";
 		str_replace_all(strat_include_mid, place_holder, strategy_class);
@@ -413,7 +416,9 @@ install(TARGETS AgisStrategy
 	auto cd_command = "cd " + build_folder_str;
 
 	// Concatenate the commands using the && operator
-	std::string full_command = cd_command + " && cmake -G \"Visual Studio 17 2022\" .. && cmake --build .";
+	std::string full_command = cd_command + " && \
+		cmake -G \"Visual Studio 17 2022\" .. && \
+		cmake --build . --config " + build_method;
 
 	qDebug() << "==== Building AgisStrategy CMake ====";
 	qDebug() << full_command;
@@ -452,7 +457,7 @@ void NexusEnv::__link()
 	qDebug() << "============================================================================";
 	qDebug() << "Linking strategies...";
 	// AgisCore dll file
-	fs::path output_dir = this->env_path / "build" / "debug";
+	fs::path output_dir = this->env_path / "build" / build_method;
 	fs::path agis_strategy_dll = output_dir / "AgisStrategy.dll";
 
 	this->AgisStrategyDLL = LoadLibrary(StringToLPCWSTR(agis_strategy_dll.string()));
@@ -478,14 +483,37 @@ void NexusEnv::__link()
 		qDebug() << "Linking strategy: " + strategy_id;
 		
 		std::string portfolio_id = IDRegistryMap.at(strategy_id);
+		// make sure the portfolio that strategy tries to link to exists
 		if (!this->hydra->portfolio_exists(portfolio_id))
 		{
 			AGIS_THROW("Attempting to link strategy to portfolio: " + portfolio_id + " doesn't eixst");
 		}
+		// replace existing strategies with the new class
+		if (this->hydra->strategy_exists(strategy_id))
+		{
+			this->hydra->remove_strategy(strategy_id);
+		}
+
+		// build the new strategy class
 		auto& portfolio = this->hydra->get_portfolio(portfolio_id);
 		auto strategy = entry.second(portfolio);
 		this->hydra->register_strategy(std::move(strategy));
-		
+
+		// check if the linked strategy is replacing abstract strategy
+		std::string sub_string = "Class";
+		if (strategy_id.length() >= sub_string.length() &&
+			strategy_id.compare(strategy_id.length() - sub_string.length(), sub_string.length(), sub_string) == 0) {
+			// Extract the "test" part
+			std::string abstract_strategy_id = strategy_id.substr(0, strategy_id.length() - sub_string.length());
+			
+			if (this->hydra->strategy_exists(abstract_strategy_id))
+			{
+				auto& strategy = this->hydra->get_strategy(abstract_strategy_id);
+				strategy.get()->set_is_live(false);
+				qDebug() << "Disabling abstract strategy: " + abstract_strategy_id;
+			}
+		}
+
 		qDebug() << "Strategy: " + strategy_id + " linked";
 	}
 

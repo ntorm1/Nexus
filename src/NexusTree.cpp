@@ -142,6 +142,7 @@ PortfolioTree::PortfolioTree(QWidget* parent, std::shared_ptr<Hydra> const hydra
 //============================================================================
 void PortfolioTree::restore_tree(json const& j)
 {
+    this->clear();
     json const& portfolios = j["portfolios"];
     json const& portfolios_expanded = j["trees"][this->objectName().toStdString()];
 
@@ -176,8 +177,37 @@ void PortfolioTree::restore_tree(json const& j)
     }
 }
 
+
+//============================================================================
+void PortfolioTree::clear()
+{
+    // clear previous tree
+    this->model->clear();
+    QStandardItem* rootItem = this->model->invisibleRootItem();
+    this->root = new QStandardItem("Portfolios");
+    this->root->setEditable(false);
+    this->root->setData(QVariant::fromValue(rootItem), ParentItemRole);  // Set the parent item using custom role
+    rootItem->appendRow(this->root);
+}
+
+
+//============================================================================
+void ExchangeTree::clear()
+{
+    // clear previous tree
+    this->model->clear();
+    QStandardItem* rootItem = this->model->invisibleRootItem();
+    this->root = new QStandardItem("Exchanges");
+    this->root->setEditable(false);
+    this->root->setData(QVariant::fromValue(rootItem), ParentItemRole);  // Set the parent item using custom role
+    rootItem->appendRow(this->root);
+}
+
+
+//============================================================================
 void PortfolioTree::relink_tree(std::vector<std::string> const& portfolios)
 {
+    this->clear();
     QModelIndex itemIndex = root->index();
     this->setExpanded(itemIndex, true);
     
@@ -422,6 +452,7 @@ void ExchangeTree::create_new_item(const QModelIndex& parentIndex)
 //============================================================================
 void ExchangeTree::restore_tree(json const& j)
 {
+    this->clear();
     json const& exchanges = j["exchanges"];
     json const& exchanges_expanded = j["trees"][this->objectName().toStdString()];
 

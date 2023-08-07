@@ -53,7 +53,6 @@ public:
 protected:
     void mouseDoubleClickEvent(QMouseEvent* event) override;
 
-
 private:
     /// <summary>
     /// Create a new Portfolio from params using the popup window
@@ -73,6 +72,10 @@ private:
     /// <param name="event"></param>
     void contextMenuEvent(QContextMenuEvent* event) override;
 
+    /// <summary>
+    /// Clear all elements from the tree except for the root
+    /// </summary>
+    void clear();
 
     /// <summary>
     /// Parent hydra instance
@@ -122,6 +125,11 @@ private:
     /// </summary>
     /// <param name="event"></param>
     void contextMenuEvent(QContextMenuEvent* event) override;
+
+    /// <summary>
+    /// Clear all elements from the tree except for the root
+    /// </summary>
+    void clear();
 
     /// <summary>
     /// Parent hydra instance

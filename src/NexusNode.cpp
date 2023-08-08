@@ -172,7 +172,13 @@ NexusNodeEditor::NexusNodeEditor(
 		return this->__extract_abstract_strategy(this->dataFlowGraphModel);
 	});
 
+	// set widget values to class values
 	this->allocation->setText(QString::fromStdString(std::to_string(strategy.get()->get_allocation())));
+	auto w = strategy.get()->get_trading_window();
+	auto w_str = trading_window_to_key_str(w);
+	int index = this->trading_window->findText(QString::fromStdString(w_str));
+	this->trading_window->setCurrentIndex(index);
+	
 	this->id = counter++;
 }
 

@@ -369,7 +369,7 @@ target_compile_definitions(AgisStrategy PRIVATE AGISSTRATEGY_EXPORTS)
 
 # Include AgisCore header files 
 target_include_directories(AgisStrategy PUBLIC
-    "C:/Users/natha/OneDrive/Desktop/C++/AgisCore"
+    "C:/Users/natha/OneDrive/Desktop/C++/Nexus/AgisCore"
 )
 
 # Windows-specific configurations
@@ -557,6 +557,7 @@ void NexusEnv::restore(json const& j)
 	for (auto& strategy_pair : strategies)
 	{
 		auto& strategy = strategy_pair.second;
+		if (!strategy->__is_abstract_class()) { continue; }
 		auto strat_path = strat_folder / strategy->get_strategy_id() / "graph.flow";
 		
 		// use node model to load in flow graph to set absract strategy lambda

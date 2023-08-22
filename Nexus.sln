@@ -11,9 +11,15 @@ EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "AgisCoreTest", "..\AgisCoreTest\AgisCoreTest.vcxproj", "{939DA327-5AE8-4499-B79F-69F041B085FF}"
 	ProjectSection(ProjectDependencies) = postProject
 		{580F9CB3-A7BA-418F-ABE1-5865B3071D6A} = {580F9CB3-A7BA-418F-ABE1-5865B3071D6A}
+		{AB689656-DF19-4960-B465-5572EAF6F709} = {AB689656-DF19-4960-B465-5572EAF6F709}
 	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "AgisCore", "AgisCore\AgisCore.vcxproj", "{580F9CB3-A7BA-418F-ABE1-5865B3071D6A}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "AgisCorePy", "AgisCorePy\AgisCorePy.vcxproj", "{AB689656-DF19-4960-B465-5572EAF6F709}"
+	ProjectSection(ProjectDependencies) = postProject
+		{580F9CB3-A7BA-418F-ABE1-5865B3071D6A} = {580F9CB3-A7BA-418F-ABE1-5865B3071D6A}
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -47,6 +53,14 @@ Global
 		{580F9CB3-A7BA-418F-ABE1-5865B3071D6A}.Release|x64.Build.0 = Release|x64
 		{580F9CB3-A7BA-418F-ABE1-5865B3071D6A}.Release|x86.ActiveCfg = Release|Win32
 		{580F9CB3-A7BA-418F-ABE1-5865B3071D6A}.Release|x86.Build.0 = Release|Win32
+		{AB689656-DF19-4960-B465-5572EAF6F709}.Debug|x64.ActiveCfg = Debug|x64
+		{AB689656-DF19-4960-B465-5572EAF6F709}.Debug|x64.Build.0 = Debug|x64
+		{AB689656-DF19-4960-B465-5572EAF6F709}.Debug|x86.ActiveCfg = Debug|Win32
+		{AB689656-DF19-4960-B465-5572EAF6F709}.Debug|x86.Build.0 = Debug|Win32
+		{AB689656-DF19-4960-B465-5572EAF6F709}.Release|x64.ActiveCfg = Release|x64
+		{AB689656-DF19-4960-B465-5572EAF6F709}.Release|x64.Build.0 = Release|x64
+		{AB689656-DF19-4960-B465-5572EAF6F709}.Release|x86.ActiveCfg = Release|Win32
+		{AB689656-DF19-4960-B465-5572EAF6F709}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

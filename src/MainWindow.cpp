@@ -244,14 +244,21 @@ ads::CDockWidget* MainWindow::create_portfolios_widget()
         this,
         SLOT(on_new_portfolio_window_request(QString))
     );
+    // Signal to toggle strategy
+    QObject::connect(
+        w,
+        SIGNAL(strategy_toggled(QString, bool)),
+        this,
+        SLOT(on_strategy_toggle(QString, bool))
+    );
 
     ads::CDockWidget* DockWidget = new ads::CDockWidget(QString("Portfolios")
         .arg(exchanges_widgets_counter++));
+    w->setFocusPolicy(Qt::NoFocus);
     DockWidget->setWidget(w);
     DockWidget->setIcon(svgIcon("./images/piechart.png"));
 
     DockWidget->set_widget_type(WidgetType::Portfolios);
-    w->setFocusPolicy(Qt::NoFocus);
     return DockWidget;
 }
 
@@ -406,11 +413,19 @@ ads::CDockWidget* MainWindow::create_node_editor_widget(const QString& strategy_
     ads::CDockWidget* DockWidget = new ads::CDockWidget(QString("Strategy: %1").arg(strategy_id));
     auto strategy_opt = this->nexus_env.get_strategy(strategy_id.toStdString());
     if (!strategy_opt.has_value()) {
+
         QMessageBox::critical(this, "Error", "Failed to find strategy listed");
         delete DockWidget;
         return nullptr;
     }
     AgisStrategyRef strategy = strategy_opt.value();
+    if (!strategy.get()->__is_abstract_class())
+    {
+		QMessageBox::critical(this, "Error", "Strategy is not abstract");
+		delete DockWidget;
+		return nullptr;
+    }
+
 
     NexusNodeEditor* w = new NexusNodeEditor(
         &this->nexus_env,
@@ -927,6 +942,8 @@ void MainWindow::on_new_portfolio_window_request(const QString& name)
     this->place_widget(DockWidget, sender());
 }
 
+
+//============================================================================
 void MainWindow::on_new_node_editor_request(const QString& name)
 {
     auto _sender = sender();
@@ -937,6 +954,22 @@ void MainWindow::on_new_node_editor_request(const QString& name)
     if (!DockWidget) { return; }
     this->place_widget(DockWidget, sender());
 }
+
+
+//============================================================================
+void MainWindow::on_strategy_toggle(const QString& name, bool toggle)
+{
+    //check if strategy exists
+    auto strategy = this->nexus_env.get_strategy(name.toStdString());
+    if (!strategy.has_value()) NEXUS_THROW_AND_SHOW("failed to find strategy being toggled");
+
+    //check if strategy is already running
+    if (strategy->get()->__is_live() == toggle) NEXUS_THROW_AND_SHOW("attempted mismatch toggle");
+
+    strategy->get()->set_is_live(toggle);
+    qDebug() << "Strategy" << name << "toggled " << toggle;
+}
+
 
 //============================================================================
 void MainWindow::closeEvent(QCloseEvent* event)

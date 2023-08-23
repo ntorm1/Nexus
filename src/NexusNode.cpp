@@ -213,20 +213,6 @@ void NexusNodeEditor::__save()
 		AGIS_THROW("Failed to open the strategy flow file: " + flow_path.string());
 	}
 
-	// set the current strategy to live
-	this->strategy.get()->set_is_live(true);
-
-	// If the strategy is saved, is is set to live and and corresponding cpp strategy is disabled
-	// if there is exists a strategy with the same id set it to not live
-	AgisStrategyMap& strategies = this->nexus_env->get_hydra()->__get_strategy_map();
-	auto id_check = this->strategy.get()->get_strategy_id() + "Class";
-	for (auto& strat : strategies.__get_strategies()) {
-		if (strat.second->get_strategy_id() == id_check) {
-			strat.second->set_is_live(false);
-			break;
-		}
-	}
-
 	auto abstract_strategy = dynamic_cast<AbstractAgisStrategy*>(strategy.get().get());
 	NEXUS_TRY(abstract_strategy->extract_ev_lambda(););
 }

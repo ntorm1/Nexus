@@ -85,6 +85,7 @@ private slots:
     void on_new_asset_window_request(const QString& name);
     void on_new_portfolio_window_request(const QString& name);
     void on_new_node_editor_request(const QString& name);
+    void on_strategy_toggle(const QString& name, bool toggle);
 
 
 protected:
@@ -141,3 +142,11 @@ public:
 };
 
 
+#define NEXUS_THROW_AND_SHOW(msg) \
+    do { \
+        std::ostringstream oss; \
+        oss << "Error in " << __FILE__ \
+            << " at line " << __LINE__ << ": " << msg; \
+        QMessageBox::critical(nullptr, "Critical Error", QString::fromStdString(oss.str()), QMessageBox::Ok); \
+        throw std::runtime_error(oss.str()); \
+    } while (false)

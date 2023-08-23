@@ -6,10 +6,48 @@
 #include <QTreeView>
 #include <QMenu>
 #include <QStandardItemModel>
+#include <QStyledItemDelegate>
 #include <QPainter>
 #include <NexusPopups.h>
 
 #include "Hydra.h"
+
+
+class ToggleButtonDelegate : public QStyledItemDelegate {
+public:
+    ToggleButtonDelegate(QObject* parent = nullptr) : QStyledItemDelegate(parent) {}
+
+    void paint(QPainter* painter, const QStyleOptionViewItem& option, const QModelIndex& index) const override {
+        QStyleOptionViewItem adjustedOption = option;
+        // Draw the checkbox and the text conditionally
+        if (index.column() == 0 && index.parent().isValid() && index.parent().parent().isValid()) {
+            adjustedOption.showDecorationSelected = false;  // Prevent text highlighting
+            QStyleOptionButton buttonOption;
+            buttonOption.rect = option.rect;
+            buttonOption.state = index.data(Qt::CheckStateRole).toInt() == Qt::Checked ? QStyle::State_On : QStyle::State_Off;
+
+            // Calculate the rect for the checkbox and the text
+            QRect checkBoxRect = QApplication::style()->subElementRect(QStyle::SE_CheckBoxIndicator, &buttonOption, nullptr);
+            QRect textRect = adjustedOption.rect.adjusted(checkBoxRect.width() + 2, 0, 0, 0); // Adjust for spacing
+
+            // Draw the checkbox and text
+            QApplication::style()->drawControl(QStyle::CE_CheckBox, &buttonOption, painter);
+            painter->drawText(textRect, Qt::AlignVCenter, index.data().toString());
+        }
+        else {
+            QStyledItemDelegate::paint(painter, adjustedOption, index);
+        }
+    }
+
+    bool editorEvent(QEvent* event, QAbstractItemModel* model, const QStyleOptionViewItem& option, const QModelIndex& index) override {
+        if (index.column() == 0 && event->type() == QEvent::MouseButtonRelease) {
+            Qt::CheckState currentState = static_cast<Qt::CheckState>(index.data(Qt::CheckStateRole).toInt());
+            model->setData(index, currentState == Qt::Unchecked ? Qt::Checked : Qt::Unchecked, Qt::CheckStateRole);
+            return true;
+        }
+        return QStyledItemDelegate::editorEvent(event, model, option, index);
+    }
+};
 
 
 class NexusTree : public QTreeView
@@ -21,6 +59,7 @@ public:
     void reset_tree();
     virtual void restore_tree(json const& j) = 0;
     virtual json to_json() const;
+    QStandardItemModel* get_model() { return this->model; }
 
 protected:
     virtual void contextMenuEvent(QContextMenuEvent* event) override;
@@ -82,8 +121,14 @@ private:
     /// </summary>
     std::shared_ptr<Hydra> const hydra;
 
+    /// <summary>
+    /// strategy toggle button delegate
+    /// </summary>
+    ToggleButtonDelegate toggleButtonDelegate;
+
 signals:
     void strategy_double_clicked(const QString& asset_id);
+    void strategy_toggled(const QString& strategy_id, bool checked);
     void portfolio_double_clicked(const QString& portfolio_id);
 
     void new_item_requested(const QModelIndex& parentIndex,
@@ -95,6 +140,7 @@ signals:
         const QString& strategy_id,
         const QString& starting_cash
     );
+
 
 public slots:
     void new_item_accepted(const QModelIndex& parentIndex, const QString& name) override;

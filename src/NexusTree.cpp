@@ -71,6 +71,8 @@ void NexusTree::new_item_accepted(const QModelIndex& parentIndex, const QString&
     QStandardItemModel* model = static_cast<QStandardItemModel*>(this->model);
     QStandardItem* parentItem = model->itemFromIndex(parentIndex);
     QStandardItem* newItem = new QStandardItem(name);
+    newItem->setData(Qt::Checked, Qt::CheckStateRole);
+
     newItem->setEditable(false);
     newItem->setData(QVariant::fromValue(parentItem), ParentItemRole);  // Set the parent item using custom role
     parentItem->appendRow(newItem);
@@ -136,6 +138,33 @@ PortfolioTree::PortfolioTree(QWidget* parent, std::shared_ptr<Hydra> const hydra
     rootItem->appendRow(this->root);
 
     this->setModel(model);
+
+    // listen the check box of a strategy
+    QObject::connect(model, &QStandardItemModel::dataChanged, [&](const QModelIndex& topLeft, const QModelIndex& bottomRight) {
+        // Check if the changed data role is Qt::CheckStateRole
+        if (topLeft.column() == 0 && model->data(topLeft, Qt::CheckStateRole).isValid()) {
+            QModelIndex index = topLeft;  // Use the top left index for simplicity
+            // Check if the checkbox item has two parents
+            if (index.parent().isValid() && index.parent().parent().isValid()) {
+                Qt::CheckState newState = static_cast<Qt::CheckState>(index.data(Qt::CheckStateRole).toInt());
+                
+                QVariant itemData = index.data(Qt::DisplayRole);
+                QString strategy_id = itemData.toString();
+
+                if (newState == Qt::Checked) {
+                    qDebug() << strategy_id << "was checked, attempting to set strategy live";
+                    emit strategy_toggled(strategy_id, true);
+                }
+                else {
+                    qDebug() << strategy_id << "was unchecked, attempting to disable strategy";
+                    emit strategy_toggled(strategy_id, false);
+                }
+            }
+        }
+        });
+
+    // strategy toggle
+    this->setItemDelegateForColumn(0, &toggleButtonDelegate);
 }
 
 
@@ -319,6 +348,14 @@ void PortfolioTree::restore_strategies(QStandardItem* addedItem, QString id)
         newItem->setFlags(rootFlags);
         newItem->setEditable(false);
         newItem->setData(QVariant::fromValue(addedItem), ParentItemRole);  // Set the parent item using custom role
+        
+        auto strategy = this->hydra->get_strategy(strategy_id);
+        if (strategy.get()->__is_live()) {
+			newItem->setData(Qt::Checked, Qt::CheckStateRole);
+		}
+        else {
+			newItem->setData(Qt::Unchecked, Qt::CheckStateRole);
+		}
         addedItem->appendRow(newItem);
     }
 }

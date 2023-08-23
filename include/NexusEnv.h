@@ -49,7 +49,8 @@ public:
 
 	void __run();
 	void __compile();
-	void __link();
+	void __link(bool assume_live = true);
+	void __reset();
 	void clear();
 	void restore(json const & j);
 
@@ -92,6 +93,7 @@ public:
 
 	NexusStatusCode remove_exchange(const std::string& name);
 	NexusStatusCode remove_portfolio(const std::string& name);
+	NexusStatusCode remove_strategy(const std::string& name);
 
 };
 

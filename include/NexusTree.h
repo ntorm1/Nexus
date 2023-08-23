@@ -40,10 +40,13 @@ public:
     }
 
     bool editorEvent(QEvent* event, QAbstractItemModel* model, const QStyleOptionViewItem& option, const QModelIndex& index) override {
-        if (index.column() == 0 && event->type() == QEvent::MouseButtonRelease) {
-            Qt::CheckState currentState = static_cast<Qt::CheckState>(index.data(Qt::CheckStateRole).toInt());
-            model->setData(index, currentState == Qt::Unchecked ? Qt::Checked : Qt::Unchecked, Qt::CheckStateRole);
-            return true;
+        if (event->type() == QEvent::MouseButtonRelease) {
+            QMouseEvent* mouseEvent = static_cast<QMouseEvent*>(event);
+            if (mouseEvent->button() == Qt::LeftButton && index.column() == 0) {
+                Qt::CheckState currentState = static_cast<Qt::CheckState>(index.data(Qt::CheckStateRole).toInt());
+                model->setData(index, currentState == Qt::Unchecked ? Qt::Checked : Qt::Unchecked, Qt::CheckStateRole);
+                return true;
+            }
         }
         return QStyledItemDelegate::editorEvent(event, model, option, index);
     }
@@ -106,6 +109,12 @@ private:
     void create_new_strategy(const QModelIndex& parentIndex);
 
     /// <summary>
+    /// Delete a new strategy underneath a portfolio
+    /// </summary>
+    /// <param name="parentIndex"></param>
+    void delete_strategy(const QModelIndex& parentIndex);
+
+    /// <summary>
     /// Override context menu event to prevent nested portfolios
     /// </summary>
     /// <param name="event"></param>
@@ -140,10 +149,13 @@ signals:
         const QString& strategy_id,
         const QString& starting_cash
     );
+    void strategy_remove_requested(const QModelIndex& parentIndex,
+        const QString& strategy_id);
 
 
 public slots:
     void new_item_accepted(const QModelIndex& parentIndex, const QString& name) override;
+    void strategy_remove_accepted(const QModelIndex& parentIndex, const QString& strategy_id);
 };
 
 //============================================================================

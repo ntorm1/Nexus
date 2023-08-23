@@ -49,9 +49,10 @@ public slots:
 
 
 signals:
-    void new_exchange_accepted(const QModelIndex& parentIndex, const QString& name);
-    void new_portfolio_accepeted(const QModelIndex& parentIndex, const QString& name);
-    void new_strategy_accepeted(const QModelIndex& parentIndex, const QString& name);
+    void new_exchange_accepted(const QModelIndex& parentIndex, const QString name);
+    void new_portfolio_accepeted(const QModelIndex& parentIndex, const QString name);
+    void new_strategy_accepeted(const QModelIndex& parentIndex, const QString name);
+    void remove_strategy_accepted(const QModelIndex& parentIndex);
     void remove_exchange_accepted(const QModelIndex& parentIndex);
     void remove_portfolio_accepted(const QModelIndex& parentIndex);
 
@@ -72,6 +73,9 @@ private slots:
         const QString& portfolio_id,
         const QString& strategy_id,
         const QString& allocation
+    );
+    void on_strategy_remove_requested(const QModelIndex& parentIndex,
+        const QString& strategy_id
     );
     void on_new_exchange_request(const QModelIndex& parentIndex,
         const QString& exchange_id,
@@ -142,11 +146,11 @@ public:
 };
 
 
-#define NEXUS_THROW_AND_SHOW(msg) \
+#define NEXUS_INTERUPT(msg) \
     do { \
         std::ostringstream oss; \
         oss << "Error in " << __FILE__ \
             << " at line " << __LINE__ << ": " << msg; \
         QMessageBox::critical(nullptr, "Critical Error", QString::fromStdString(oss.str()), QMessageBox::Ok); \
-        throw std::runtime_error(oss.str()); \
+        return; \
     } while (false)

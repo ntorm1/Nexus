@@ -288,6 +288,16 @@ void PortfolioTree::create_new_strategy(const QModelIndex& parentIndex)
 
 
 //============================================================================
+void PortfolioTree::delete_strategy(const QModelIndex& parentIndex)
+{
+    QVariant itemData = parentIndex.data(Qt::DisplayRole);
+    QString itemName = itemData.toString();
+
+    emit strategy_remove_requested(parentIndex, itemName);
+}
+
+
+//============================================================================
 void PortfolioTree::contextMenuEvent(QContextMenuEvent* event)
 {
     QModelIndex index = this->indexAt(event->pos());
@@ -297,9 +307,20 @@ void PortfolioTree::contextMenuEvent(QContextMenuEvent* event)
         QStandardItem* item = model->itemFromIndex(index);
         if (item != this->root) {
             QMenu menu(this);
-            QAction* addAction = new QAction("Add Strategy", this);
-            connect(addAction, &QAction::triggered, [this, index]() { create_new_strategy(index); });
-            menu.addAction(addAction);
+            // item selected is a strategy
+            if (index.parent().isValid() && index.parent().parent().isValid()) 
+            {
+                QAction* addAction = new QAction("Remove Strategy", this);
+                connect(addAction, &QAction::triggered, [this, index]() {delete_strategy(index); });
+                menu.addAction(addAction);
+            }
+            // item selected is a portfolio
+            else
+            {
+                QAction* addAction = new QAction("Add Strategy", this);
+                connect(addAction, &QAction::triggered, [this, index]() { create_new_strategy(index); });
+                menu.addAction(addAction);
+            }
             menu.exec(event->globalPos());
             return;
         }
@@ -329,6 +350,10 @@ void PortfolioTree::new_item_accepted(const QModelIndex& parentIndex, const QStr
 
     if (!this->hydra->portfolio_exists(name.toStdString())) { return; }
     this->restore_strategies(addedItem, name);
+}
+
+void PortfolioTree::strategy_remove_accepted(const QModelIndex& parentIndex, const QString& strategy_id)
+{
 }
 
 

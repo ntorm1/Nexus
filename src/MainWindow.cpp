@@ -195,26 +195,12 @@ ads::CDockWidget* MainWindow::create_portfolios_widget()
         this,
         SLOT(on_new_strategy_requested(QModelIndex, QString, QString, QString))
     );
-    // Signal that accepets new strategy
-    QObject::connect(
-        this,
-        SIGNAL(new_strategy_accepeted(QModelIndex, QString)),
-        w,
-        SLOT(new_item_accepted(QModelIndex, QString))
-    );
-    // Signal that requests new portfolio
+    // Signal that requests to remove a strategy
     QObject::connect(
         w,
-        SIGNAL(new_item_requested(QModelIndex, QString, QString)),
+        SIGNAL(strategy_remove_requested(QModelIndex, QString)),
         this,
-        SLOT(on_new_portfolio_request(QModelIndex, QString, QString))
-    );
-    // Signal to accept new portfolio
-    QObject::connect(
-        this,
-        SIGNAL(new_portfolio_accepeted(QModelIndex, QString)),
-        w,
-        SLOT(new_item_accepted(QModelIndex, QString))
+        SLOT(on_strategy_remove_requested(QModelIndex, QString))
     );
     // Signal to request removal of portfolio
     QObject::connect(
@@ -223,10 +209,38 @@ ads::CDockWidget* MainWindow::create_portfolios_widget()
         this,
         SLOT(on_remove_portfolio_request(QString, QModelIndex))
     );
+    // Signal that requests new portfolio
+    QObject::connect(
+        w,
+        SIGNAL(new_item_requested(QModelIndex, QString, QString)),
+        this,
+        SLOT(on_new_portfolio_request(QModelIndex, QString, QString))
+    );
+    // Signal that accepets new strategy
+    QObject::connect(
+        this,
+        SIGNAL(new_strategy_accepeted(QModelIndex, QString)),
+        w,
+        SLOT(new_item_accepted(QModelIndex, QString))
+    );
+    // Signal to accept new portfolio
+    QObject::connect(
+        this,
+        SIGNAL(new_portfolio_accepeted(QModelIndex, QString)),
+        w,
+        SLOT(new_item_accepted(QModelIndex, QString))
+    );
     // Signal to accept removal of portfolio
     QObject::connect(
         this,
         SIGNAL(remove_portfolio_accepted(QModelIndex)),
+        w,
+        SLOT(remove_item_accepeted(QModelIndex))
+    );
+    // Signal that accepts to remove a strategy
+    QObject::connect(
+        this,
+        SIGNAL(remove_strategy_accepted(QModelIndex)),
         w,
         SLOT(remove_item_accepeted(QModelIndex))
     );
@@ -875,6 +889,22 @@ void MainWindow::on_new_strategy_requested(
     }
 }
 
+
+//============================================================================
+void MainWindow::on_strategy_remove_requested(const QModelIndex& parentIndex, const QString& strategy_id)
+{
+	auto res = this->nexus_env.remove_strategy(strategy_id.toStdString());
+	if (res != NexusStatusCode::Ok) {
+		QMessageBox::critical(this, "Error", "Failed to remove strategy");
+	}
+	else
+	{
+        qDebug() << "STRATEGY" << strategy_id << " REMOVED";
+		emit remove_strategy_accepted(parentIndex);
+	}
+}
+
+
 //============================================================================
 void MainWindow::on_new_exchange_request(const QModelIndex& parentIndex, 
     const QString& exchange_id,
@@ -961,10 +991,10 @@ void MainWindow::on_strategy_toggle(const QString& name, bool toggle)
 {
     //check if strategy exists
     auto strategy = this->nexus_env.get_strategy(name.toStdString());
-    if (!strategy.has_value()) NEXUS_THROW_AND_SHOW("failed to find strategy being toggled");
+    if (!strategy.has_value()) NEXUS_INTERUPT("failed to find strategy being toggled");
 
     //check if strategy is already running
-    if (strategy->get()->__is_live() == toggle) NEXUS_THROW_AND_SHOW("attempted mismatch toggle");
+    if (strategy->get()->__is_live() == toggle) NEXUS_INTERUPT("attempted mismatch toggle");
 
     strategy->get()->set_is_live(toggle);
     qDebug() << "Strategy" << name << "toggled " << toggle;
@@ -1006,16 +1036,15 @@ void MainWindow::__run_lambda()
     QEventLoop eventLoop;
 
     QFuture<long long> future = QtConcurrent::run([this, &eventLoop]() {
+        // reset hydra to start of sim
+        this->nexus_env.__reset();
+
         qDebug() << "BEGINNING HYDRA RUN" << QDateTime::currentDateTimeUtc().toString("yyyy-MM-dd HH:mm:ss.zzzzzz");
         auto startTime = std::chrono::high_resolution_clock::now();
 
         // Long-running operation that may block the CPU
-        try {
-            this->nexus_env.__run();
-        }
-        catch (const std::exception& e) {
-            QMessageBox::critical(nullptr, "Critical Error", e.what(), QMessageBox::Ok);
-        }
+        NEXUS_TRY(this->nexus_env.__run());
+        
         auto endTime = std::chrono::high_resolution_clock::now();
         auto durationMs = std::chrono::duration_cast<std::chrono::milliseconds>(endTime - startTime).count();
         qDebug() << "HYDRA RUN COMPLETE" << QDateTime::currentDateTimeUtc().toString("yyyy-MM-dd HH:mm:ss.zzzzzz");

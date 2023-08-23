@@ -5,7 +5,11 @@
 #include "NexusNodeModel.h"
 #include <AgisStrategyRegistry.h>
 
+#ifdef _DEBUG
 std::string build_method = "debug";
+#else
+std::string build_method = "release";
+#endif
 
 //============================================================================
 NexusEnv::NexusEnv()
@@ -205,6 +209,8 @@ NexusStatusCode NexusEnv::remove_exchange(const std::string& name)
 	return this->hydra->remove_exchange(name);
 }
 
+
+//============================================================================
 NexusStatusCode NexusEnv::remove_portfolio(const std::string& name)
 {
 	qDebug() << "Removing exchange: " << name;
@@ -213,12 +219,18 @@ NexusStatusCode NexusEnv::remove_portfolio(const std::string& name)
 
 
 //============================================================================
+NexusStatusCode NexusEnv::remove_strategy(const std::string& name)
+{
+	if (!this->hydra->strategy_exists(name)) return NexusStatusCode::InvalidArgument;
+	this->hydra->remove_strategy(name);
+	return NexusStatusCode::Ok;
+}
+
+
+//============================================================================
 void NexusEnv::__run()
 {
-	AGIS_TRY(
-		this->hydra->__reset();
-		this->hydra->__run();
-	);
+	AGIS_TRY(this->hydra->__run());
 }
 
 
@@ -470,7 +482,7 @@ LPCWSTR StringToLPCWSTR(const std::string& str) {
 
 
 //============================================================================
-void NexusEnv::__link()
+void NexusEnv::__link(bool assume_live)
 {
 	qDebug() << "============================================================================";
 	qDebug() << "Linking strategies...";
@@ -515,6 +527,12 @@ void NexusEnv::__link()
 		// build the new strategy class
 		auto& portfolio = this->hydra->get_portfolio(portfolio_id);
 		auto strategy = entry.second(portfolio);
+
+		// set the strategy to live if assume_live is true
+		if (!assume_live) {
+			strategy->set_is_live(false);
+		}
+
 		this->hydra->register_strategy(std::move(strategy));
 
 		// check if the linked strategy is replacing abstract strategy
@@ -539,6 +557,14 @@ void NexusEnv::__link()
 	qDebug() << "============================================================================";
 }
 
+
+//============================================================================
+void NexusEnv::__reset()
+{
+	this->hydra->__reset();
+}
+
+
 //============================================================================
 void NexusEnv::clear()
 {
@@ -560,7 +586,29 @@ void NexusEnv::restore(json const& j)
 	// if agis_strategy_dll exists call __link
 	if (fs::exists(agis_strategy_dll))
 	{
-		AGIS_TRY(this->__link();)
+		AGIS_TRY(this->__link(false);)
+	}
+
+	// for all strategies loaded, check if they are live
+	json portfolios = j["portfolios"];
+	for (const auto& portfolio_json : portfolios.items())
+	{
+		json& j = portfolio_json.value();
+		json& strategies = j["strategies"];
+		for (const auto& strategy_json : strategies)
+		{
+			bool is_live = strategy_json["is_live"];
+			std::string strategy_id = strategy_json["strategy_id"];
+			auto strategy = this->hydra->get_strategy(strategy_id);
+
+			// if strategy was linked but it is not live, remove it and force it to be re linked
+			// if we actually want to load it.
+			if (!is_live && !strategy.get()->__is_abstract_class())
+			{ 
+				this->hydra->remove_strategy(strategy_id);
+			}	
+			else strategy.get()->set_is_live(is_live);
+		}
 	}
 
 	this->remove_editors();

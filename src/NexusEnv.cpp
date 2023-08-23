@@ -248,12 +248,20 @@ void NexusEnv::__compile()
         return std::make_unique<{STRAT}>(p);
     }
 )";
+	// add include paths for pch.h
 	for (auto& strategy_pair : strategies)
 	{
+		// skip non-live strategies
 		if (!strategy_pair.second->__is_live()) continue;
 		bool is_abstract = strategy_pair.second->__is_abstract_class();
-		// add include paths for pch.h
-		std::string strat_include_mid = "#include \"strategies/" + strategy_pair.second->get_strategy_id() + "/"
+
+		auto strategy_id = strategy_pair.second->get_strategy_id();
+		// if strategy_id ends in the characters "Class", remove them
+		if (strategy_id.size() >= 5 && strategy_id.substr(strategy_id.size() - 5) == "Class")
+		{
+			strategy_id = strategy_id.substr(0, strategy_id.size() - 5);
+		}
+		std::string strat_include_mid = "#include \"strategies/" + strategy_id + "/"
 			+ strategy_pair.second->get_strategy_id();
 		if (is_abstract) strat_include_mid += +"Class.h\"\n";
 		else strat_include_mid += +".h\"\n";
@@ -348,7 +356,7 @@ project(AgisStrategies)
 set(VCPKG_TOOLCHAIN_FILE "C:/dev/vcpkg/scripts/buildsystems/vcpkg.cmake" CACHE STRING "")
 include_directories("C:/dev/vcpkg/installed/x64-windows/include")
 
-# Set the path to the AgisCore DLL
+# Set the path to the AgisCore lib
 set(AGIS_CORE_PATH "{AGIS_CORE_PATH}")
 
 # Set the path to the adjacent folder
@@ -412,6 +420,11 @@ install(TARGETS AgisStrategy
 	}
 	else {
 		AGIS_THROW("Failed to generate CMake file");
+	}
+
+	// if agis_strategy_dll_loaded is true, unload the dll
+	if (this->agis_strategy_dll_loaded) {
+		FreeLibrary(this->AgisStrategyDLL);
 	}
 
 	// generate cmake build files
@@ -521,7 +534,7 @@ void NexusEnv::__link()
 
 		qDebug() << "Strategy: " + strategy_id + " linked";
 	}
-
+	this->agis_strategy_dll_loaded = true;
 	qDebug() << "Linking strategies complete";
 	qDebug() << "============================================================================";
 }
@@ -540,6 +553,15 @@ void NexusEnv::restore(json const& j)
 {
 	this->hydra->clear();
 	AGIS_TRY(this->hydra->restore(j);)
+
+	// restore cpp strategy tree by linking to all strats if the AgisStrategy library
+	fs::path output_dir = this->env_path / "build" / build_method;
+	fs::path agis_strategy_dll = output_dir / "AgisStrategy.dll";
+	// if agis_strategy_dll exists call __link
+	if (fs::exists(agis_strategy_dll))
+	{
+		AGIS_TRY(this->__link();)
+	}
 
 	this->remove_editors();
 	for (auto& tree : this->open_trees)

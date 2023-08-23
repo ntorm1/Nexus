@@ -2,8 +2,10 @@
 
 #include <pybind11/pybind11.h>
 #include <pybind11/functional.h>
+#include <pybind11/stl.h>
 
 #include "AgisStrategy.h"
+#include "Trade.h"
 
 
 namespace py = pybind11;
@@ -50,6 +52,23 @@ public:
 };
 
 
+class PyTradeExit : public TradeExit {
+public:
+    using TradeExit::TradeExit;
+
+    /// <summary>
+    /// Trampoline function for pure virtual method: exit
+    /// </summary>
+    bool exit() override {
+        PYBIND11_OVERRIDE_PURE(
+            bool,
+            TradeExit,
+            exit
+        );
+    }
+};
+
+
 void init_agis_strategy(py::module& m)
 {
     py::enum_<AllocType>(m, "AllocType")
@@ -70,7 +89,14 @@ void init_agis_strategy(py::module& m)
         .def("get_strategy_id", &AgisStrategy::get_strategy_id, "Get unique strategy id")
         .def("get_portfolio_index", &AgisStrategy::get_portfolio_index, "Get portfolio index")
         .def("get_portfolio_id", &AgisStrategy::get_portfolio_id, "Get portfolio id")
-        .def("get_exchange", &AgisStrategy::get_exchange, "Get an exchange by id");
+        .def("get_exchange", &AgisStrategy::get_exchange, "Get an exchange by id")
+        .def("strategy_allocate",
+            &AgisStrategy::strategy_allocate,
+            py::arg("allocation"),
+            py::arg("epsilon"),
+            py::arg("clear_missing") = true,
+            py::arg("exit") = py::none(),
+            py::arg("alloc_type") = AllocType::UNITS);
 }
 
 void init_exchange(py::module& m)
@@ -83,6 +109,7 @@ void init_exchange(py::module& m)
         .export_values();
 
     py::class_<Exchange, std::shared_ptr<Exchange>>(m, "Exchange")
+        .def("get_exchange_id", &Exchange::get_exchange_id)
         .def("get_exchange_view",
             py::overload_cast<
             const std::string&,
@@ -90,13 +117,21 @@ void init_exchange(py::module& m)
             ExchangeQueryType,
             int,
             bool>
-        (&Exchange::get_exchange_view),
-        "Get ExchangeView with specified parameters");
+            (&Exchange::get_exchange_view),
+            "Get ExchangeView with specified parameters",
+            py::arg("col"),
+            py::arg("row") = 0,
+            py::arg("query_type") = ExchangeQueryType::Default,
+            py::arg("N") = 1,
+            py::arg("panic") = false
+        );
 
     py::class_<ExchangeView>(m, "ExchangeView")
         .def(py::init<>())
         .def_readwrite("view", &ExchangeView::view)
         .def_readwrite("exchange_index", &ExchangeView::exchange_index)
+        .def("apply_weights", &ExchangeView::apply_weights)
+        .def("__len__", &ExchangeView::size)
         .def("__sub__", &ExchangeView::operator-, py::is_operator())  // Wrap the subtraction operator
         .def("__add__", &ExchangeView::operator+, py::is_operator())  // Wrap the subtraction operator
         .def("__div__", &ExchangeView::operator/, py::is_operator())  // Wrap the subtraction operator
@@ -106,6 +141,11 @@ void init_exchange(py::module& m)
 
 void init_portfolio(py::module& m)
 {
+    py::class_<TradeExit, PyTradeExit>(m, "TradeExit")
+        .def(py::init<>())
+        .def("build", &TradeExit::build)
+        .def("exit", &TradeExit::exit);
+
     py::class_<Portfolio, std::shared_ptr<Portfolio>>(m, "Portfolio")
         .def(py::init<const std::string&, double>());
 }

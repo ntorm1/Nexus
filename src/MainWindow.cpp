@@ -407,6 +407,8 @@ ads::CDockWidget* MainWindow::create_node_editor_widget(const QString& strategy_
     auto strategy_opt = this->nexus_env.get_strategy(strategy_id.toStdString());
     if (!strategy_opt.has_value()) {
         QMessageBox::critical(this, "Error", "Failed to find strategy listed");
+        delete DockWidget;
+        return nullptr;
     }
     AgisStrategyRef strategy = strategy_opt.value();
 
@@ -645,6 +647,7 @@ std::optional<fs::path> get_editor_by_id(nlohmann::json const& open_editors, int
     }
     return std::nullopt;
 }
+
 
 //============================================================================
 void MainWindow::restore_state()
@@ -931,6 +934,7 @@ void MainWindow::on_new_node_editor_request(const QString& name)
     _sender->setProperty("Tabbed", false);
 
     auto DockWidget = this->create_node_editor_widget(name);
+    if (!DockWidget) { return; }
     this->place_widget(DockWidget, sender());
 }
 

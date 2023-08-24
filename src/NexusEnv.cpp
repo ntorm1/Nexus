@@ -127,11 +127,29 @@ void NexusEnv::remove_editor(QString const& file_name)
 		});
 	if (it == this->open_editors.end())
 	{
-		throw std::runtime_error("attempting to remove non existing editor");
+		AGIS_THROW("attempting to remove non existing editor");
 	}
 	else
 	{
 		this->open_editors.erase(it);
+	}
+}
+
+
+//============================================================================
+void NexusEnv::remove_node_editor(std::string const& id)
+{
+	// remove id from open_node_editors
+	auto it = std::find_if(open_node_editors.begin(), open_node_editors.end(), [&](std::string const& s) {
+		return s == id;
+	});	
+	if (it == this->open_node_editors.end())
+	{
+		AGIS_THROW("attempting to remove non existing node editor");
+	}
+	else
+	{
+		this->open_node_editors.erase(it);
 	}
 }
 
@@ -243,9 +261,9 @@ NexusStatusCode NexusEnv::remove_strategy(const std::string& name)
 
 
 //============================================================================
-void NexusEnv::__run()
+AgisResult<bool> NexusEnv::__run()
 {
-	AGIS_TRY(this->hydra->__run());
+	return this->hydra->__run();
 }
 
 

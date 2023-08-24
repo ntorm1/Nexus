@@ -99,7 +99,7 @@ ExchangeViewNode::ExchangeViewNode(
     QLabel* row_label = new QLabel("Count: ");
     this->N = new QSpinBox(this);
     this->N->setMinimum(1); // Set the minimum value to the minimum possible integer value (most negative value)
-    this->N->setMaximum(1e5); // Set the maximum value to 0
+    this->N->setMaximum(1e5); 
     row_layout->addWidget(row_label);
     row_layout->addWidget(this->N);
     layout->addLayout(row_layout);

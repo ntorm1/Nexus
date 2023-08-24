@@ -295,6 +295,17 @@ std::shared_ptr<NodeData> AssetLambdaModel::outData(PortIndex const port)
 
 
 //============================================================================
+std::shared_ptr<NodeData> ExchangeModel::outData(PortIndex const port)
+{
+	if (port == 0)
+	{
+		auto exchange_id = this->exchange_node->exchange_id->currentText().toStdString();
+		auto exchange = this->hydra->get_exchanges().get_exchange(exchange_id);
+		return std::make_shared<ExchangeData>(exchange);
+	}
+}
+
+//============================================================================
 std::shared_ptr<NodeData> ExchangeViewModel::outData(PortIndex const port)
 {
 	if (port == 0)
@@ -302,6 +313,7 @@ std::shared_ptr<NodeData> ExchangeViewModel::outData(PortIndex const port)
 		auto N = stoi(this->exchange_view_node->N->text().toStdString());
 		auto query_string = this->exchange_view_node->query_type->currentText().toStdString();
 		auto query_type = agis_query_map.at(query_string);
+		auto warmup_copy = this->warmup;
 
 		ExchangeViewLambda ev_chain = [=](
 			AgisAssetLambdaChain const& lambda_opps,
@@ -327,7 +339,7 @@ std::shared_ptr<NodeData> ExchangeViewModel::outData(PortIndex const port)
 					query_type,
 					N,
 					false,
-					this->warmup
+					warmup_copy
 				);
 				return exchange_view;
 			);
@@ -352,10 +364,15 @@ void AssetLambdaModel::setInData(std::shared_ptr<NodeData> data, PortIndex const
 {
 	if (port == 0)
 	{
-		if (!data) { this->lambda_chain.clear(); return; }
+		if (!data) { 
+			this->lambda_chain.clear(); 
+			Q_EMIT dataInvalidated(0);
+			return; 
+		}
 		std::shared_ptr<AssetLambdaData> assetData = std::dynamic_pointer_cast<AssetLambdaData>(data);
 		this->lambda_chain = assetData->lambda_chain;
 		if (assetData->warmup > this->warmup) { this->warmup = assetData->warmup; }
+		Q_EMIT dataUpdated(0);
 	}
 }
 
@@ -366,21 +383,34 @@ void ExchangeViewModel::setInData(std::shared_ptr<NodeData> data, PortIndex cons
 	switch (port)
 	{
 		case 0: {
-			if (!data) { this->lambda_chain.clear(); return; }
+			if (!data) 
+			{ 
+				this->lambda_chain.clear(); 
+				Q_EMIT dataInvalidated(0);
+				return; 
+			}
 			std::shared_ptr<AssetLambdaData> assetData = std::dynamic_pointer_cast<AssetLambdaData>(data);
+						
 			this->lambda_chain = assetData->lambda_chain;
 			auto smallestRowIt = std::min_element(lambda_chain.begin(), lambda_chain.end(),
 				[](const AssetLambdaScruct& lhs, const AssetLambdaScruct& rhs) {
 					return lhs.row < rhs.row;
 				});
 			this->warmup = abs(smallestRowIt->row);
+			Q_EMIT dataUpdated(0);
 			return;
 		}
 		
 		case 1:{
-			if (!data) { this->exchange = nullptr; return; }
+			if (!data) 
+			{
+				this->exchange = nullptr; 
+				Q_EMIT dataInvalidated(0);
+				return; 
+			}
 			std::shared_ptr<ExchangeData> exchange_data = std::dynamic_pointer_cast<ExchangeData>(data);
 			this->exchange = exchange_data->exchange_ptr;
+			Q_EMIT dataUpdated(0);
 			return;
 		}
 	}
@@ -394,7 +424,12 @@ void StrategyAllocationModel::setInData(std::shared_ptr<NodeData> data, PortInde
 	switch (port)
 	{
 		case 0: {
-			if (!data) { this->ev_lambda_struct = std::nullopt; return; }
+			if (!data) 
+			{
+				this->ev_lambda_struct = std::nullopt;
+				Q_EMIT dataInvalidated(0);
+				return;
+			}
 			std::shared_ptr<ExchangeViewData> ev_ptr = std::dynamic_pointer_cast<ExchangeViewData>(data);
 			this->ev_lambda_struct = ev_ptr->exchange_view_lambda;
 			return;

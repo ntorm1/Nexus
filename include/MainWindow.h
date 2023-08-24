@@ -49,6 +49,7 @@ public slots:
 
 
 signals:
+    void new_hydra_run();
     void new_exchange_accepted(const QModelIndex& parentIndex, const QString name);
     void new_portfolio_accepeted(const QModelIndex& parentIndex, const QString name);
     void new_strategy_accepeted(const QModelIndex& parentIndex, const QString name);
@@ -61,6 +62,7 @@ private slots:
     void save_perspective();
     void create_editor();
     void on_editor_close_requested();
+    void on_node_editor_close_request();
     void on_widget_focus(ads::CDockWidget* old, ads::CDockWidget* now);
     void on_actionSaveState_triggered(bool);
     void on_actionRestoreState_triggered(bool);

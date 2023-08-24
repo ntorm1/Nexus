@@ -417,6 +417,14 @@ ads::CDockWidget* MainWindow::create_portfolio_widget(const QString& portfolio_i
         DockWidget
     );
 
+    // Signal for new hydra run complet
+    QObject::connect(
+        this,
+        SIGNAL(new_hydra_run()),
+        w,
+        SLOT(on_new_hydra_run())
+    );
+
     DockWidget->setWidget(w);
     DockWidget->setIcon(svgIcon("./images/piechart.png"));
     DockWidget->set_widget_type(WidgetType::Portfolio);
@@ -451,13 +459,17 @@ ads::CDockWidget* MainWindow::create_node_editor_widget(const QString& strategy_
 		return nullptr;
 	}
 
-
     NexusNodeEditor* w = new NexusNodeEditor(
         &this->nexus_env,
         DockWidget,
         strategy,
         DockWidget
     );
+
+    // intercept the close request to modify open node editor state
+    DockWidget->setFeature(ads::CDockWidget::CustomCloseHandling, true);
+    connect(DockWidget, SIGNAL(closeRequested()), SLOT(on_node_editor_close_request()));
+
     DockWidget->setWidget(w);
     DockWidget->setIcon(svgIcon("./images/flow.png"));
     DockWidget->set_widget_type(WidgetType::NodeEditor);
@@ -838,6 +850,17 @@ void MainWindow::on_editor_close_requested()
     }
 }
 
+
+//============================================================================
+void MainWindow::on_node_editor_close_request()
+{
+    auto DockWidget = qobject_cast<ads::CDockWidget*>(sender());
+    auto node_editor = qobject_cast<NexusNodeEditor*>(DockWidget->widget());
+    auto strategy = node_editor->get_strategy_id();
+    this->nexus_env.remove_node_editor(strategy);
+    DockWidget->closeDockWidget();
+}
+
 //============================================================================
 void MainWindow::on_widget_focus(ads::CDockWidget* old, ads::CDockWidget* now)
 {
@@ -910,6 +933,7 @@ void MainWindow::on_strategy_remove_requested(const QModelIndex& parentIndex, co
 	}
 	else
 	{
+        this->nexus_env.remove_node_editor(strategy_id.toStdString());
         qDebug() << "STRATEGY" << strategy_id << " REMOVED";
 		emit remove_strategy_accepted(parentIndex);
 	}
@@ -1046,27 +1070,46 @@ void MainWindow::__run_lambda()
 {
     QEventLoop eventLoop;
 
-    QFuture<long long> future = QtConcurrent::run([this, &eventLoop]() {
-        // reset hydra to start of sim
-        this->nexus_env.__reset();
 
-        qDebug() << "BEGINNING HYDRA RUN" << QDateTime::currentDateTimeUtc().toString("yyyy-MM-dd HH:mm:ss.zzzzzz");
-        auto startTime = std::chrono::high_resolution_clock::now();
+    QFuture<std::variant<long long, std::string>> future = QtConcurrent::run([this, &eventLoop]() -> std::variant<long long, std::string> {
+        try {
+            // reset hydra to start of sim
+            this->nexus_env.__reset();
 
-        // Long-running operation that may block the CPU
-        NEXUS_TRY(this->nexus_env.__run());
-        
-        auto endTime = std::chrono::high_resolution_clock::now();
-        auto durationMs = std::chrono::duration_cast<std::chrono::milliseconds>(endTime - startTime).count();
-        qDebug() << "HYDRA RUN COMPLETE" << QDateTime::currentDateTimeUtc().toString("yyyy-MM-dd HH:mm:ss.zzzzzz");
+            qDebug() << "BEGINNING HYDRA RUN" << QDateTime::currentDateTimeUtc().toString("yyyy-MM-dd HH:mm:ss.zzzzzz");
+            auto startTime = std::chrono::high_resolution_clock::now();
 
-        // Unblock the event loop when the operation is completed
-        eventLoop.quit();
-        return durationMs;
+            // Long-running operation that may block the CPU
+            auto res = this->nexus_env.__run();
+            if (res.is_exception()) {
+                throw std::runtime_error(res.get_exception().c_str());
+            }
+
+            auto endTime = std::chrono::high_resolution_clock::now();
+            auto durationMs = std::chrono::duration_cast<std::chrono::milliseconds>(endTime - startTime).count();
+            qDebug() << "HYDRA RUN COMPLETE" << QDateTime::currentDateTimeUtc().toString("yyyy-MM-dd HH:mm:ss.zzzzzz");
+
+            // Unblock the event loop when the operation is completed
+            eventLoop.quit();
+            return durationMs;
+        }
+        catch (const std::exception& ex) {
+            return std::string(ex.what());
+        }
         });
     // Block the event loop until the long-running operation is completed
-    future.waitForFinished(); // Wait for the future to finish before getting the result
-    long long durationMs = future.result();
+    //NEXUS_TRY(future.waitForFinished();) // Wait for the future to finish before getting the result
+    
+    long long durationMs;
+    std::variant<long long, std::string> res = future.result();
+    if (std::holds_alternative<std::string>(res))
+    {
+        NEXUS_INTERUPT(std::get<std::string>(res));
+    }
+    else
+    {
+        durationMs = std::get<long long>(res);
+    }
 
     size_t candles = this->nexus_env.get_candle_count();
     auto cps = candles / (durationMs / 1000.0);
@@ -1079,6 +1122,9 @@ void MainWindow::__run_lambda()
 
     auto msg = "Execution time: " + QString::number(durationMs) + " ms\n";
     msg += "Candles per second: " + cpsFormatted + "\n";
+
+    // notify the UI that new hydra run has completed
+    emit new_hydra_run();
 
     QMessageBox::information(nullptr, "Execution Time", msg , QMessageBox::Ok);
 }

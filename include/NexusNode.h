@@ -41,6 +41,7 @@ class NexusNodeEditor : public QMainWindow
 {
     Q_OBJECT
 
+
 public:
 
     NexusNodeEditor(
@@ -76,6 +77,8 @@ private:
 
     void on_tw_change(int index);
 
+signals:
+    void on_close();
 };
 
 

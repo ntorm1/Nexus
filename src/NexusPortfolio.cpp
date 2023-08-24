@@ -2,6 +2,8 @@
 #include "NexusPortfolio.h"
 #include "ui_NexusPortfolio.h"
 
+
+//============================================================================
 NexusPortfolio::NexusPortfolio(
 		NexusEnv const* nexus_env_,
 		ads::CDockWidget* DockWidget_,
@@ -57,11 +59,20 @@ NexusPortfolio::NexusPortfolio(
     centralWidget->setLayout(layout);
 }
 
+
+//============================================================================
+void NexusPortfolio::on_new_hydra_run()
+{
+    qDebug() << "HERE";
+}
+
+
+//============================================================================
 NexusPortfolioPlot::NexusPortfolioPlot(QWidget* parent_)
 {
 }
 
-
+//============================================================================
 void NexusPortfolioPlot::contextMenuRequest(QPoint pos)
 {
     QMenu* menu = new QMenu(this);
@@ -91,6 +102,8 @@ void NexusPortfolioPlot::contextMenuRequest(QPoint pos)
 
     menu->popup(this->mapToGlobal(pos));
 }
+
+//============================================================================
 void NexusPortfolioPlot::plot_nlv()
 {
     auto& portfolio = this->hydra->get_portfolio(this->portfolio_id);

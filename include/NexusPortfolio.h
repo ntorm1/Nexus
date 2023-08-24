@@ -57,6 +57,9 @@ public:
 
     std::string get_portfolio_id() { return this->portfolio_id; }
 
+public slots:
+    void on_new_hydra_run();
+
 private:
     NexusEnv const* nexus_env;
     std::string portfolio_id;

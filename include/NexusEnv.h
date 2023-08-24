@@ -52,7 +52,7 @@ public:
 	NexusEnv();
 	~NexusEnv();
 
-	void __run();
+	AgisResult<bool> __run();
 	void __compile();
 	void __link(bool assume_live = true);
 	void __reset();
@@ -70,6 +70,7 @@ public:
 	void new_editor(TextEdit* new_editor);
 	std::optional<TextEdit*> get_editor(QString const & file_name) const;
 	void remove_editor(QString const& file_name);
+	void remove_node_editor(std::string const& id);
 	bool editor_open(QString const & file_name);
 
 	//============================================================================

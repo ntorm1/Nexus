@@ -188,7 +188,6 @@ NexusNodeEditor::~NexusNodeEditor()
 {
 	//auto abstract_strategy = dynamic_cast<AbstractAgisStrategy*>(strategy.get().get());
 	//abstract_strategy->extract_ev_lambda();
-
 	delete dataFlowGraphModel;
 	delete view;
 }

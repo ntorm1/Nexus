@@ -192,15 +192,7 @@ public:
         return NodeDataType();
     }
 
-    std::shared_ptr<NodeData> outData(PortIndex const port) override
-    {
-        if (port == 0)
-        {
-            auto exchange_id = this->exchange_node->exchange_id->currentText().toStdString();
-            auto exchange = this->hydra->get_exchanges().get_exchange(exchange_id);
-            return std::make_shared<ExchangeData>(exchange);
-        }
-    }
+    std::shared_ptr<NodeData> outData(PortIndex const port) override;
 
     void setInData(std::shared_ptr<NodeData>, PortIndex const) override
     {
@@ -294,7 +286,7 @@ public:
 
 
 private:
-    ExchangePtr exchange;
+    ExchangePtr exchange = nullptr;
     AgisAssetLambdaChain lambda_chain;
     ExchangeViewNode* exchange_view_node = nullptr;
     int warmup = 0;

@@ -76,10 +76,14 @@ public:
 
     ~StrategyAllocationNode() { delete layout; };
 
+    void update_ev_opp_param_state();
+
     QVBoxLayout* layout;
     QLineEdit* epsilon;
     QLineEdit* target_leverage;
     QCheckBox* clear_missing;
     QComboBox* alloc_type;
     QComboBox* ev_opp_type;
+    QLineEdit* ev_opp_param;
+
 };

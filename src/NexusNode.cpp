@@ -276,11 +276,17 @@ std::optional<ExchangeViewLambdaStruct> NexusNodeEditor::__extract_abstract_stra
 	auto clear_missing = node->strategy_allocation_node->clear_missing->isChecked();
 	auto ev_opp_type = node->strategy_allocation_node->ev_opp_type->currentText().toStdString();
 	auto str_alloc_type = node->strategy_allocation_node->alloc_type->currentText().toStdString();
-
+	std::optional<double> ev_opp_param = std::nullopt;
+	if (node->strategy_allocation_node->ev_opp_param->isEnabled())
+	{
+		auto val = node->strategy_allocation_node->ev_opp_param->text().toStdString();
+		ev_opp_param = stod(val);
+	}
 
 	StrategyAllocLambdaStruct _struct{
 		epsilon,
 		target_leverage,
+		ev_opp_param,
 		clear_missing,
 		ev_opp_type,
 		agis_strat_alloc_map.at(str_alloc_type)

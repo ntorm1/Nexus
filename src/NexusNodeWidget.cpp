@@ -108,6 +108,13 @@ ExchangeViewNode::ExchangeViewNode(
 }
 
 
+void StrategyAllocationNode::update_ev_opp_param_state() {
+    auto val = this->ev_opp_type->currentText().toStdString();
+    bool isEnabled = (val == "CONDITIONAL_SPLIT");
+    this->ev_opp_param->setEnabled(isEnabled);
+}
+
+
 StrategyAllocationNode::StrategyAllocationNode(
     QWidget* parent_)
     : QWidget(parent_)
@@ -117,7 +124,7 @@ StrategyAllocationNode::StrategyAllocationNode(
 
     this->layout = new QVBoxLayout(this);
 
-    // operation type
+    //  Allocation type
     QHBoxLayout* row_layout = new QHBoxLayout(this);
     this->alloc_type = new QComboBox();
     for (const auto& item : agis_strat_alloc_strings) {
@@ -131,20 +138,33 @@ StrategyAllocationNode::StrategyAllocationNode(
     // function to generate weights from the view
     row_layout = new QHBoxLayout(this);
     this->ev_opp_type = new QComboBox();
-    std::vector<std::string> opps = { "UNIFORM", "LINEAR_DECREASE", "LINEAR_INCREASE" };
-    for (const auto& item : opps) {
+    for (const auto& item : exchange_view_opps) {
         this->ev_opp_type->addItem(QString::fromStdString(item));
     }
+    connect(this->ev_opp_type, QOverload<int>::of(&QComboBox::currentIndexChanged),
+        this, &StrategyAllocationNode::update_ev_opp_param_state);
     label = new QLabel("Ev Opp Type: ");
     row_layout->addWidget(label);
     row_layout->addWidget(this->ev_opp_type);
     layout->addLayout(row_layout);
 
+    // EV Opp Param
+    row_layout = new QHBoxLayout(this);
+    QLabel* row_label = new QLabel("EV Opp Param: ");
+    this->ev_opp_param = new QLineEdit(this);
+    QDoubleValidator* validator = new QDoubleValidator();
+    this->ev_opp_param->setValidator(validator);
+    this->ev_opp_param->setEnabled(false);
+    row_layout->addWidget(row_label);
+    row_layout->addWidget(this->ev_opp_param);
+
+    layout->addLayout(row_layout);
+
     // row value
     row_layout = new QHBoxLayout(this);
-    QLabel* row_label = new QLabel("Epsilon: ");
+    row_label = new QLabel("Epsilon: ");
     this->epsilon = new QLineEdit(this);
-    QDoubleValidator* validator = new QDoubleValidator(0.0, 1.0, 2, epsilon); // 2 decimal places
+    validator = new QDoubleValidator(0.0, 1.0, 2, epsilon); // 2 decimal places
     this->epsilon->setValidator(validator);
     this->epsilon->setText(".01");
     row_layout->addWidget(row_label);

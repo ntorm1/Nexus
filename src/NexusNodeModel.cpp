@@ -165,6 +165,15 @@ QJsonObject StrategyAllocationModel::save() const
 	modelJson["alloc_type"] = this->strategy_allocation_node->alloc_type->currentText();
 	modelJson["ev_opp_type"] = this->strategy_allocation_node->ev_opp_type->currentText();
 
+	if (this->strategy_allocation_node->ev_opp_param->isEnabled())
+	{
+		modelJson["ev_opp_param"] = this->strategy_allocation_node->ev_opp_param->text();
+	}
+	else
+	{
+		modelJson["ev_opp_param"] = "";
+	}
+
 	return modelJson;
 }
 
@@ -177,6 +186,7 @@ void StrategyAllocationModel::load(QJsonObject const& p)
 	QJsonValue clear_missing = p["clear_missing"];
 	QJsonValue alloc_type = p["alloc_type"];
 	QJsonValue ev_opp_type = p["ev_opp_type"];
+	QJsonValue ev_opp_param = p["ev_opp_param"];
 
 	if (!epsilon.isUndefined()) {
 		QString _epsilon = epsilon.toString();
@@ -203,6 +213,21 @@ void StrategyAllocationModel::load(QJsonObject const& p)
 		auto _ev_opp_type = ev_opp_type.toString();
 		if (strategy_allocation_node)
 			strategy_allocation_node->ev_opp_type->setCurrentText(_ev_opp_type);
+	}
+	if (!ev_opp_param.isUndefined()) {
+		auto _ev_opp_param = ev_opp_param.toString();
+		if (strategy_allocation_node)
+		{
+			if (_ev_opp_param == "")
+			{
+				strategy_allocation_node->ev_opp_param->setEnabled(false);
+			}
+			else
+			{
+				strategy_allocation_node->ev_opp_param->setEnabled(true);
+				strategy_allocation_node->ev_opp_param->setText(_ev_opp_param);
+			}
+		}
 	}
 }
 
@@ -284,7 +309,7 @@ std::shared_ptr<NodeData> AssetLambdaModel::outData(PortIndex const port)
 		this->warmup = abs(row);
 
 		AssetLambda l = AssetLambda(op, [=](const AssetPtr& asset) {
-			return asset_feature_lambda(asset, column_name, row).unwrap();
+			return asset_feature_lambda(asset, column_name, row);
 		});
 		AgisAssetLambdaChain new_chain = this->lambda_chain;
 		new_chain.push_back({ l, column_name, row });

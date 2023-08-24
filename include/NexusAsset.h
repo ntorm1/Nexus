@@ -30,6 +30,7 @@ public:
 private slots:
     void contextMenuRequest(QPoint pos) override;
     void new_plot(QString name);
+    void plot_event_overlays();
 
 private:
     NexusAsset* asset;

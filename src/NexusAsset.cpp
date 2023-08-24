@@ -2,6 +2,8 @@
 #include "NexusAsset.h"
 #include "ui_NexusAsset.h"
 
+
+//============================================================================
 NexusAsset::NexusAsset(
         NexusEnv const* nexus_env_,
         ads::CDockWidget* DockWidget_,
@@ -56,6 +58,8 @@ NexusAsset::NexusAsset(
     centralWidget->setLayout(layout);
 }
 
+
+//============================================================================
 void NexusAsset::load_asset_data()
 {
     this->dt_index = asset->__get_dt_index();
@@ -101,21 +105,29 @@ void NexusAsset::load_asset_data()
    
 }
 
+
+//============================================================================
 size_t NexusAsset::get_column_index(std::string const& column_name)
 {
     auto it = std::find(this->column_names.begin(), this->column_names.end(), column_name);
     return std::distance(this->column_names.begin(), it);
 }
 
+
+//============================================================================
 NexusAssetPlot::NexusAssetPlot(QWidget* parent) : NexusPlot(parent)
 {
 }
 
+
+//============================================================================
 void NexusAssetPlot::load_asset(NexusAsset* asset_)
 {
     this->asset = asset_;
 }
 
+
+//============================================================================
 void NexusAssetPlot::contextMenuRequest(QPoint pos)
 {
     QMenu* menu = new QMenu(this);
@@ -141,6 +153,9 @@ void NexusAssetPlot::contextMenuRequest(QPoint pos)
             });
         }
 
+        moveSubMenu->addSeparator(); // Add a separator line
+
+
         if (this->selectedGraphs().size() > 0)
             menu->addAction("Remove selected graph", this, SLOT(removeSelectedGraph()));
         if (this->graphCount() > 0)
@@ -150,6 +165,8 @@ void NexusAssetPlot::contextMenuRequest(QPoint pos)
     menu->popup(this->mapToGlobal(pos));
 }
 
+
+//============================================================================
 void NexusAssetPlot::new_plot(QString name)
 {
     auto column_name = name.toStdString();
@@ -160,5 +177,11 @@ void NexusAssetPlot::new_plot(QString name)
         y_vec,
         name.toStdString()
     );
+}
+
+
+//============================================================================
+void NexusAssetPlot::plot_event_overlays()
+{
 }
 

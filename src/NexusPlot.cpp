@@ -196,8 +196,8 @@ void NexusPlot::plot(StridedPointer<long long> x, StridedPointer<double> y, std:
 	QVector<QCPGraphData> timeData(x.size());
 	for (int i = 0; i < x.size(); i++)
 	{
-		//timeData[i].key = x[i] / static_cast<double>(1000000000);
-		timeData[i].key = i;
+		timeData[i].key = x[i] / static_cast<double>(1000000000);
+		//timeData[i].key = i;
 		timeData[i].value = y[i];
 	}
 

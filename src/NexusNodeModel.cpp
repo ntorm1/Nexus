@@ -326,7 +326,8 @@ std::shared_ptr<NodeData> ExchangeViewModel::outData(PortIndex const port)
 					asset_chain,
 					query_type,
 					N,
-					warmup = this->warmup
+					false,
+					this->warmup
 				);
 				return exchange_view;
 			);
@@ -338,7 +339,8 @@ std::shared_ptr<NodeData> ExchangeViewModel::outData(PortIndex const port)
 			this->lambda_chain,
 			ev_chain,
 			this->exchange,
-			query_type
+			query_type,
+			std::nullopt
 		};
 		return std::make_shared<ExchangeViewData>(my_struct);
 	}

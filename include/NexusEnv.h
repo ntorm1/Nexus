@@ -28,6 +28,11 @@ private:
 	std::vector<NexusTree*> open_trees;
 
 	/// <summary>
+	/// Vector of names of strategies whose node editors are currently open
+	/// </summary>
+	std::vector<std::string> open_node_editors;
+
+	/// <summary>
 	/// Shared pointer to a hydra instance
 	/// </summary>
 	std::shared_ptr<Hydra> hydra;
@@ -61,6 +66,7 @@ public:
 	void load_env(std::string const & exe_path, std::string const & env_name);
 
 	//============================================================================
+	AgisResult<bool> new_node_editor(std::string strategy_id);
 	void new_editor(TextEdit* new_editor);
 	std::optional<TextEdit*> get_editor(QString const & file_name) const;
 	void remove_editor(QString const& file_name);
@@ -73,7 +79,9 @@ public:
 	std::shared_ptr<Hydra> const get_hydra() const { return this->hydra; }
 	std::optional<AssetPtr> const get_asset(std::string const& asset_id);
 	std::optional<AgisStrategyRef const> get_strategy(std::string const& strategy_id); 
+	
 	std::vector<std::string> get_portfolio_ids();
+	size_t get_candle_count() { return this->hydra->get_candle_count(); }
 
 	NexusStatusCode new_exchange(
 		const std::string& exchange_id,

@@ -84,18 +84,18 @@ ExchangeViewNode::ExchangeViewNode(
     this->layout = new QVBoxLayout(this);
 
     // operation type
-    QHBoxLayout* rowLayout = new QHBoxLayout(this);
+    QHBoxLayout* row_layout = new QHBoxLayout(this);
     this->query_type = new QComboBox();
     for (const auto& item : agis_query_strings) {
         query_type->addItem(QString::fromStdString(item));
     }
     QLabel* label = new QLabel("Query Type: ");
-    rowLayout->addWidget(label);
-    rowLayout->addWidget(this->query_type);
-    layout->addLayout(rowLayout);
+    row_layout->addWidget(label);
+    row_layout->addWidget(this->query_type);
+    layout->addLayout(row_layout);
 
     // row value
-    QHBoxLayout* row_layout = new QHBoxLayout(this);
+    row_layout = new QHBoxLayout(this);
     QLabel* row_label = new QLabel("Count: ");
     this->N = new QSpinBox(this);
     this->N->setMinimum(1); // Set the minimum value to the minimum possible integer value (most negative value)
@@ -103,7 +103,6 @@ ExchangeViewNode::ExchangeViewNode(
     row_layout->addWidget(row_label);
     row_layout->addWidget(this->N);
     layout->addLayout(row_layout);
-
 
     this->setFixedSize(layout->sizeHint());
 }

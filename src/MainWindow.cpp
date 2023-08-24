@@ -2,6 +2,7 @@
 
 #include <QTime>
 #include <QLabel>
+#include <QLocale>
 #include <QTextEdit>
 #include <QCalendarWidget>
 #include <QFrame>
@@ -426,6 +427,7 @@ ads::CDockWidget* MainWindow::create_node_editor_widget(const QString& strategy_
 {
     ads::CDockWidget* DockWidget = new ads::CDockWidget(QString("Strategy: %1").arg(strategy_id));
     auto strategy_opt = this->nexus_env.get_strategy(strategy_id.toStdString());
+    // make sure the strategy is real
     if (!strategy_opt.has_value()) {
 
         QMessageBox::critical(this, "Error", "Failed to find strategy listed");
@@ -433,12 +435,21 @@ ads::CDockWidget* MainWindow::create_node_editor_widget(const QString& strategy_
         return nullptr;
     }
     AgisStrategyRef strategy = strategy_opt.value();
+    // make sure the strategy is abstract
     if (!strategy.get()->__is_abstract_class())
     {
 		QMessageBox::critical(this, "Error", "Strategy is not abstract");
 		delete DockWidget;
 		return nullptr;
     }
+    // make sure the strategy is not already open 
+    auto res = this->nexus_env.new_node_editor(strategy_id.toStdString());
+    if(res.is_exception())
+	{
+		QMessageBox::critical(this, "Error", "Strategy editor is already open");
+		delete DockWidget;
+		return nullptr;
+	}
 
 
     NexusNodeEditor* w = new NexusNodeEditor(
@@ -1056,7 +1067,20 @@ void MainWindow::__run_lambda()
     // Block the event loop until the long-running operation is completed
     future.waitForFinished(); // Wait for the future to finish before getting the result
     long long durationMs = future.result();
-    QMessageBox::information(nullptr, "Execution Time", "Execution time: " + QString::number(durationMs) + " ms", QMessageBox::Ok);
+
+    size_t candles = this->nexus_env.get_candle_count();
+    auto cps = candles / (durationMs / 1000.0);
+
+    // Create a QLocale instance with the desired number formatting settings
+    QLocale locale(QLocale::English);
+
+    // Format cps with commas and a decimal point
+    QString cpsFormatted = locale.toString(cps, 'f', 2);
+
+    auto msg = "Execution time: " + QString::number(durationMs) + " ms\n";
+    msg += "Candles per second: " + cpsFormatted + "\n";
+
+    QMessageBox::information(nullptr, "Execution Time", msg , QMessageBox::Ok);
 }
 
 

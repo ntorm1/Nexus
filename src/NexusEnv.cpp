@@ -51,6 +51,21 @@ void NexusEnv::load_env(std::string const& exe_path_, std::string const & env_na
 
 
 //============================================================================
+AgisResult<bool> NexusEnv::new_node_editor(std::string strategy_id)
+{
+	// if strategy id is in open_node_editors, return false
+	auto it = std::find_if(open_node_editors.begin(), open_node_editors.end(), [&](std::string const& id) {
+		return id == strategy_id;
+	});
+	if (it != this->open_node_editors.end())
+	{
+		return AgisResult<bool>(AGIS_EXCEP("strategy node editor is already open"));
+	}
+	this->open_node_editors.push_back(strategy_id);
+	return AgisResult<bool>(true);
+}
+
+//============================================================================
 void NexusEnv::new_editor(TextEdit* new_editor)
 {
 	this->open_editors.push_back(new_editor);

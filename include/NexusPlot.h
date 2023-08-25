@@ -10,6 +10,15 @@
 
 #include "qcustomplot.h"
 
+#include "Trade.h"
+
+struct Point
+{
+	long long datetime_index;
+	double value;
+};
+
+
 class NexusPlot : public QCustomPlot
 {
 	Q_OBJECT
@@ -24,6 +33,8 @@ public:
 		StridedPointer<double> y,
 		std::string name
 	);
+
+	//void scatter_plot();
 
 protected:
 	std::optional<std::string> selected_line = std::nullopt;

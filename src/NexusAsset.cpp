@@ -2,6 +2,7 @@
 #include "NexusAsset.h"
 #include "ui_NexusAsset.h"
 #include "Utils.h"
+#include <QThread>
 
 //============================================================================
 NexusAsset::NexusAsset(
@@ -71,6 +72,9 @@ NexusAsset::NexusAsset(
 
     // Set the layout for the central widget
     centralWidget->setLayout(layout);
+
+    // attempt to load in event data if Hydra has already run
+    this->on_new_hydra_run();
 }
 
 
@@ -126,17 +130,24 @@ void NexusAsset::load_asset_data()
 
 
 //============================================================================
-QStringList q_order_columns_names = {
-    "Order ID","Order Type","Order State","Units","Average Price","Limit",
-    "Order Create Time", "Order Fill Time", "Order Cancel Time", "Asset Identifier",
-    "Strategy Identifier","Portfolio Identifier"
+const QStringList q_order_columns_names = {
+    "Order Fill Time","Asset Identifier","Strategy Identifier",
+    "Order Type","Units","Average Price","Limit","Order State","Portfolio Identifier",
+    "Order Create Time","Order Cancel Time", "Order ID",
 };
 
 
 //============================================================================
-std::vector<std::string> get_order_columns_names() {
+const QStringList q_trade_column_names = {
+    "Trade Open Time","Trade Close Time","Bars Held","Asset Identifier","Strategy Identifier",
+    "Units","Average Price","Close Price","Unrealized PL",
+    "Realized PL","Portfolio Identifier","Trade Identifier","Last Price","NLV",
+};
+
+//============================================================================
+std::vector<std::string> qlist_to_str_vec(QStringList const& list) {
     std::vector<std::string> order_columns_names;
-    for (const auto& str : q_order_columns_names) {
+    for (const auto& str : list) {
         order_columns_names.push_back(str.toStdString());
     }
     return order_columns_names;
@@ -161,70 +172,99 @@ std::string json_val_to_string(json const& j)
     }
 }
 
+
 //============================================================================
-void NexusAsset::load_asset_event_data()
+template <typename T>
+void event_data_loader(
+    std::vector<T> events,
+    QStringList const& q_columns,
+    QStandardItemModel* model,
+    std::shared_ptr<Hydra> hydra
+    )
 {
-    auto& orders = this->nexus_env->get_order_history(
-        this->asset->get_asset_id()
-    );
-    auto& trades = this->nexus_env->get_trade_history();
-    auto& positions = this->nexus_env->get_position_history();
-
-    QStandardItemModel* order_model = new QStandardItemModel(this);
-    QStandardItemModel* trade_model = new QStandardItemModel(this);
-    QStandardItemModel* position_model = new QStandardItemModel(this);
-
-
-    order_model->setRowCount(orders.size());
-    order_model->setColumnCount(q_order_columns_names.size());
-    order_model->setHorizontalHeaderLabels(q_order_columns_names);
+    model->setRowCount(events.size());
+    model->setColumnCount(q_columns.size());
+    model->setHorizontalHeaderLabels(q_columns);
 
     // Set the data in the model
     int row = 0;
-    json order_json;
-    auto order_columns = get_order_columns_names();
-    auto hydra = this->nexus_env->get_hydra();
-    for (auto& order : orders) {
+    json object_json;
+    auto column_names = qlist_to_str_vec(q_columns);
+    for (auto& new_event : events) {
         int col = 0;
-        for (auto& column_name : order_columns) {
-            NEXUS_TRY_OR_INTERUPT(order->serialize(order_json, hydra));
-            const json& value = order_json[column_name];
+        for (auto& column_name : column_names) {
+            AGIS_TRY(new_event->serialize(object_json, hydra));
+            const json& value = object_json[column_name];
             std::string str_value;
 
             // test if column_name is in nexus_datetime_columns
             if (std::find(nexus_datetime_columns.begin(), nexus_datetime_columns.end(), column_name) != nexus_datetime_columns.end()) {
-				auto& value = order_json[column_name];
-				long long epoch_time = value.get<long long>();
+                auto& value = object_json[column_name];
+                long long epoch_time = value.get<long long>();
                 auto res = epoch_to_str(epoch_time, NEXUS_DATETIME_FORMAT);
                 if (res.is_exception())
                 {
-                    NEXUS_INTERUPT(res.get_exception());
+                    AGIS_THROW(res.get_exception());
                 }
                 str_value = res.unwrap();
-			}
-            // go from asset index to asset id
-            if (column_name == "Asset ID")
-            {
-                str_value = this->asset->get_asset_id();
             }
             // parse any other value
             else {
                 str_value = json_val_to_string(value);
             }
-
             QStandardItem* item = new QStandardItem(QString::fromStdString(str_value));
-            order_model->setItem(row, col, item);
+            model->setItem(row, col, item);
             col++;
         }
         row++;
     }
+}
+
+//============================================================================
+void NexusAsset::load_asset_order_data()
+{
+    std::vector<SharedOrderPtr> const& events = this->nexus_env->get_order_history();
+    this->orders = this->nexus_env->filter_event_history<Order>(
+        events,
+        this->asset->get_asset_id(),
+        std::nullopt,
+        std::nullopt
+    );
+    if (this->orders.size() == 0) {
+        return;
+    }
+
+    QStandardItemModel* model = new QStandardItemModel(this);
+    event_data_loader(this->orders, q_order_columns_names, model, this->nexus_env->get_hydra());
 
     // Set the model in the table view
     this->orders_table_view->reset();
-    this->orders_table_view->setModel(order_model);
-
-    // Resize the columns to fit the content
+    this->orders_table_view->setModel(model);
     this->orders_table_view->resizeColumnsToContents();
+}
+
+
+//============================================================================
+void NexusAsset::load_asset_trade_data()
+{
+    std::vector<SharedTradePtr> const& all_trades = this->nexus_env->get_trade_history();
+    this->trades = this->nexus_env->filter_event_history<Trade>(
+        all_trades,
+        this->asset->get_asset_id(),
+        std::nullopt,
+        std::nullopt
+    );
+    if(this->trades.size() == 0) {
+		return;
+	}
+
+    QStandardItemModel* model = new QStandardItemModel(this);
+    event_data_loader(this->trades, q_trade_column_names, model, this->nexus_env->get_hydra());
+
+    // Set the model in the table view
+    this->trades_table_view->reset();
+    this->trades_table_view->setModel(model);
+    this->trades_table_view->resizeColumnsToContents();
 }
 
 
@@ -233,16 +273,40 @@ void NexusAsset::set_plotted_graphs(std::vector<std::string> const& graphs)
 {
     this->nexus_plot->plotted_graphs = graphs;
     // plot each graph 
-    for (auto& graph : graphs) {
-		this->nexus_plot->add_plot(graph);
+    for (auto& graph_name : graphs) {
+        if (graph_name == "TRADES" && this->trades.size())
+        {
+            this->nexus_plot->plot_trades(this->trades);
+        }
+        else
+        {
+            this->nexus_plot->add_plot(graph_name);
+        }
 	}
 }
 
 
 //============================================================================
-void NexusAsset::on_new_hydra_run()
-{
-    this->load_asset_event_data();
+void NexusAsset::on_new_hydra_run() {
+    this->trades.clear();
+
+    QThread* orderThread = new QThread;
+    QThread* tradeThread = new QThread;
+
+    // Move the NexusAsset object to the worker threads
+    this->moveToThread(orderThread);
+    this->moveToThread(tradeThread);
+
+    connect(orderThread, &QThread::started, this, &NexusAsset::load_asset_order_data);
+    connect(tradeThread, &QThread::started, this, &NexusAsset::load_asset_trade_data);
+
+    // Start the threads
+    orderThread->start();
+    tradeThread->start();
+
+    // Clean up when threads finish
+    connect(orderThread, &QThread::finished, orderThread, &QThread::deleteLater);
+    connect(tradeThread, &QThread::finished, tradeThread, &QThread::deleteLater);
 }
 
 //============================================================================
@@ -262,6 +326,119 @@ void NexusAssetPlot::load_asset(NexusAsset* asset_)
 void NexusAssetPlot::add_plot(std::string plot_name)
 {
     this->new_plot(QString::fromStdString(plot_name));
+}
+
+
+//============================================================================
+void NexusAssetPlot::plot_orders(std::vector<SharedOrderPtr> const& orders)
+{
+    if (orders.size() == 0) { return; }
+
+    // get count of orders that had positive units
+    int num_buys = std::count_if(orders.begin(), orders.end(), [](SharedOrderPtr const& order) { return order->get_units() > 0; });
+	int num_sells = orders.size() - num_buys;
+    QVector<QCPGraphData> order_buys(num_buys);
+    QVector<QCPGraphData> order_sells(num_sells);
+
+    int num_buys_counter = 0;
+    int num_sells_counter = 0;
+    for (int i = 0; i < orders.size(); i++) {
+        if (orders[i]->get_units() > 0)
+        {
+            order_buys[num_buys_counter].key = orders[i]->get_fill_time() / static_cast<double>(1000000000);
+            order_buys[num_buys_counter].value = orders[i]->get_average_price();
+        	num_buys_counter++;
+        }
+		else
+		{
+			order_sells[num_sells_counter].key = orders[i]->get_fill_time() / static_cast<double>(1000000000);
+			order_sells[num_sells_counter].value = orders[i]->get_average_price();
+		    num_sells_counter++;
+        }
+    }
+    this->addGraph();
+    this->graph()->setName("Buys");
+    this->graph()->data()->set(order_buys, true);
+
+    QPen graphPen;
+    graphPen.setColor(QColor(144, 238, 144, 255));
+    this->graph()->setPen(graphPen);
+    this->graph()->setScatterStyle(QCPScatterStyle(QCPScatterStyle::ssDisc, 5));
+    this->graph()->setLineStyle(QCPGraph::lsNone);
+
+    this->addGraph();
+    this->graph()->setName("Sells");
+    this->graph()->data()->set(order_sells, true);
+    graphPen.setColor(QColor(255, 182, 193, 255));
+    this->graph()->setPen(graphPen);
+    this->graph()->setScatterStyle(QCPScatterStyle(QCPScatterStyle::ssDisc, 5));
+    this->graph()->setLineStyle(QCPGraph::lsNone);
+
+    this->rescaleAxes();
+    this->replot();
+}
+
+
+//============================================================================
+void NexusAssetPlot::plot_trades(std::vector<SharedTradePtr> const& trades)
+{
+    if (trades.size() == 0) { return; }
+    this->trade_segments.clear();
+
+    QVector<QCPGraphData> trade_entries(trades.size());
+    QVector<QCPGraphData> trade_exits(trades.size());
+    
+    QPen trade_up, trade_down;
+    trade_up.setColor(QColor(0, 100, 0, 255));
+    trade_up.setStyle(Qt::DotLine);
+    trade_up.setWidthF(4);
+
+    trade_down.setColor(QColor(139, 0, 0, 255));
+    trade_down.setStyle(Qt::DotLine);
+    trade_down.setWidthF(4);
+
+    for (int i = 0; i < trades.size(); i++) {
+        trade_entries[i].key = trades[i]->trade_open_time / static_cast<double>(1000000000);
+        trade_entries[i].value = trades[i]->open_price;
+
+        trade_exits[i].key = trades[i]->trade_close_time / static_cast<double>(1000000000);
+        trade_exits[i].value = trades[i]->close_price;
+
+        // connect entry and exit with line colored by the trade's profit
+        QVector<QCPGraphData> trade_duration(2);
+        trade_duration[0] = trade_entries[i];
+        trade_duration[1] = trade_exits[i];
+
+        auto graph = this->addGraph();
+        graph->removeFromLegend();
+        this->graph()->data()->set(trade_duration, true);
+        if (trades[i]->realized_pl > 0)
+            this->graph()->setPen(trade_up);
+        else this->graph()->setPen(trade_down);
+        this->graph()->setName("");
+        this->trade_segments.push_back(graph);
+	}
+
+    this->addGraph();
+    this->graph()->setName("Trade Entires");
+    this->graph()->data()->set(trade_entries, true);
+    
+    QPen graphPen;
+    graphPen.setColor(QColor(0, 100, 0, 255)); // Dark green color (RGB values)
+    this->graph()->setPen(graphPen);
+    this->graph()->setScatterStyle(QCPScatterStyle(QCPScatterStyle::ssTriangle, 10));
+    this->graph()->setLineStyle(QCPGraph::lsNone);
+
+    this->addGraph();
+    this->graph()->setName("Trade Exits");
+    this->graph()->data()->set(trade_entries, true);
+    graphPen.setColor(QColor(139, 0, 0, 255));
+    this->graph()->setPen(graphPen);
+    this->graph()->setScatterStyle(QCPScatterStyle(QCPScatterStyle::ssTriangleInverted, 10));
+    this->graph()->setLineStyle(QCPGraph::lsNone);
+
+    this->rescaleAxes();
+    this->replot();
 }
 
 
@@ -315,6 +492,15 @@ void NexusAssetPlot::contextMenuRequest(QPoint pos)
         }
 
         moveSubMenu->addSeparator(); // Add a separator line
+        QAction* action = moveSubMenu->addAction("TRADES");
+        connect(action, &QAction::triggered, this, [this]() {
+            this->plot_trades(this->nexus_asset->trades);
+            });
+        moveSubMenu->addSeparator(); // Add a separator line
+        action = moveSubMenu->addAction("ORDERS");
+        connect(action, &QAction::triggered, this, [this]() {
+            this->plot_orders(this->nexus_asset->orders);
+            });
 
 
         if (this->selectedGraphs().size() > 0)
@@ -341,10 +527,3 @@ void NexusAssetPlot::new_plot(QString name)
         name.toStdString()
     );
 }
-
-
-//============================================================================
-void NexusAssetPlot::plot_event_overlays()
-{
-}
-

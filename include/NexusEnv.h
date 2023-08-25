@@ -101,14 +101,6 @@ public:
 	std::vector<std::string> get_portfolio_ids();
 	size_t get_candle_count() { return this->hydra->get_candle_count(); }
 
-	std::vector<SharedOrderPtr> const get_order_history(
-		std::optional<std::string> const& asset_id = std::nullopt,
-		std::optional<std::string> const& strategy_id = std::nullopt,
-		std::optional<std::string> const& portfolio_id = std::nullopt
-	) const;
-	auto const & get_trade_history() const { return this->trade_history; }
-	auto const & get_position_history() const { return this->position_history; }
-
 	AgisResult<bool> new_exchange(
 		const std::string& exchange_id,
 		const std::string& source,
@@ -129,6 +121,52 @@ public:
 	NexusStatusCode remove_portfolio(const std::string& name);
 	NexusStatusCode remove_strategy(const std::string& name);
 
+	auto const& get_order_history() const { return this->order_history; }
+	auto const& get_trade_history() const { return this->trade_history; }
+	auto const& get_position_history() const { return this->position_history; }
+
+	//============================================================================
+	template <typename T>
+	std::vector<std::shared_ptr<T>> const filter_event_history(
+		std::vector<std::shared_ptr<T>> const& events,
+		std::optional<std::string> const& asset_id,
+		std::optional<std::string> const& strategy_id,
+		std::optional<std::string> const& portfolio_id) const
+	{
+		std::optional<size_t> asset_index = std::nullopt;
+		if (asset_id.has_value()) asset_index = this->hydra->get_exchanges().get_asset_index(asset_id.value());
+
+		std::optional<size_t> strategy_index = std::nullopt;
+		if (strategy_id.has_value()) strategy_index = this->hydra->__get_strategy_map().__get_strategy_index(strategy_id.value());
+
+		std::optional<size_t> portfolio_index = std::nullopt;
+		if (portfolio_id.has_value()) portfolio_index = this->hydra->get_portfolios().__get_portfolio_index(portfolio_id.value());
+
+		std::vector<std::shared_ptr<T>> return_vec;
+		auto it = events.begin();
+		while (it != events.end())
+		{
+			if (asset_index.has_value() && (*it)->get_asset_index() != asset_index.value())
+			{
+				++it;
+				continue;
+			}
+			if (strategy_index.has_value() && (*it)->get_strategy_index() != strategy_index.value())
+			{
+				++it;
+				continue;
+				
+			}
+			if (portfolio_index.has_value() && (*it)->get_portfolio_index() != portfolio_index.value())
+			{
+				++it;
+				continue;
+			}
+			return_vec.push_back(*it);
+			++it;
+		}
+		return return_vec;
+	}
 };
 
 LPCWSTR StringToLPCWSTR(const std::string& str);

@@ -17,6 +17,8 @@ const std::vector<std::string> nexus_datetime_columns = {
 	"Order Create Time",
 	"Order Fill Time",
 	"Order Cancel Time",
+	"Trade Open Time",
+	"Trade Close Time"
 };
 
 
@@ -184,41 +186,6 @@ std::vector<std::string> NexusEnv::get_portfolio_ids()
 	return portfolios.get_portfolio_ids();
 }
 
-
-//============================================================================
-std::vector<SharedOrderPtr> const NexusEnv::get_order_history(
-	std::optional<std::string> const& asset_id,
-	std::optional<std::string> const& strategy_id,
-	std::optional<std::string> const& portfolio_id) const
-{
-	std::optional<size_t> asset_index = std::nullopt;
-	if (asset_id.has_value()) asset_index = this->hydra->get_exchanges().get_asset_index(asset_id.value());
-	
-	std::optional<size_t> strategy_index = std::nullopt;
-	if (strategy_id.has_value()) strategy_index = this->hydra->__get_strategy_map().__get_strategy_index(strategy_id.value());
-
-	std::optional<size_t> portfolio_index = std::nullopt;
-	if (portfolio_id.has_value()) portfolio_index = this->hydra->get_portfolios().__get_portfolio_index(portfolio_id.value());
-
-	std::vector<SharedOrderPtr> vec;
-	for (auto& order : this->order_history)
-	{
-		if(asset_index.has_value() && order->get_asset_index() != asset_index.value())
-		{
-			continue;
-		}
-		if (strategy_index.has_value() && order->get_strategy_index() != strategy_index.value())
-		{
-			continue;
-		}
-		if (portfolio_index.has_value() && order->get_portfolio_index() != portfolio_index.value())
-		{
-			continue;
-		}
-		vec.push_back(order);
-	}
-	return vec;
-}
 
 
 //============================================================================

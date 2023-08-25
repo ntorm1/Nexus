@@ -2,12 +2,13 @@
 
 #include "NexusPlot.h"
 
+
+
+//============================================================================
 NexusPlot::NexusPlot(QWidget* parent) :
 	QCustomPlot(parent)
 {
-	std::srand(QDateTime::currentDateTime().toMSecsSinceEpoch() / 1000.0);
 	//ui->setupUi(this);
-
 	this->setInteractions(QCP::iRangeDrag | QCP::iRangeZoom | QCP::iSelectAxes |
 		QCP::iSelectLegend | QCP::iSelectPlottables);
 	this->xAxis->setRange(-8, 8);
@@ -54,6 +55,8 @@ NexusPlot::NexusPlot(QWidget* parent) :
 	connect(this, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(contextMenuRequest(QPoint)));
 }
 
+
+//============================================================================
 void NexusPlot::mousePress()
 {
 	// if an axis is selected, only allow the direction of that axis to be dragged
@@ -67,6 +70,8 @@ void NexusPlot::mousePress()
 		this->axisRect()->setRangeDrag(Qt::Horizontal | Qt::Vertical);
 }
 
+
+//============================================================================
 void NexusPlot::mouseWheel()
 {
 	// if an axis is selected, only allow the direction of that axis to be zoomed
@@ -80,6 +85,8 @@ void NexusPlot::mouseWheel()
 		this->axisRect()->setRangeZoom(Qt::Horizontal | Qt::Vertical);
 }
 
+
+//============================================================================
 void NexusPlot::removeAllGraphs()
 {
 	this->clearGraphs();
@@ -87,6 +94,7 @@ void NexusPlot::removeAllGraphs()
 }
 
 
+//============================================================================
 void NexusPlot::removeSelectedGraph()
 {
 	if (this->selectedGraphs().size() > 0)
@@ -96,6 +104,8 @@ void NexusPlot::removeSelectedGraph()
 	}
 }
 
+
+//============================================================================
 void NexusPlot::selectionChanged()
 {
 	/*
@@ -130,6 +140,8 @@ void NexusPlot::selectionChanged()
 	for (int i = 0; i < this->graphCount(); ++i)
 	{
 		QCPGraph* graph = this->graph(i);
+		// TODO allow for trades to be removed 
+		if (!legend->hasItemWithPlottable(graph)) { continue; }
 		QCPPlottableLegendItem* item = this->legend->itemWithPlottable(graph);
 		if (item->selected() || graph->selected())
 		{
@@ -140,6 +152,8 @@ void NexusPlot::selectionChanged()
 	}
 }
 
+
+//============================================================================
 void NexusPlot::contextMenuRequest(QPoint pos)
 {
 	QMenu* menu = new QMenu(this);
@@ -165,6 +179,8 @@ void NexusPlot::contextMenuRequest(QPoint pos)
 	menu->popup(this->mapToGlobal(pos));
 }
 
+
+//============================================================================
 void NexusPlot::moveLegend()
 {
 	if (QAction* contextAction = qobject_cast<QAction*>(sender())) // make sure this slot is really called by a context menu action, so it carries the data we need
@@ -179,6 +195,8 @@ void NexusPlot::moveLegend()
 	}
 }
 
+
+//============================================================================
 void NexusPlot::graphClicked(QCPAbstractPlottable* plottable, int dataIndex)
 {
 	// since we know we only have QCPGraphs in the plot, we can immediately access interface1D()
@@ -188,6 +206,8 @@ void NexusPlot::graphClicked(QCPAbstractPlottable* plottable, int dataIndex)
 	//this->ui->statusbar->showMessage(message, 2500);
 }
 
+
+//============================================================================
 void NexusPlot::plot(StridedPointer<long long> x, StridedPointer<double> y, std::string name)
 {
 	this->addGraph();
@@ -210,6 +230,8 @@ void NexusPlot::plot(StridedPointer<long long> x, StridedPointer<double> y, std:
 	this->replot();
 }
 
+
+//============================================================================
 void NexusPlot::addRandomGraph()
 {
 	int n = 50; // number of points in graph

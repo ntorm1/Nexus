@@ -9,5 +9,8 @@
 
 // add headers that you want to pre-compile here
 #include "framework.h"
+#include "json.hpp"
+
+using json = nlohmann::json;
 
 #endif //PCH_H

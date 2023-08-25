@@ -29,11 +29,18 @@ public:
     void load_asset(NexusAsset* asset);
 
     void add_plot(std::string plot_name);
+    void plot_trades(std::vector<SharedTradePtr> const& trades);
+    void plot_orders(std::vector<SharedOrderPtr> const& orders);
 
     /// <summary>
     /// List of columns currently plotted
     /// </summary>
     std::vector<std::string> plotted_graphs;
+
+    /// <summary>
+    /// Vector of QCPGraphs that are used to plot the trades
+    /// </summary>
+    std::vector<QCPGraph*> trade_segments;
 
 protected slots:
     void removeSelectedGraph() override;
@@ -42,7 +49,6 @@ protected slots:
 private slots:
     void contextMenuRequest(QPoint pos) override;
     void new_plot(QString name);
-    void plot_event_overlays();
 
 private:
     NexusAsset* nexus_asset;
@@ -64,7 +70,8 @@ public:
     );
 
     void load_asset_data();
-    void load_asset_event_data();
+    void load_asset_order_data();
+    void load_asset_trade_data();
 
     void set_plotted_graphs(std::vector<std::string> const& graphs);
     std::vector<std::string> get_plotted_graphs() const { return this->nexus_plot->plotted_graphs; }
@@ -81,6 +88,9 @@ public:
 
     NexusEnv const* nexus_env;
     AssetPtr asset;
+
+    std::vector<SharedTradePtr> trades;
+    std::vector<SharedOrderPtr> orders;
 
     std::vector<std::string> column_names;
     std::vector<std::string> dt_index_str;

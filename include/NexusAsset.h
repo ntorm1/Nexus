@@ -65,7 +65,6 @@ public:
     void set_plotted_graphs(std::vector<std::string> const& graphs);
     std::vector<std::string> get_plotted_graphs() const { return this->nexus_plot->plotted_graphs; }
     std::string get_asset_id() const { return this->asset->get_asset_id(); }
-    size_t get_column_index(std::string const& column_name);
 
     Ui::NexusAsset* ui;
     ads::CDockWidget* DockWidget;

@@ -90,8 +90,11 @@ public:
 	
 	std::vector<std::string> get_portfolio_ids();
 	size_t get_candle_count() { return this->hydra->get_candle_count(); }
+	auto const & get_order_history() const { return this->order_history; }
+	auto const & get_trade_history() const { return this->trade_history; }
+	auto const & get_position_history() const { return this->position_history; }
 
-	NexusStatusCode new_exchange(
+	AgisResult<bool> new_exchange(
 		const std::string& exchange_id,
 		const std::string& source,
 		const std::string& freq,

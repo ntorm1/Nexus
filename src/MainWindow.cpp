@@ -952,9 +952,9 @@ void MainWindow::on_new_exchange_request(const QModelIndex& parentIndex,
         source.toStdString(),
         freq.toStdString(),
         dt_format.toStdString());
-    if (res != NexusStatusCode::Ok)
+    if (res.is_exception())
     {
-        QMessageBox::critical(this, "Error", "Failed to create exchange");
+        QMessageBox::critical(this, "Error", QString::fromStdString(res.get_exception()));
     }
     else
     {

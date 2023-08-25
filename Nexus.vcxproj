@@ -25,6 +25,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <PlatformToolset>v143</PlatformToolset>
+    <UseInteloneTBB>true</UseInteloneTBB>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Condition="Exists('$(QtMsBuild)\qt_defaults.props')">
@@ -62,6 +63,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'">
     <LibraryPath>C:\Users\natha\OneDrive\Desktop\C++\external\nodeeditor\out\build\x64-Release\bin;C:\Users\natha\OneDrive\Desktop\C++\external\nodeeditor\out\build\x64-Release\lib;C:\dev\vcpkg\installed\x64-windows\bin;$(LibraryPath)</LibraryPath>
     <ExecutablePath>$(VC_ExecutablePath_x64);$(CommonExecutablePath);C:\dev\vcpkg\installed\x64-windows\bin</ExecutablePath>
+    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);C:\Program Files (x86)\Intel\oneAPI\tbb\2021.9.0\include</IncludePath>
   </PropertyGroup>
   <PropertyGroup Label="Vcpkg" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <VcpkgConfiguration>Debug</VcpkgConfiguration>
@@ -81,7 +83,7 @@
     <ClCompile>
       <AdditionalIncludeDirectories>$(SolutionDir)AgisCore;C:\Users\natha\OneDrive\Desktop\C++\external\nodeeditor\include;C:\Users\natha\OneDrive\Desktop\C++\AgisCore;C:\Users\natha\OneDrive\Desktop\C++\Nexus\include;C:\Users\natha\OneDrive\Desktop\C++\Nexus\ads;C:\Users\natha\OneDrive\Desktop\C++\external\qcustomplot;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp20</LanguageStandard>
-      <PreprocessorDefinitions>$(Qt_DEFINES_);%(PreprocessorDefinitions);NODE_EDITOR_SHARED</PreprocessorDefinitions>
+      <PreprocessorDefinitions>$(Qt_DEFINES_);%(PreprocessorDefinitions);NODE_EDITOR_SHARED;</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <AdditionalDependencies>%(AdditionalDependencies);$(Qt_LIBS_);QtNodes.lib;$(SolutionDir)$(Platform)\$(Configuration)\AgisCore.lib</AdditionalDependencies>

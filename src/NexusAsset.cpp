@@ -128,6 +128,14 @@ void NexusAsset::load_asset_data()
 //============================================================================
 void NexusAsset::load_asset_event_data()
 {
+    auto& orders = this->nexus_env->get_order_history();
+    auto& trades = this->nexus_env->get_trade_history();
+    auto& positions = this->nexus_env->get_position_history();
+
+    QStandardItemModel* order_model = new QStandardItemModel(this);
+    QStandardItemModel* trade_model = new QStandardItemModel(this);
+    QStandardItemModel* position_model = new QStandardItemModel(this);
+
 }
 
 
@@ -140,15 +148,6 @@ void NexusAsset::set_plotted_graphs(std::vector<std::string> const& graphs)
 		this->nexus_plot->add_plot(graph);
 	}
 }
-
-
-//============================================================================
-size_t NexusAsset::get_column_index(std::string const& column_name)
-{
-    auto it = std::find(this->column_names.begin(), this->column_names.end(), column_name);
-    return std::distance(this->column_names.begin(), it);
-}
-
 
 //============================================================================
 NexusAssetPlot::NexusAssetPlot(QWidget* parent) : NexusPlot(parent)

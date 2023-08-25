@@ -25,6 +25,7 @@ json NexusDockManager::save_widgets()
 			auto child = dock_widget->widget();
 			NexusAsset* asset_child = static_cast<NexusAsset*>(child);
 			widget["asset_id"] = asset_child->get_asset_id();
+			widget["plotted_graphs"] = asset_child->get_plotted_graphs();
 		}
 		else if (dock_widget->get_widget_type() == WidgetType::NodeEditor)
 		{
@@ -67,6 +68,11 @@ void NexusDockManager::restore_widgets(json const& j)
 			case WidgetType::Asset: {
 				auto asset_id = QString::fromStdString(widget_json["asset_id"]);
 				widget = this->main_window->create_asset_widget(asset_id);
+				
+				std::vector<std::string> plots = widget_json["plotted_graphs"];
+				auto child = widget->widget();
+				NexusAsset* asset_child = static_cast<NexusAsset*>(child);
+				asset_child->set_plotted_graphs(plots);
 				break;
 			}
 			case WidgetType::NodeEditor:{

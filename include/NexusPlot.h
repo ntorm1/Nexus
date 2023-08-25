@@ -2,6 +2,7 @@
 
 #include "NexusPch.h"
 #include <QMainWindow>
+#include <optional>
 #include <qwidget.h>
 #include <QInputDialog>
 #include <QVector>
@@ -24,6 +25,9 @@ public:
 		std::string name
 	);
 
+protected:
+	std::optional<std::string> selected_line = std::nullopt;
+
 protected slots:
 	//void titleDoubleClick(QMouseEvent* event);
 	//void axisLabelDoubleClick(QCPAxis* axis, QCPAxis::SelectablePart part);
@@ -32,8 +36,8 @@ protected slots:
 	void selectionChanged();
 	void mousePress();
 	void mouseWheel();
-	void removeSelectedGraph();
-	void removeAllGraphs();
+	virtual void removeSelectedGraph();
+	virtual void removeAllGraphs();
 	virtual void contextMenuRequest(QPoint pos);
 	void moveLegend();
 	void graphClicked(QCPAbstractPlottable* plottable, int dataIndex);

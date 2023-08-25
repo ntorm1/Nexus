@@ -348,12 +348,11 @@ std::shared_ptr<NodeData> ExchangeViewModel::outData(PortIndex const port)
 		{
 			// function that takes in serious of operations to apply to as asset and outputs
 			// a double value that is result of said opps
-			auto asset_chain = [&](AssetPtr const& asset) -> double {
-				double result = asset_feature_lambda_chain(
+			auto asset_chain = [&](AssetPtr const& asset) -> AgisResult<double> {
+				return asset_feature_lambda_chain(
 					asset,
 					lambda_opps
 				);
-				return result;
 			};
 
 			// function that takes an exchange an applys the asset chain to each element when 

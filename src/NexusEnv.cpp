@@ -263,7 +263,40 @@ NexusStatusCode NexusEnv::remove_strategy(const std::string& name)
 //============================================================================
 AgisResult<bool> NexusEnv::__run()
 {
-	return this->hydra->__run();
+	AGIS_DO_OR_RETURN(this->hydra->__run(), bool);
+
+	return AgisResult<bool>(true);
+}
+
+
+//============================================================================
+void NexusEnv::__save_history()
+{
+	this->order_history.clear();
+	this->trade_history.clear();
+	this->position_history.clear();
+
+	// load in the orders, trades, positions
+	auto order_history = this->hydra->get_order_history();
+	for (auto& order : order_history)
+	{
+		this->order_history.push_back(order);
+	}
+	PortfolioMap const& portfolios = this->hydra->get_portfolios();
+	for (auto& portfolio_id : portfolios.get_portfolio_ids())
+	{
+		auto portfolio_ptr = portfolios.get_portfolio(portfolio_id);
+		auto& trades = portfolio_ptr.get()->get_trade_history();
+		for (auto& trade : trades)
+		{
+			this->trade_history.push_back(trade);
+		}
+		auto& position_history = portfolio_ptr.get()->get_position_history();
+		for (auto& position : position_history)
+		{
+			this->position_history.push_back(position);
+		}
+	}
 }
 
 

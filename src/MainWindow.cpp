@@ -1123,10 +1123,11 @@ void MainWindow::__run_lambda()
     auto msg = "Execution time: " + QString::number(durationMs) + " ms\n";
     msg += "Candles per second: " + cpsFormatted + "\n";
 
-    // notify the UI that new hydra run has completed
-    emit new_hydra_run();
-
     QMessageBox::information(nullptr, "Execution Time", msg , QMessageBox::Ok);
+
+    // save the history and notify the UI that new hydra run has completed
+    this->nexus_env.__save_history();
+    emit new_hydra_run();
 }
 
 

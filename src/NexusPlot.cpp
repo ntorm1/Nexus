@@ -134,6 +134,7 @@ void NexusPlot::selectionChanged()
 		if (item->selected() || graph->selected())
 		{
 			item->setSelected(true);
+			this->selected_line = item->plottable()->name().toStdString();
 			graph->setSelection(QCPDataSelection(graph->data()->dataRange()));
 		}
 	}

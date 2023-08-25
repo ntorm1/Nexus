@@ -26,12 +26,27 @@ NexusAsset::NexusAsset(
     layout->setContentsMargins(10, 10, 10, 10); // Set margins around the layout
 
     // Create a QTableWidget
-    this->table_view = new QTableView(this);
+    this->table_container = new QTabWidget(this);
+    this->table_view = new QTableView();
     this->table_view->setEditTriggers(QAbstractItemView::NoEditTriggers);
+    this->load_asset_data();
+    this->table_container->addTab(this->table_view, QString("Data"));
+
+    this->orders_table_view = new QTableView();
+    this->orders_table_view->setEditTriggers(QAbstractItemView::NoEditTriggers);
+    this->table_container->addTab(this->orders_table_view, QString("Orders"));
+
+    this->trades_table_view = new QTableView();
+    this->trades_table_view->setEditTriggers(QAbstractItemView::NoEditTriggers);
+    this->table_container->addTab(this->trades_table_view, QString("Trades"));
+
+    this->positions_table_view = new QTableView();
+    this->positions_table_view->setEditTriggers(QAbstractItemView::NoEditTriggers);
+    this->table_container->addTab(this->positions_table_view, QString("Positions"));
+
     QScrollArea* scrollArea = new QScrollArea(this);
     scrollArea->setWidgetResizable(true);
-    scrollArea->setWidget(this->table_view);
-    this->load_asset_data();
+    scrollArea->setWidget(this->table_container);
 
     // Retrieve the NexusPlot widget from the UI
     this->nexus_plot = ui->widget;
@@ -45,7 +60,7 @@ NexusAsset::NexusAsset(
     splitter->addWidget(scrollArea);
 
     // Calculate the initial size for the NexusPlot widget (e.g., 65% of the total size)
-    int initialNexusPlotWidth = centralWidget->width() * 0.65;
+    int initialNexusPlotWidth = centralWidget->width() * 0.85;
 
     // Set the sizes for the widgets in the splitter
     splitter->setSizes({ initialNexusPlotWidth, centralWidget->width() - initialNexusPlotWidth });
@@ -66,6 +81,7 @@ void NexusAsset::load_asset_data()
     this->dt_index_str = asset->__get_dt_index_str();
     this->data = asset->__get__data();
     this->column_names = asset->get_column_names();
+    auto& headers = asset->get_headers();
 
     // Create the model
     QStandardItemModel* model = new QStandardItemModel(this);
@@ -88,13 +104,16 @@ void NexusAsset::load_asset_data()
 
 
     // Set the data in the model
-    for (int i = 0; i < columns; ++i) {
+    int q_index = 0;
+    for (auto& column_name : this->column_names) {
+        auto i = headers.at(column_name);
         auto col = this->data.column(i);
         for (int j = 0; j < rows; ++j) {
             double value = col[j];
             QStandardItem* item = new QStandardItem(QString::number(value));
-            model->setItem(j, i, item);
+            model->setItem(j, q_index, item);
         }
+        q_index++;
     }
 
     // Set the model in the table view
@@ -103,6 +122,23 @@ void NexusAsset::load_asset_data()
     // Resize the columns to fit the content
     this->table_view->resizeColumnsToContents();
    
+}
+
+
+//============================================================================
+void NexusAsset::load_asset_event_data()
+{
+}
+
+
+//============================================================================
+void NexusAsset::set_plotted_graphs(std::vector<std::string> const& graphs)
+{
+    this->nexus_plot->plotted_graphs = graphs;
+    // plot each graph 
+    for (auto& graph : graphs) {
+		this->nexus_plot->add_plot(graph);
+	}
 }
 
 
@@ -123,7 +159,37 @@ NexusAssetPlot::NexusAssetPlot(QWidget* parent) : NexusPlot(parent)
 //============================================================================
 void NexusAssetPlot::load_asset(NexusAsset* asset_)
 {
-    this->asset = asset_;
+    this->nexus_asset = asset_;
+}
+
+
+//============================================================================
+void NexusAssetPlot::add_plot(std::string plot_name)
+{
+    this->new_plot(QString::fromStdString(plot_name));
+}
+
+
+//============================================================================
+void NexusAssetPlot::removeSelectedGraph()
+{
+    // make sure selected_line is not nullopt
+    if(!this->selected_line.has_value()) AGIS_THROW("expected seleceted line");
+    auto& line = selected_line.value();
+    // remove line from list of plotted graphs
+    this->plotted_graphs.erase(std::remove(
+        this->plotted_graphs.begin(),
+        this->plotted_graphs.end(), line),
+        this->plotted_graphs.end());
+    // call base function
+    NexusPlot::removeSelectedGraph();
+}
+
+
+//============================================================================
+void NexusAssetPlot::removeAllGraphs()
+{
+    this->plotted_graphs.clear();
 }
 
 
@@ -144,7 +210,7 @@ void NexusAssetPlot::contextMenuRequest(QPoint pos)
     else  // general context menu on graphs requested
     {
         QMenu* moveSubMenu = menu->addMenu("Plot");
-        for (auto const& column_name : this->asset->column_names)
+        for (auto const& column_name : this->nexus_asset->column_names)
         {
             auto q_name = QString::fromStdString(column_name);
             QAction* action = moveSubMenu->addAction(q_name);
@@ -170,10 +236,12 @@ void NexusAssetPlot::contextMenuRequest(QPoint pos)
 void NexusAssetPlot::new_plot(QString name)
 {
     auto column_name = name.toStdString();
-    auto column_index = asset->get_column_index(column_name);
-    auto y_vec = asset->data.column(column_index);
+    this->plotted_graphs.push_back(column_name);
+    auto headers = nexus_asset->asset->get_headers();
+    auto column_index = headers.at(column_name);
+    auto y_vec = nexus_asset->data.column(column_index);
     this->plot(
-        asset->dt_index,
+        nexus_asset->dt_index,
         y_vec,
         name.toStdString()
     );

@@ -17,6 +17,9 @@ namespace fs = std::filesystem;
 class NexusEnv
 {
 private:
+
+	void remove_editors() { this->open_editors.clear(); }
+
 	/// <summary>
 	/// Vector of pointers to text editors currently open.
 	/// </summary>
@@ -40,7 +43,6 @@ private:
 	std::string env_name;
 	fs::path env_path;
 
-	void remove_editors() { this->open_editors.clear(); }
 
 	/// <summary>
 	/// AgisStrategy dll
@@ -48,11 +50,16 @@ private:
 	HINSTANCE AgisStrategyDLL;
 	bool agis_strategy_dll_loaded = false;
 
+	std::vector<SharedOrderPtr> order_history;
+	std::vector<SharedPositionPtr> position_history;
+	std::vector<SharedTradePtr> trade_history;
+
 public:
 	NexusEnv();
 	~NexusEnv();
 
 	AgisResult<bool> __run();
+	void __save_history();
 	void __compile();
 	void __link(bool assume_live = true);
 	void __reset();

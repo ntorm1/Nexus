@@ -14,6 +14,16 @@
 
 namespace fs = std::filesystem;
 
+/// <summary>
+/// Datetime format to use when displaying long long ns epoch times
+/// </summary>
+constexpr auto NEXUS_DATETIME_FORMAT = "%F %T";
+
+/// <summary>
+/// A list of columns to parse as datetime columns when loading ns epoch times
+/// </summary>
+extern const std::vector<std::string> nexus_datetime_columns;
+
 class NexusEnv
 {
 private:
@@ -90,7 +100,12 @@ public:
 	
 	std::vector<std::string> get_portfolio_ids();
 	size_t get_candle_count() { return this->hydra->get_candle_count(); }
-	auto const & get_order_history() const { return this->order_history; }
+
+	std::vector<SharedOrderPtr> const get_order_history(
+		std::optional<std::string> const& asset_id = std::nullopt,
+		std::optional<std::string> const& strategy_id = std::nullopt,
+		std::optional<std::string> const& portfolio_id = std::nullopt
+	) const;
 	auto const & get_trade_history() const { return this->trade_history; }
 	auto const & get_position_history() const { return this->position_history; }
 

@@ -401,6 +401,14 @@ ads::CDockWidget* MainWindow::create_asset_widget(const QString& asset_id)
         DockWidget
     );
 
+    // Signal for new hydra run complete
+    QObject::connect(
+        this,
+        SIGNAL(new_hydra_run()),
+        w,
+        SLOT(on_new_hydra_run())
+    );
+
     DockWidget->setWidget(w);
     DockWidget->setIcon(svgIcon("./images/stock.png"));
     DockWidget->set_widget_type(WidgetType::Asset);

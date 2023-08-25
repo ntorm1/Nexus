@@ -1,5 +1,5 @@
 #pragma once
-
+#include "NexusPch.h"
 #include <unordered_map>
 #include <QMainWindow>
 #include <QtWidgets/QDockWidget>
@@ -146,13 +146,3 @@ public:
     ads::CDockWidget* create_portfolio_widget(const QString& portfolio_id);
     ads::CDockWidget* create_node_editor_widget(const QString& strategy_id);
 };
-
-
-#define NEXUS_INTERUPT(msg) \
-    do { \
-        std::ostringstream oss; \
-        oss << "Error in " << __FILE__ \
-            << " at line " << __LINE__ << ": " << msg; \
-        QMessageBox::critical(nullptr, "Critical Error", QString::fromStdString(oss.str()), QMessageBox::Ok); \
-        return; \
-    } while (false)

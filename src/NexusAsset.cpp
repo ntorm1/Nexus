@@ -1,7 +1,7 @@
 
 #include "NexusAsset.h"
 #include "ui_NexusAsset.h"
-
+#include "Utils.h"
 
 //============================================================================
 NexusAsset::NexusAsset(
@@ -126,9 +126,47 @@ void NexusAsset::load_asset_data()
 
 
 //============================================================================
+QStringList q_order_columns_names = {
+    "Order ID","Order Type","Order State","Units","Average Price","Limit",
+    "Order Create Time", "Order Fill Time", "Order Cancel Time", "Asset Identifier",
+    "Strategy Identifier","Portfolio Identifier"
+};
+
+
+//============================================================================
+std::vector<std::string> get_order_columns_names() {
+    std::vector<std::string> order_columns_names;
+    for (const auto& str : q_order_columns_names) {
+        order_columns_names.push_back(str.toStdString());
+    }
+    return order_columns_names;
+}
+
+std::string json_val_to_string(json const& j)
+{
+    if (j.is_string()) {
+        return j.get<std::string>();
+    }
+    else if (j.is_number_integer()) {
+        return std::to_string(j.get<long long>());
+    }
+    else if (j.is_number_unsigned()) {
+        return std::to_string(j.get<size_t>());
+    }
+    else if (j.is_number_float()) {
+        return std::to_string(j.get<double>());
+    }
+    else {
+        throw std::runtime_error("unexcpeted type");
+    }
+}
+
+//============================================================================
 void NexusAsset::load_asset_event_data()
 {
-    auto& orders = this->nexus_env->get_order_history();
+    auto& orders = this->nexus_env->get_order_history(
+        this->asset->get_asset_id()
+    );
     auto& trades = this->nexus_env->get_trade_history();
     auto& positions = this->nexus_env->get_position_history();
 
@@ -136,6 +174,57 @@ void NexusAsset::load_asset_event_data()
     QStandardItemModel* trade_model = new QStandardItemModel(this);
     QStandardItemModel* position_model = new QStandardItemModel(this);
 
+
+    order_model->setRowCount(orders.size());
+    order_model->setColumnCount(q_order_columns_names.size());
+    order_model->setHorizontalHeaderLabels(q_order_columns_names);
+
+    // Set the data in the model
+    int row = 0;
+    json order_json;
+    auto order_columns = get_order_columns_names();
+    auto hydra = this->nexus_env->get_hydra();
+    for (auto& order : orders) {
+        int col = 0;
+        for (auto& column_name : order_columns) {
+            NEXUS_TRY_OR_INTERUPT(order->serialize(order_json, hydra));
+            const json& value = order_json[column_name];
+            std::string str_value;
+
+            // test if column_name is in nexus_datetime_columns
+            if (std::find(nexus_datetime_columns.begin(), nexus_datetime_columns.end(), column_name) != nexus_datetime_columns.end()) {
+				auto& value = order_json[column_name];
+				long long epoch_time = value.get<long long>();
+                auto res = epoch_to_str(epoch_time, NEXUS_DATETIME_FORMAT);
+                if (res.is_exception())
+                {
+                    NEXUS_INTERUPT(res.get_exception());
+                }
+                str_value = res.unwrap();
+			}
+            // go from asset index to asset id
+            if (column_name == "Asset ID")
+            {
+                str_value = this->asset->get_asset_id();
+            }
+            // parse any other value
+            else {
+                str_value = json_val_to_string(value);
+            }
+
+            QStandardItem* item = new QStandardItem(QString::fromStdString(str_value));
+            order_model->setItem(row, col, item);
+            col++;
+        }
+        row++;
+    }
+
+    // Set the model in the table view
+    this->orders_table_view->reset();
+    this->orders_table_view->setModel(order_model);
+
+    // Resize the columns to fit the content
+    this->orders_table_view->resizeColumnsToContents();
 }
 
 
@@ -147,6 +236,13 @@ void NexusAsset::set_plotted_graphs(std::vector<std::string> const& graphs)
     for (auto& graph : graphs) {
 		this->nexus_plot->add_plot(graph);
 	}
+}
+
+
+//============================================================================
+void NexusAsset::on_new_hydra_run()
+{
+    this->load_asset_event_data();
 }
 
 //============================================================================

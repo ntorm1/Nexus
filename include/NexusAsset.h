@@ -11,7 +11,7 @@
 #include "NexusEnv.h"
 #include "NexusPlot.h"
 #include "Asset.h"
-
+#include "Order.h"
 
 namespace Ui {
     class NexusAsset;
@@ -51,6 +51,10 @@ private:
 class NexusAsset : public QMainWindow
 {
     Q_OBJECT
+
+public slots:
+    void on_new_hydra_run();
+
 public:
     NexusAsset(
         NexusEnv const* nexus_env,

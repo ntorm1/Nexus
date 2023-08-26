@@ -95,7 +95,7 @@ public:
 	void reset_trees();
 
 	std::shared_ptr<Hydra> const get_hydra() const { return this->hydra; }
-	std::optional<AssetPtr> const get_asset(std::string const& asset_id);
+	AgisResult<AssetPtr> const get_asset(std::string const& asset_id);
 	std::optional<AgisStrategyRef const> get_strategy(std::string const& strategy_id); 
 	
 	std::vector<std::string> get_portfolio_ids();

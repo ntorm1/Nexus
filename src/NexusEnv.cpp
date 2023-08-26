@@ -166,7 +166,7 @@ void NexusEnv::remove_node_editor(std::string const& id)
 
 
 //============================================================================
-std::optional<std::shared_ptr<Asset>> const NexusEnv::get_asset(std::string const& asset_id)
+AgisResult<AssetPtr> const NexusEnv::get_asset(std::string const& asset_id)
 {
 	return this->hydra->get_asset(asset_id);
 }

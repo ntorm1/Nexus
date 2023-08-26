@@ -390,14 +390,14 @@ ads::CDockWidget* MainWindow::create_asset_widget(const QString& asset_id)
     ads::CDockWidget* DockWidget = new ads::CDockWidget(QString("Asset: %1").arg(asset_id));
 
     auto asset = this->nexus_env.get_asset(asset_id.toStdString());
-    if (!asset.has_value()) {
-        QMessageBox::critical(this, "Error", "Failed to find asset listed");
+    if (asset.is_exception()) {
+        QMessageBox::critical(this, "Error", asset.get_exception().c_str());
     }
     
     NexusAsset* w = new NexusAsset(
         &this->nexus_env,
         DockWidget,
-        asset.value(),
+        asset.unwrap(),
         DockWidget
     );
 

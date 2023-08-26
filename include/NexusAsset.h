@@ -7,7 +7,6 @@
 #include <QFrame>
 #include "DockWidget.h"
 
-#include "AgisPointers.h"
 #include "NexusEnv.h"
 #include "NexusPlot.h"
 #include "Asset.h"
@@ -94,6 +93,6 @@ public:
 
     std::vector<std::string> column_names;
     std::vector<std::string> dt_index_str;
-    StridedPointer<long long> dt_index;
+    std::span<long long> dt_index;
     AgisMatrix <double> data;
 };

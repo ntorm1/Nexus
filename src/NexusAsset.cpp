@@ -271,14 +271,14 @@ void NexusAsset::load_asset_trade_data()
 //============================================================================
 void NexusAsset::set_plotted_graphs(std::vector<std::string> const& graphs)
 {
-    this->nexus_plot->plotted_graphs = graphs;
+    this->nexus_plot->plotted_graphs.clear();
     // plot each graph 
     for (auto& graph_name : graphs) {
-        if (graph_name == "TRADES" && this->trades.size())
+        if (graph_name == "TRADES")
         {
             this->nexus_plot->plot_trades(this->trades);
         }
-        else if (graph_name == "ORDERS" && this->orders.size())
+        else if (graph_name == "ORDERS")
         {
             this->nexus_plot->plot_orders(this->orders);
         }
@@ -534,7 +534,7 @@ void NexusAssetPlot::new_plot(QString name)
 
     auto headers = nexus_asset->asset->get_headers();
     auto column_index = headers.at(column_name);
-    auto y_vec = nexus_asset->data.column(column_index);
+    auto y_vec = nexus_asset->asset->__get_column(column_index);
     this->plot(
         nexus_asset->dt_index,
         y_vec,

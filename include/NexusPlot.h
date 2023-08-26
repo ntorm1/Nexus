@@ -29,8 +29,8 @@ public:
 
 	void set_title(std::string title) {};
 	void plot(
-		StridedPointer<long long> x,
-		StridedPointer<double> y,
+		std::span<long long> x,
+		std::span<double> y,
 		std::string name
 	);
 

@@ -328,6 +328,7 @@ std::shared_ptr<NodeData> ExchangeModel::outData(PortIndex const port)
 		auto exchange = this->hydra->get_exchanges().get_exchange(exchange_id);
 		return std::make_shared<ExchangeData>(exchange);
 	}
+	return nullptr;
 }
 
 //============================================================================

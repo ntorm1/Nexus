@@ -68,7 +68,7 @@ public:
 	NexusEnv();
 	~NexusEnv();
 
-	AgisResult<bool> __run();
+	[[nodiscard]] AgisResult<bool> __run();
 	void __save_history();
 	void __compile();
 	void __link(bool assume_live = true);
@@ -83,7 +83,7 @@ public:
 	void load_env(std::string const & exe_path, std::string const & env_name);
 
 	//============================================================================
-	AgisResult<bool> new_node_editor(std::string strategy_id);
+	[[nodiscard]] AgisResult<bool> new_node_editor(std::string strategy_id);
 	void new_editor(TextEdit* new_editor);
 	std::optional<TextEdit*> get_editor(QString const & file_name) const;
 	void remove_editor(QString const& file_name);
@@ -101,7 +101,7 @@ public:
 	std::vector<std::string> get_portfolio_ids();
 	size_t get_candle_count() { return this->hydra->get_candle_count(); }
 
-	AgisResult<bool> new_exchange(
+	[[nodiscard]] AgisResult<bool> new_exchange(
 		const std::string& exchange_id,
 		const std::string& source,
 		const std::string& freq,

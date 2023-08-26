@@ -108,7 +108,7 @@ void NexusPortfolioPlot::plot_nlv()
 {
     auto& portfolio = this->hydra->get_portfolio(this->portfolio_id);
     auto y = portfolio->get_nlv_history();
-    StridedPointer<double> y_sp = StridedPointer<double>(y.data(), y.size(), 1);
+    std::span<double> y_sp = std::span<double>(y.data(), y.size());
 
     this->plot(
         hydra->__get_dt_index(),

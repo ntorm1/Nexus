@@ -278,6 +278,10 @@ void NexusAsset::set_plotted_graphs(std::vector<std::string> const& graphs)
         {
             this->nexus_plot->plot_trades(this->trades);
         }
+        else if (graph_name == "ORDERS" && this->orders.size())
+        {
+            this->nexus_plot->plot_orders(this->orders);
+        }
         else
         {
             this->nexus_plot->add_plot(graph_name);
@@ -289,24 +293,10 @@ void NexusAsset::set_plotted_graphs(std::vector<std::string> const& graphs)
 //============================================================================
 void NexusAsset::on_new_hydra_run() {
     this->trades.clear();
+    this->orders.clear();
 
-    QThread* orderThread = new QThread;
-    QThread* tradeThread = new QThread;
-
-    // Move the NexusAsset object to the worker threads
-    this->moveToThread(orderThread);
-    this->moveToThread(tradeThread);
-
-    connect(orderThread, &QThread::started, this, &NexusAsset::load_asset_order_data);
-    connect(tradeThread, &QThread::started, this, &NexusAsset::load_asset_trade_data);
-
-    // Start the threads
-    orderThread->start();
-    tradeThread->start();
-
-    // Clean up when threads finish
-    connect(orderThread, &QThread::finished, orderThread, &QThread::deleteLater);
-    connect(tradeThread, &QThread::finished, tradeThread, &QThread::deleteLater);
+    load_asset_order_data();
+    load_asset_trade_data();
 }
 
 //============================================================================
@@ -376,12 +366,34 @@ void NexusAssetPlot::plot_orders(std::vector<SharedOrderPtr> const& orders)
 
     this->rescaleAxes();
     this->replot();
+    this->plotted_graphs.push_back("ORDERS");
 }
 
 
 //============================================================================
 void NexusAssetPlot::plot_trades(std::vector<SharedTradePtr> const& trades)
 {
+    // remove any existing trade segments from the graph
+    if (this->trade_segments.size())
+    {
+        // remove trade segements
+        for (auto trade_segment : this->trade_segments) {
+            this->removeGraph(trade_segment);
+        }
+        this->trade_segments.clear();
+
+        // remove the trade entry and exit points, iterate in reverse order
+        // to prevent out of bonds access when removing graphs
+        for (int i = this->graphCount() - 1; i >= 0; --i)
+        {
+            QCPGraph* graph = this->graph(i);
+            if (graph->name() == "Trade Entires" || graph->name() == "Trade Exits")
+            {
+                this->removeGraph(graph);
+            }
+        }
+    }
+
     if (trades.size() == 0) { return; }
     this->trade_segments.clear();
 
@@ -439,6 +451,7 @@ void NexusAssetPlot::plot_trades(std::vector<SharedTradePtr> const& trades)
 
     this->rescaleAxes();
     this->replot();
+    this->plotted_graphs.push_back("TRADES");
 }
 
 
@@ -518,6 +531,7 @@ void NexusAssetPlot::new_plot(QString name)
 {
     auto column_name = name.toStdString();
     this->plotted_graphs.push_back(column_name);
+
     auto headers = nexus_asset->asset->get_headers();
     auto column_index = headers.at(column_name);
     auto y_vec = nexus_asset->data.column(column_index);

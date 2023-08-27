@@ -509,7 +509,6 @@ void NexusAssetPlot::contextMenuRequest(QPoint pos)
         connect(action, &QAction::triggered, this, [this]() {
             this->plot_trades(this->nexus_asset->trades);
             });
-        moveSubMenu->addSeparator(); // Add a separator line
         action = moveSubMenu->addAction("ORDERS");
         connect(action, &QAction::triggered, this, [this]() {
             this->plot_orders(this->nexus_asset->orders);

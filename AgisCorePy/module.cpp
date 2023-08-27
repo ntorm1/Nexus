@@ -129,7 +129,6 @@ void init_exchange(py::module& m)
     py::class_<ExchangeView>(m, "ExchangeView")
         .def(py::init<>())
         .def_readwrite("view", &ExchangeView::view)
-        .def_readwrite("exchange_index", &ExchangeView::exchange_index)
         .def("apply_weights", &ExchangeView::apply_weights)
         .def("__len__", &ExchangeView::size)
         .def("__sub__", &ExchangeView::operator-, py::is_operator())  // Wrap the subtraction operator

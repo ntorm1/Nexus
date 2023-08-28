@@ -309,7 +309,7 @@ std::shared_ptr<NodeData> AssetLambdaModel::outData(PortIndex const port)
 		this->warmup = abs(row);
 
 		AssetLambda l = AssetLambda(op, [=](const AssetPtr& asset) {
-			return asset_feature_lambda(asset, column_name, row);
+			return asset->get_asset_feature(column_name, row);
 		});
 		AgisAssetLambdaChain new_chain = this->lambda_chain;
 		new_chain.push_back({ l, column_name, row });
@@ -414,9 +414,25 @@ void ExchangeViewModel::setInData(std::shared_ptr<NodeData> data, PortIndex cons
 				Q_EMIT dataInvalidated(0);
 				return; 
 			}
+
 			std::shared_ptr<AssetLambdaData> assetData = std::dynamic_pointer_cast<AssetLambdaData>(data);
-						
-			this->lambda_chain = assetData->lambda_chain;
+			this->lambda_chain.clear();
+			for(AssetLambdaScruct& l : assetData->lambda_chain)
+			{
+				auto& column_name = l.column;
+				auto column_index_res = this->exchange->get_column_index(column_name);
+				if (column_index_res.is_exception())
+				{
+					this->lambda_chain.clear();
+					Q_EMIT dataInvalidated(0);
+					return;
+				}
+				auto column_index = column_index_res.unwrap();
+				AssetLambda lambda_op = AssetLambda(agis_init, [=](const AssetPtr& asset) -> AgisResult<double>{
+					return asset->get_asset_feature(column_index, l.row);
+					});
+				this->lambda_chain.emplace_back(lambda_op, column_name, l.row);
+			}
 			auto smallestRowIt = std::min_element(lambda_chain.begin(), lambda_chain.end(),
 				[](const AssetLambdaScruct& lhs, const AssetLambdaScruct& rhs) {
 					return lhs.row < rhs.row;

@@ -5,7 +5,10 @@
 #include "NexusPopups.h"
 #include "ui_NewExchangePopup.h"
 #include "ui_NewPortfolioPopup.h"
+#include "ui_NewStrategyPopup.h"
 
+
+//============================================================================
 bool isValidDirectory(const std::string& path)
 {
     std::filesystem::path directoryPath(path);
@@ -13,6 +16,7 @@ bool isValidDirectory(const std::string& path)
 }
 
 
+//============================================================================
 NewPortfolioPopup::NewPortfolioPopup(QWidget* parent) :
     QDialog(parent),
     ui(new Ui::NewPortfolioPopup)
@@ -24,22 +28,78 @@ NewPortfolioPopup::NewPortfolioPopup(QWidget* parent) :
 }
 
 
+//============================================================================
+NewStrategyPopup::NewStrategyPopup(QWidget* parent) :
+    QDialog(parent),
+    ui(new Ui::NewStrategyPopup)
+{
+    ui->setupUi(this);
+
+    connect(ui->submit_button, &QPushButton::clicked, this, &NewStrategyPopup::on_submit);
+
+}
+
+
+//============================================================================
+QString NewStrategyPopup::get_allocation() const
+{
+    return ui->allocation->text();
+}
+
+
+//============================================================================
+QString NewStrategyPopup::get_strategy_id() const
+{
+    return ui->strategy_id->text();
+}
+
+
+//============================================================================
+void NewStrategyPopup::on_submit()
+{
+    if (this->get_strategy_id().isEmpty())
+    {
+        QMessageBox::critical(this, "Error", "Missing strategy ID");
+        return;
+    }
+    if (this->get_allocation().isEmpty())
+    {
+        QMessageBox::critical(this, "Error", "Missing starting allocation");
+        return;
+    }
+    QDialog::accept();
+}
+
+
+//============================================================================
+NewStrategyPopup::~NewStrategyPopup()
+{
+    delete ui;
+}
+
+
+//============================================================================
 NewPortfolioPopup::~NewPortfolioPopup()
 {
     delete ui;
 }
 
 
+//============================================================================
 QString NewPortfolioPopup::get_portfolio_id() const
 {
     return ui->portfolio_id->text();
 }
 
+
+//============================================================================
 QString NewPortfolioPopup::get_starting_cash() const
 {
     return ui->starting_cash->text();
 }
 
+
+//============================================================================
 void NewPortfolioPopup::on_submit()
 {
     if (this->get_portfolio_id().isEmpty())

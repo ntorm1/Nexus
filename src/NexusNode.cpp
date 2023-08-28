@@ -11,6 +11,7 @@
 #include <QtWidgets/QMenuBar>
 #include <QtWidgets/QVBoxLayout>
 
+#include "NexusPch.h"
 #include "NexusErrors.h"
 #include "NexusNodeModel.h"
 #include "NexusEnv.h"
@@ -61,6 +62,7 @@ QMenuBar* NexusNodeEditor::createSaveRestoreMenu(BasicGraphicsScene* scene)
 	auto menuBar = new QMenuBar();
 	QMenu* menu = menuBar->addMenu("File");
 	auto saveAction = menu->addAction("Save Scene");
+	auto openAction = menu->addAction("Open Scene");
 	auto loadAction = menu->addAction("Load Scene");
 
 	QObject::connect(saveAction, &QAction::triggered, scene, [this] {
@@ -71,9 +73,23 @@ QMenuBar* NexusNodeEditor::createSaveRestoreMenu(BasicGraphicsScene* scene)
 		RUN_WITH_ERROR_DIALOG(this->__load(scene));
 		});
 
+	QObject::connect(openAction, &QAction::triggered, scene, [this, scene] {
+		auto strat_dir = this->nexus_env->get_env_path() / "strategies";
+		QString filePath = QFileDialog::getOpenFileName(this,
+			tr("Open File"),
+			QString::fromStdString(strat_dir.string()),
+			tr("Flow Files (*.flow);;All Files (*.*)"));
+		if (!filePath.isEmpty()) {
+			auto flow_path = fs::path(filePath.toStdString());
+			RUN_WITH_ERROR_DIALOG(this->__load(scene, flow_path));
+		}
+		});
+
 	return menuBar;
 }
 
+
+//============================================================================
 void NexusNodeEditor::on_tw_change(int index)
 {
 	auto str_tw = trading_window->currentText().toStdString();
@@ -85,6 +101,14 @@ void NexusNodeEditor::on_tw_change(int index)
 		this->strategy.get()->set_trading_window(tw);
 	}
 }
+
+
+//============================================================================
+void NexusNodeEditor::on_alloc_change(double allocation)
+{
+	this->strategy.get()->set_allocation(allocation);
+}
+
 
 //============================================================================
 NexusNodeEditor::NexusNodeEditor(
@@ -98,6 +122,8 @@ NexusNodeEditor::NexusNodeEditor(
 	strategy(strategy_),
 	DockWidget(DockWidget_)
 {
+	this->strategy_id = this->strategy.get()->get_strategy_id();
+
 	ConnectionStyle::setConnectionStyle(
 	R"(
 	  {
@@ -138,6 +164,19 @@ NexusNodeEditor::NexusNodeEditor(
 	row_layout->addWidget(row_label);
 	row_layout->addWidget(this->allocation);
 	l->addLayout(row_layout);
+
+	// listen to allocation change
+	connect(
+		allocation,
+		&QLineEdit::textChanged,
+		[this](const QString& newText) {
+			bool ok;
+			double allocationValue = newText.toDouble(&ok);
+			if (ok) {
+				on_alloc_change(allocationValue);
+			}
+		}
+	);
 
 	// trading window
 	row_layout = new QHBoxLayout(this);
@@ -194,6 +233,13 @@ NexusNodeEditor::~NexusNodeEditor()
 
 
 //============================================================================
+void NexusNodeEditor::__set_strategy(AgisStrategyRef const strategy_)
+{
+	this->strategy = strategy_;
+	this->strategy_id = this->strategy.get()->get_strategy_id();
+}
+
+//============================================================================
 void NexusNodeEditor::__save()
 {
 	auto base_path = this->nexus_env->get_env_path() / "strategies";
@@ -213,16 +259,24 @@ void NexusNodeEditor::__save()
 	}
 
 	auto abstract_strategy = dynamic_cast<AbstractAgisStrategy*>(strategy.get().get());
-	NEXUS_TRY(abstract_strategy->extract_ev_lambda(););
+	auto res = abstract_strategy->extract_ev_lambda();
+	if (res.is_exception()) NEXUS_INTERUPT(res.get_exception());
 }
 
 //============================================================================
-void NexusNodeEditor::__load(BasicGraphicsScene* scene)
+void NexusNodeEditor::__load(BasicGraphicsScene* scene, std::optional<fs::path> file_path)
 {
-	auto strat_path = this->nexus_env->get_env_path()
-		/ "strategies"
-		/ this->strategy.get()->get_strategy_id()
-		/ "graph.flow";
+	fs::path strat_path;
+	if (!file_path.has_value())
+	{
+		strat_path = this->nexus_env->get_env_path()
+			/ "strategies"
+			/ this->strategy.get()->get_strategy_id()
+			/ "graph.flow";
+	}
+	else {
+		strat_path = file_path.value();
+	}
 
 	if (!fs::exists(strat_path)) {
 		throw std::runtime_error("Missing strategy flow file: " + strat_path.string());
@@ -243,7 +297,7 @@ void NexusNodeEditor::__load(BasicGraphicsScene* scene)
 	if (error.error != QJsonParseError::NoError) {
 		throw std::runtime_error("Failed to parse JSON in the strategy flow file: " + error.errorString().toStdString());
 	}
-
+	
 	if (!jsonDocument.isObject()) {
 		throw std::runtime_error("Invalid JSON format in the strategy flow file.");
 	}

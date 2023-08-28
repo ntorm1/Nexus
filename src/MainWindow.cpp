@@ -723,7 +723,7 @@ void MainWindow::restore_state()
     }
     std::string jsonString((std::istreambuf_iterator<char>(env_settings_file)), std::istreambuf_iterator<char>());
     json j = nlohmann::json::parse(jsonString);
-    auto editors = j["open_editors"];
+    auto& editors = j["open_editors"];
 
     // Reset window geometry
     QSettings Settings("C:\\Users\\natha\\OneDrive\\Desktop\\C++\\Nexus\\x64\\Debug\\Settings.ini", QSettings::IniFormat);
@@ -736,15 +736,19 @@ void MainWindow::restore_state()
     this->nexus_env.clear();
 
     // Restore Nexus env from the given json
-    NEXUS_TRY(this->nexus_env.restore(j);)
+    auto res = this->nexus_env.restore(j);
+    if (res.is_exception())
+    {
+        NEXUS_INTERUPT(res.get_exception());
+    }
   
     // Restore widgets
     this->DockManager->restore_widgets(j);
 
     // Restore dock manager state
     qDebug() << "==== Restoring docking manager ====";
-    bool res = DockManager->restoreState(Settings.value("mainWindow/DockingState").toByteArray());
-    if (!res)
+    bool dock_res = DockManager->restoreState(Settings.value("mainWindow/DockingState").toByteArray());
+    if (!dock_res)
     {
         QMessageBox::critical(nullptr, "Error", "Failed to restore state");
         return;
@@ -927,6 +931,22 @@ void MainWindow::on_new_strategy_requested(
     else
     {
         qDebug() << "NEW STRATEGY ACCEPETED";
+
+        // by adding a new strategy we invalidated existing pointers to strategies.
+        // reset all pointers to strategies 
+        for (auto nexus_widget : this->DockManager->get_widgets())
+        {
+            if (nexus_widget->get_widget_type() == WidgetType::NodeEditor)
+            {
+                auto child = nexus_widget->widget();
+                NexusNodeEditor* asset_child = static_cast<NexusNodeEditor*>(child);
+                
+                auto strategy_id = asset_child->get_strategy_id();
+                auto strategy_ref = this->nexus_env.get_strategy(strategy_id).value();
+                asset_child->__set_strategy(strategy_ref);
+            }
+        }
+
         emit new_strategy_accepeted(parentIndex, strategy_id);
     }
 }
@@ -1077,7 +1097,20 @@ void MainWindow::closeEvent(QCloseEvent* event)
 void MainWindow::__run_lambda()
 {
     QEventLoop eventLoop;
+    // for all open node editors, extract the current lambda
+    for (auto nexus_widget : this->DockManager->get_widgets())
+    {
+        if (nexus_widget->get_widget_type() == WidgetType::NodeEditor)
+        {
+            auto child = nexus_widget->widget();
+            NexusNodeEditor* asset_child = static_cast<NexusNodeEditor*>(child);
+            auto strategy_id = asset_child->get_strategy_id();
 
+            AgisStrategyRef strategy_ref = this->nexus_env.get_strategy(strategy_id).value();
+            AbstractAgisStrategy* strategy = static_cast<AbstractAgisStrategy*>(strategy_ref.get().get());
+            strategy->extract_ev_lambda();
+        }
+    }
 
     QFuture<std::variant<long long, std::string>> future = QtConcurrent::run([this, &eventLoop]() -> std::variant<long long, std::string> {
         try {

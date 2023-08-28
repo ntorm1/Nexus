@@ -401,5 +401,8 @@
     <QtUic Include="ui\NexusPortfolio.ui">
       <Filter>Form Files</Filter>
     </QtUic>
+    <QtUic Include="ui\NewStrategyPopup.ui">
+      <Filter>Form Files</Filter>
+    </QtUic>
   </ItemGroup>
 </Project>

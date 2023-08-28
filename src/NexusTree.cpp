@@ -281,9 +281,17 @@ void PortfolioTree::create_new_item(const QModelIndex& parentIndex)
 void PortfolioTree::create_new_strategy(const QModelIndex& parentIndex)
 {
     QVariant itemData = parentIndex.data(Qt::DisplayRole);
-    QString itemName = itemData.toString();
+    QString portfolio_id = itemData.toString();
 
-    emit new_strategy_requested(parentIndex, itemName, "test1", "1.0");
+    NewStrategyPopup* popup = new NewStrategyPopup();
+    if (popup->exec() == QDialog::Accepted)
+    {
+        auto strategy_id = popup->get_strategy_id();
+        auto allocation = popup->get_allocation();
+
+        // Send signal to main window asking to create the new item
+        emit new_strategy_requested(parentIndex, portfolio_id, strategy_id, allocation);
+    }
 }
 
 

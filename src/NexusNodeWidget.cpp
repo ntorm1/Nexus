@@ -164,7 +164,7 @@ StrategyAllocationNode::StrategyAllocationNode(
     row_layout = new QHBoxLayout(this);
     row_label = new QLabel("Epsilon: ");
     this->epsilon = new QLineEdit(this);
-    validator = new QDoubleValidator(0.0, 1.0, 2, epsilon); // 2 decimal places
+    validator = new QDoubleValidator(-1.0, 1.0, 3, epsilon); // 2 decimal places
     this->epsilon->setValidator(validator);
     this->epsilon->setText(".01");
     row_layout->addWidget(row_label);

@@ -652,7 +652,7 @@ void NexusEnv::clear()
 
 
 //============================================================================
-void NexusEnv::restore(json const& j)
+AgisResult<bool> NexusEnv::restore(json const& j)
 {
 	this->hydra->clear();
 	AGIS_TRY(this->hydra->restore(j);)
@@ -688,12 +688,6 @@ void NexusEnv::restore(json const& j)
 		}
 	}
 
-	this->remove_editors();
-	for (auto& tree : this->open_trees)
-	{
-		tree->restore_tree(j);
-	}
-
 	// restore abstract strategy tree
 	auto strat_folder = this->env_path / "strategies";
 	auto& strategy_map = this->hydra->__get_strategy_map();
@@ -714,7 +708,8 @@ void NexusEnv::restore(json const& j)
 
 		QFile file(strat_path);
 		if (!file.open(QIODevice::ReadOnly)) {
-			AGIS_THROW("Failed to open the strategy flow file: " + strat_path.string());
+			auto msg = "Failed to open the strategy flow file: " + strat_path.string();
+			return AgisResult<bool>(AGIS_EXCEP(msg));
 		}
 
 		QByteArray const wholeFile = file.readAll();
@@ -723,11 +718,12 @@ void NexusEnv::restore(json const& j)
 		QJsonParseError error;
 		QJsonDocument jsonDocument = QJsonDocument::fromJson(wholeFile, &error);
 		if (error.error != QJsonParseError::NoError) {
-			AGIS_THROW("Failed to parse JSON in the strategy flow file: " + error.errorString().toStdString());
+			auto msg = "Failed to parse JSON in the strategy flow file: " + error.errorString().toStdString();
+			return AgisResult<bool>(AGIS_EXCEP(msg));
 		}
 
 		if (!jsonDocument.isObject()) {
-			AGIS_THROW("Invalid JSON format in the strategy flow file.");
+			return AgisResult<bool>(AGIS_EXCEP("Invalid JSON format in the strategy flow file."));
 		}
 		dataFlowGraphModel.load(jsonDocument.object());
 
@@ -736,8 +732,21 @@ void NexusEnv::restore(json const& j)
 		abstract_strategy->set_abstract_ev_lambda([&dataFlowGraphModel]() {
 			return NexusNodeEditor::__extract_abstract_strategy(&dataFlowGraphModel);
 		});
-		abstract_strategy->extract_ev_lambda();
+		auto res = abstract_strategy->extract_ev_lambda();
+		if (res.is_exception()) abstract_strategy->set_is_live(false);
+		qDebug() << "Disabling abstract strategy, invalid flow graph: " + strategy->get_strategy_id();
 	}
+
+	// build the hydra instance to allow for the strategy map to get populated
+	AGIS_DO_OR_RETURN(hydra->build(), bool);
+
+	this->remove_editors();
+	for (auto& tree : this->open_trees)
+	{
+		tree->restore_tree(j);
+	}
+	
+	return AgisResult<bool>(true);
 }
 
 

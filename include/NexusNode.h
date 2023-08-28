@@ -29,6 +29,8 @@ using QtNodes::DataFlowGraphModel;
 using QtNodes::GraphicsView;
 using QtNodes::BasicGraphicsScene;
 
+namespace fs = std::filesystem;
+
 class NexusEnv;
 
 namespace Ui {
@@ -52,13 +54,21 @@ public:
     );
     ~NexusNodeEditor();
 
+    void __set_strategy(AgisStrategyRef const strategy_);
     void __save();
-    void __load(BasicGraphicsScene* scene);
+    void __load(
+        BasicGraphicsScene* scene,
+        std::optional<fs::path> file_path = std::nullopt
+    );
     static std::optional<ExchangeViewLambdaStruct>  __extract_abstract_strategy(DataFlowGraphModel* dataFlowGraphModel);
 
-    std::string get_strategy_id() { return this->strategy.get()->get_strategy_id(); }
+    std::string get_strategy_id() { return this->strategy_id; }
 
 private:
+    QMenuBar* createSaveRestoreMenu(BasicGraphicsScene* scene);
+    void on_tw_change(int index);
+    void on_alloc_change(double allocation);
+
     static size_t counter;
     size_t id;
 
@@ -67,15 +77,17 @@ private:
 
     NexusEnv const* nexus_env;
     AgisStrategyRef strategy;
+    std::string strategy_id;
     Ui::NexusNodeEditor* ui;
     ads::CDockWidget* DockWidget;
 
     QLineEdit* allocation;
     QComboBox* trading_window;
 
-    QMenuBar* createSaveRestoreMenu(BasicGraphicsScene* scene);
+    QMenuBar* menuBar;
+    QMenu* fileMenu;
 
-    void on_tw_change(int index);
+
 
 signals:
     void on_close();

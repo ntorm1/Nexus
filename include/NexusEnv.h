@@ -74,7 +74,7 @@ public:
 	void __link(bool assume_live = true);
 	void __reset();
 	void clear();
-	void restore(json const & j);
+	AgisResult<bool> restore(json const & j);
 
 	//============================================================================
 	fs::path const& get_env_path() const { return this->env_path; }

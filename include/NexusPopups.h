@@ -13,6 +13,7 @@ QT_BEGIN_NAMESPACE
 namespace Ui {
     class NewExchangePopup;
     class NewPortfolioPopup;
+    class NewStrategyPopup;
 }
 QT_END_NAMESPACE
 
@@ -29,6 +30,22 @@ public:
 private:
     void on_submit();
     Ui::NewPortfolioPopup* ui;
+
+};
+
+class NewStrategyPopup : public QDialog
+{
+    Q_OBJECT
+public:
+    explicit NewStrategyPopup(QWidget* parent = nullptr);
+    ~NewStrategyPopup();
+
+    QString get_strategy_id() const;
+    QString get_allocation() const;
+
+private:
+    void on_submit();
+    Ui::NewStrategyPopup* ui;
 
 };
 

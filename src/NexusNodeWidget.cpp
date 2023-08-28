@@ -175,7 +175,7 @@ StrategyAllocationNode::StrategyAllocationNode(
     row_layout = new QHBoxLayout(this);
     row_label = new QLabel("Target Lev: ");
     this->target_leverage = new QLineEdit(this);
-    validator = new QDoubleValidator(0.0, 10.0, 2, target_leverage); // 2 decimal places
+    validator = new QDoubleValidator(-10.0, 10.0, 2, target_leverage); // 2 decimal places
     this->target_leverage->setValidator(validator);
     this->target_leverage->setText("1.00");
     row_layout->addWidget(row_label);

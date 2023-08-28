@@ -9,7 +9,6 @@
 #include <QScreen>
 #include <QtWidgets/QApplication>
 #include <QtWidgets/QMenuBar>
-#include <QtWidgets/QVBoxLayout>
 
 #include "NexusPch.h"
 #include "NexusErrors.h"
@@ -111,6 +110,89 @@ void NexusNodeEditor::on_alloc_change(double allocation)
 
 
 //============================================================================
+void NexusNodeEditor::create_strategy_tab(QVBoxLayout* l)
+{
+	// strat allocation
+	QHBoxLayout* row_layout = new QHBoxLayout(this);
+	QLabel* row_label = new QLabel("Allocation: ");
+	this->allocation = new QLineEdit(this);
+	QDoubleValidator* validator = new QDoubleValidator(0.0, 2.0, 3, this->allocation); // 2 decimal places
+	allocation->setValidator(validator);
+	row_layout->addWidget(row_label);
+	row_layout->addWidget(this->allocation);
+	l->addLayout(row_layout);
+
+	// listen to allocation change
+	connect(
+		allocation,
+		&QLineEdit::textChanged,
+		[this](const QString& newText) {
+			bool ok;
+			double allocationValue = newText.toDouble(&ok);
+			if (ok) {
+				on_alloc_change(allocationValue);
+			}
+		}
+	);
+
+	// trading window
+	row_layout = new QHBoxLayout(this);
+	this->trading_window = new QComboBox();
+	for (const auto& item : agis_trading_windows) {
+		this->trading_window->addItem(QString::fromStdString(item));
+	}
+	QLabel* label = new QLabel("Trading Window: ");
+	row_layout->addWidget(label);
+	row_layout->addWidget(this->trading_window);
+	l->addLayout(row_layout);
+	
+	// strategy beta settings
+	QCheckBox* cb1 = new QCheckBox("Beta Scale Positions");
+	QCheckBox* cb2 = new QCheckBox("Beta Hedge Positions");
+	cb1->setChecked(false);
+	cb2->setChecked(false);
+	l->addWidget(cb1);
+	l->addWidget(cb2);
+	
+	connect(cb1, &QCheckBox::stateChanged, [this, cb1](int state) {
+		AgisResult<bool> res;
+		if (state == Qt::Checked) {
+			res = this->strategy.get()->set_beta_scale_positions(true);
+		}
+		else {
+			res = this->strategy.get()->set_beta_scale_positions(false);
+		}
+		if (res.is_exception())
+		{
+			QMessageBox::critical(this, "Error", QString::fromStdString(res.get_exception()));
+			cb1->setChecked(false);
+		}
+	});
+	connect(cb2, &QCheckBox::stateChanged, [this, cb2](int state) {
+		AgisResult<bool> res;
+		if (state == Qt::Checked) {
+			res = this->strategy.get()->set_beta_hedge_positions(true);
+		}
+		else {
+			res = this->strategy.get()->set_beta_hedge_positions(false);
+		}
+		if (res.is_exception())
+		{
+			QMessageBox::critical(this, "Error", QString::fromStdString(res.get_exception()));
+			cb2->setChecked(false);
+		}
+	});
+
+	// listen to changes in strategy settings widgets
+	connect(
+		trading_window,
+		QOverload<int>::of(&QComboBox::currentIndexChanged),
+		this,
+		&NexusNodeEditor::on_tw_change);
+}
+
+
+//============================================================================
 NexusNodeEditor::NexusNodeEditor(
 		NexusEnv const* nexus_env_,
 		ads::CDockWidget* DockWidget_,
@@ -154,49 +236,7 @@ NexusNodeEditor::NexusNodeEditor(
 	l->setAlignment(Qt::AlignTop); // Set the alignment to top
 	QSpacerItem* spacer = new QSpacerItem(20, 40, QSizePolicy::Minimum, QSizePolicy::Fixed);
 	l->addItem(spacer);
-
-	// strat allocation
-	QHBoxLayout* row_layout = new QHBoxLayout(this);
-	QLabel* row_label = new QLabel("Allocation: ");
-	this->allocation = new QLineEdit(this);
-	QDoubleValidator* validator = new QDoubleValidator(0.0, 2.0, 3, this->allocation); // 2 decimal places
-	allocation->setValidator(validator);
-	row_layout->addWidget(row_label);
-	row_layout->addWidget(this->allocation);
-	l->addLayout(row_layout);
-
-	// listen to allocation change
-	connect(
-		allocation,
-		&QLineEdit::textChanged,
-		[this](const QString& newText) {
-			bool ok;
-			double allocationValue = newText.toDouble(&ok);
-			if (ok) {
-				on_alloc_change(allocationValue);
-			}
-		}
-	);
-
-	// trading window
-	row_layout = new QHBoxLayout(this);
-	this->trading_window = new QComboBox();
-	for (const auto& item : agis_trading_windows) {
-		this->trading_window->addItem(QString::fromStdString(item));
-	}
-	QLabel* label = new QLabel("Trading Window: ");
-	row_layout->addWidget(label);
-	row_layout->addWidget(this->trading_window);
-	l->addLayout(row_layout);
-
-	// listen to changes in strategy settings widgets
-	connect(
-		trading_window,
-		QOverload<int>::of(&QComboBox::currentIndexChanged),
-		this,
-		&NexusNodeEditor::on_tw_change);
-
-
+	this->create_strategy_tab(l);
 	h->addLayout(l);
 	centralWidget->setLayout(h);
 

@@ -15,6 +15,7 @@
 #include <QtNodes/NodeDelegateModelRegistry>
 #include <QtNodes/DataFlowGraphModel>
 #include <QtNodes/GraphicsView>
+#include <QtWidgets/QVBoxLayout>
 
 #include "AgisStrategy.h"
 #include <memory>
@@ -66,6 +67,7 @@ public:
 
 private:
     QMenuBar* createSaveRestoreMenu(BasicGraphicsScene* scene);
+    void create_strategy_tab(QVBoxLayout* l);
     void on_tw_change(int index);
     void on_alloc_change(double allocation);
 

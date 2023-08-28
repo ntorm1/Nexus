@@ -1,5 +1,5 @@
 #pragma once
-
+#include "NexusPch.h"
 #include <QPushButton>
 #include <QWidget>
 #include <QComboBox>
@@ -27,12 +27,12 @@ class ExchangeNode : public QWidget
     Q_OBJECT
 public:
     ExchangeNode(
-        std::shared_ptr<Hydra> const hydra,
+        HydraPtr hydra,
         QWidget* parent = nullptr);
 
     ~ExchangeNode() { delete layout; };
 
-    std::shared_ptr<Hydra> const hydra;
+    HydraPtr hydra;
 
     QHBoxLayout* layout;
     QComboBox* exchange_id;

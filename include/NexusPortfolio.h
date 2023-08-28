@@ -22,7 +22,7 @@ public:
     explicit NexusPortfolioPlot(QWidget* parent_);
     ~NexusPortfolioPlot() = default;
 
-    void load(std::shared_ptr<Hydra> hydra_, std::string portfolio_id_) {
+    void load(HydraPtr hydra_, std::string portfolio_id_) {
         this->hydra = hydra_;
         this->portfolio_id = portfolio_id_;
     };
@@ -33,7 +33,7 @@ private slots:
     void plot_nlv();
 
 private:
-    std::shared_ptr<Hydra> hydra = nullptr;
+    HydraPtr hydra = nullptr;
     std::string portfolio_id;
 };
 

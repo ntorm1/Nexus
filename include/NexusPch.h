@@ -11,6 +11,9 @@
 
 using json = nlohmann::json;
 
+#include "Hydra.h"
+
+typedef const Hydra* HydraPtr;
 
 #define NEXUS_INTERUPT(msg) \
     do { \

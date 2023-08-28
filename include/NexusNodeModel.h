@@ -5,6 +5,7 @@
 #include <QtNodes/NodeData>
 #include <QtNodes/NodeDelegateModel>
 
+#include "NexusPch.h"
 #include "NexusNodeWidget.h"
 #include "AgisStrategy.h"
 
@@ -203,7 +204,7 @@ public:
     QJsonObject save() const override;
     void load(QJsonObject const& p) override;
 
-    static std::shared_ptr<Hydra> hydra;
+    static HydraPtr hydra;
 
 
 private:

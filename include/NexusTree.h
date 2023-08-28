@@ -87,7 +87,7 @@ class PortfolioTree : public NexusTree
     Q_OBJECT
 
 public:
-    explicit PortfolioTree(QWidget* parent, std::shared_ptr<Hydra> const hydra);
+    explicit PortfolioTree(QWidget* parent, HydraPtr hydra);
     void restore_tree(json const& j) override;
     void relink_tree(std::vector<std::string> const& portfolios);
     void restore_strategies(QStandardItem* addedItem, QString portfolio_id);
@@ -128,7 +128,7 @@ private:
     /// <summary>
     /// Parent hydra instance
     /// </summary>
-    std::shared_ptr<Hydra> const hydra;
+    HydraPtr hydra;
 
     /// <summary>
     /// strategy toggle button delegate
@@ -164,7 +164,7 @@ class ExchangeTree : public NexusTree
     Q_OBJECT
 
 public:
-    explicit ExchangeTree(QWidget* parent, std::shared_ptr<Hydra> const hydra);
+    explicit ExchangeTree(QWidget* parent, HydraPtr  hydra);
     void restore_tree(json const& j) override;
     void restore_ids(QStandardItem* newItem, QString exchange_id);
 
@@ -192,7 +192,7 @@ private:
     /// <summary>
     /// Parent hydra instance
     /// </summary>
-    std::shared_ptr<Hydra> const hydra;
+    HydraPtr hydra;
 
 signals:
     void asset_double_click(const QString& asset_id);

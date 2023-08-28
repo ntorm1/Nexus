@@ -23,9 +23,8 @@ const std::vector<std::string> nexus_datetime_columns = {
 
 
 //============================================================================
-NexusEnv::NexusEnv()
+NexusEnv::NexusEnv() : hydra(Hydra())
 {
-	this->hydra = std::make_shared<Hydra>();
 }
 
 
@@ -165,24 +164,30 @@ void NexusEnv::remove_node_editor(std::string const& id)
 }
 
 
+const Hydra* NexusEnv::get_hydra() const
+{
+	auto ret = &this->hydra; 
+	return ret;
+}
+
 //============================================================================
 AgisResult<AssetPtr> const NexusEnv::get_asset(std::string const& asset_id)
 {
-	return this->hydra->get_asset(asset_id);
+	return this->hydra.get_asset(asset_id);
 }
 
 
 //============================================================================
 std::optional<AgisStrategyRef const> NexusEnv::get_strategy(std::string const& strategy_id)
 {
-	if (!this->hydra->strategy_exists(strategy_id)) { return std::nullopt; }
-	auto strategy = this->hydra->get_strategy(strategy_id);
+	if (!this->hydra.strategy_exists(strategy_id)) { return std::nullopt; }
+	auto strategy = this->hydra.get_strategy(strategy_id);
 	return strategy;
 }
 
 std::vector<std::string> NexusEnv::get_portfolio_ids()
 {
-	auto& portfolios = this->hydra->get_portfolios();
+	auto& portfolios = this->hydra.get_portfolios();
 	return portfolios.get_portfolio_ids();
 }
 
@@ -196,7 +201,7 @@ AgisResult<bool> NexusEnv::new_exchange(
 	const std::string& dt_format)
 {
 	qDebug() << "Building new exchange: " << exchange_id;
-	return this->hydra->new_exchange(
+	return this->hydra.new_exchange(
 		exchange_id,
 		source,
 		string_to_freq(freq),
@@ -215,7 +220,7 @@ NexusStatusCode NexusEnv::new_portfolio(const std::string& portfolio_id, const s
 	catch (const std::invalid_argument& e) {
 		return NexusStatusCode::InvalidArgument;
 	}
-	this->hydra->new_portfolio(portfolio_id, result);
+	this->hydra.new_portfolio(portfolio_id, result);
 	return NexusStatusCode::Ok;
 }
 
@@ -234,13 +239,13 @@ NexusStatusCode NexusEnv::new_strategy(
 		return NexusStatusCode::InvalidArgument;
 	}
 	
-	auto& portfolio = this->hydra->get_portfolio(portfolio_id);
+	auto& portfolio = this->hydra.get_portfolio(portfolio_id);
 	auto strategy = std::make_unique<AbstractAgisStrategy>(
 		portfolio,
 		strategy_id,
 		result
 	);
-	this->hydra->register_strategy(std::move(strategy));
+	this->hydra.register_strategy(std::move(strategy));
 
 	return NexusStatusCode::Ok;
 }
@@ -250,7 +255,7 @@ NexusStatusCode NexusEnv::new_strategy(
 NexusStatusCode NexusEnv::remove_exchange(const std::string& name)
 {
 	qDebug() << "Removing exchange: " << name;
-	return this->hydra->remove_exchange(name);
+	return this->hydra.remove_exchange(name);
 }
 
 
@@ -258,15 +263,15 @@ NexusStatusCode NexusEnv::remove_exchange(const std::string& name)
 NexusStatusCode NexusEnv::remove_portfolio(const std::string& name)
 {
 	qDebug() << "Removing exchange: " << name;
-	return this->hydra->remove_portfolio(name);
+	return this->hydra.remove_portfolio(name);
 }
 
 
 //============================================================================
 NexusStatusCode NexusEnv::remove_strategy(const std::string& name)
 {
-	if (!this->hydra->strategy_exists(name)) return NexusStatusCode::InvalidArgument;
-	this->hydra->remove_strategy(name);
+	if (!this->hydra.strategy_exists(name)) return NexusStatusCode::InvalidArgument;
+	this->hydra.remove_strategy(name);
 	return NexusStatusCode::Ok;
 }
 
@@ -274,7 +279,7 @@ NexusStatusCode NexusEnv::remove_strategy(const std::string& name)
 //============================================================================
 AgisResult<bool> NexusEnv::__run()
 {
-	AGIS_DO_OR_RETURN(this->hydra->__run(), bool);
+	AGIS_DO_OR_RETURN(this->hydra.__run(), bool);
 
 	return AgisResult<bool>(true);
 }
@@ -288,12 +293,12 @@ void NexusEnv::__save_history()
 	this->position_history.clear();
 
 	// load in the orders, trades, positions
-	auto order_history = this->hydra->get_order_history();
+	auto order_history = this->hydra.get_order_history();
 	for (auto& order : order_history)
 	{
 		this->order_history.push_back(order);
 	}
-	PortfolioMap const& portfolios = this->hydra->get_portfolios();
+	PortfolioMap const& portfolios = this->hydra.get_portfolios();
 	for (auto& portfolio_id : portfolios.get_portfolio_ids())
 	{
 		auto portfolio_ptr = portfolios.get_portfolio(portfolio_id);
@@ -317,7 +322,7 @@ void NexusEnv::__compile()
 	qDebug() << "============================================================================";
 	qDebug() << "Compiling strategies...";
 	auto strat_folder = this->env_path / "strategies";
-	auto& strategies = this->hydra->__get_strategy_map().__get_strategies();
+	auto& strategies = this->hydra.__get_strategy_map().__get_strategies();
 
 	// generate code for all abstract strategies
 	for (auto& strategy_pair : strategies)
@@ -591,18 +596,18 @@ void NexusEnv::__link(bool assume_live)
 		
 		std::string portfolio_id = IDRegistryMap.at(strategy_id);
 		// make sure the portfolio that strategy tries to link to exists
-		if (!this->hydra->portfolio_exists(portfolio_id))
+		if (!this->hydra.portfolio_exists(portfolio_id))
 		{
 			AGIS_THROW("Attempting to link strategy to portfolio: " + portfolio_id + " doesn't eixst");
 		}
 		// replace existing strategies with the new class
-		if (this->hydra->strategy_exists(strategy_id))
+		if (this->hydra.strategy_exists(strategy_id))
 		{
-			this->hydra->remove_strategy(strategy_id);
+			this->hydra.remove_strategy(strategy_id);
 		}
 
 		// build the new strategy class
-		auto& portfolio = this->hydra->get_portfolio(portfolio_id);
+		auto& portfolio = this->hydra.get_portfolio(portfolio_id);
 		auto strategy = entry.second(portfolio);
 
 		// set the strategy to live if assume_live is true
@@ -610,7 +615,7 @@ void NexusEnv::__link(bool assume_live)
 			strategy->set_is_live(false);
 		}
 
-		this->hydra->register_strategy(std::move(strategy));
+		this->hydra.register_strategy(std::move(strategy));
 
 		// check if the linked strategy is replacing abstract strategy
 		std::string sub_string = "Class";
@@ -619,9 +624,9 @@ void NexusEnv::__link(bool assume_live)
 			// Extract the "test" part
 			std::string abstract_strategy_id = strategy_id.substr(0, strategy_id.length() - sub_string.length());
 			
-			if (this->hydra->strategy_exists(abstract_strategy_id))
+			if (this->hydra.strategy_exists(abstract_strategy_id))
 			{
-				auto& strategy = this->hydra->get_strategy(abstract_strategy_id);
+				auto& strategy = this->hydra.get_strategy(abstract_strategy_id);
 				strategy.get()->set_is_live(false);
 				qDebug() << "Disabling abstract strategy: " + abstract_strategy_id;
 			}
@@ -638,7 +643,7 @@ void NexusEnv::__link(bool assume_live)
 //============================================================================
 void NexusEnv::__reset()
 {
-	this->hydra->__reset();
+	this->hydra.__reset();
 }
 
 
@@ -647,16 +652,16 @@ void NexusEnv::clear()
 {
 	this->remove_editors();
 	this->reset_trees();
-	this->hydra->clear();
+	this->hydra.clear();
 }
 
 
 //============================================================================
 AgisResult<bool> NexusEnv::restore(json const& j)
 {
-	this->hydra->clear();
+	this->hydra.clear();
 	try {
-		this->hydra->restore(j);
+		this->hydra.restore(j);
 	}
 	catch (const std::exception& e) {
 		return AgisResult<bool>(AGIS_EXCEP(e.what()));
@@ -681,13 +686,13 @@ AgisResult<bool> NexusEnv::restore(json const& j)
 		{
 			bool is_live = strategy_json["is_live"];
 			std::string strategy_id = strategy_json["strategy_id"];
-			auto strategy = this->hydra->get_strategy(strategy_id);
+			auto strategy = this->hydra.get_strategy(strategy_id);
 
 			// if strategy was linked but it is not live, remove it and force it to be re linked
 			// if we actually want to load it.
 			if (!is_live && !strategy.get()->__is_abstract_class())
 			{ 
-				this->hydra->remove_strategy(strategy_id);
+				this->hydra.remove_strategy(strategy_id);
 			}	
 			else strategy.get()->set_is_live(is_live);
 		}
@@ -695,7 +700,7 @@ AgisResult<bool> NexusEnv::restore(json const& j)
 
 	// restore abstract strategy tree
 	auto strat_folder = this->env_path / "strategies";
-	auto& strategy_map = this->hydra->__get_strategy_map();
+	auto& strategy_map = this->hydra.__get_strategy_map();
 	auto& strategies = strategy_map.__get_strategies();
 
 	// node currently widgets are created for each one in order to restore the strategy
@@ -743,7 +748,7 @@ AgisResult<bool> NexusEnv::restore(json const& j)
 	}
 
 	// build the hydra instance to allow for the strategy map to get populated
-	AGIS_DO_OR_RETURN(hydra->build(), bool);
+	AGIS_DO_OR_RETURN(this->hydra.build(), bool);
 
 	this->remove_editors();
 	for (auto& tree : this->open_trees)
@@ -779,7 +784,7 @@ bool NexusEnv::save_env(json& j)
 
 	// Save the current hydra sate;
 	qDebug() << "Serializing hydra state...";
-	this->hydra->save_state(j);
+	this->hydra.save_state(j);
 	qDebug() << "Hydra state serialized";
 
 	// Save the current state of the trees

@@ -179,7 +179,7 @@ void event_data_loader(
     std::vector<T> events,
     QStringList const& q_columns,
     QStandardItemModel* model,
-    std::shared_ptr<Hydra> hydra
+    HydraPtr hydra
     )
 {
     model->setRowCount(events.size());

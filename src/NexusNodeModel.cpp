@@ -6,7 +6,7 @@
 #include "NexusErrors.h"
 
 
-std::shared_ptr<Hydra> ExchangeModel::hydra = nullptr;
+HydraPtr ExchangeModel::hydra = nullptr;
 
 
 //============================================================================

@@ -126,7 +126,7 @@ json NexusTree::to_json() const
 
 
 //============================================================================
-PortfolioTree::PortfolioTree(QWidget* parent, std::shared_ptr<Hydra> const hydra_) :
+PortfolioTree::PortfolioTree(QWidget* parent, HydraPtr hydra_) :
     NexusTree(parent),
     hydra(hydra_)
 {
@@ -418,7 +418,7 @@ void PortfolioTree::mouseDoubleClickEvent(QMouseEvent* event)
 }
 
 //============================================================================
-ExchangeTree::ExchangeTree(QWidget* parent, std::shared_ptr<Hydra> const hydra_) :
+ExchangeTree::ExchangeTree(QWidget* parent, HydraPtr hydra_) :
     NexusTree(parent),
     hydra(hydra_)
 {

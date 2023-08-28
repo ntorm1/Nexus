@@ -9,7 +9,6 @@
 
 #include "AgisPointers.h"
 #include "AgisErrors.h"
-#include "Hydra.h"
 #include "Asset.h"
 
 namespace fs = std::filesystem;
@@ -48,7 +47,7 @@ private:
 	/// <summary>
 	/// Shared pointer to a hydra instance
 	/// </summary>
-	std::shared_ptr<Hydra> hydra;
+	Hydra hydra;
 
 	std::string env_name;
 	fs::path env_path;
@@ -94,12 +93,12 @@ public:
 	void new_tree(NexusTree* new_tree);
 	void reset_trees();
 
-	std::shared_ptr<Hydra> const get_hydra() const { return this->hydra; }
+	HydraPtr  get_hydra() const;
 	AgisResult<AssetPtr> const get_asset(std::string const& asset_id);
 	std::optional<AgisStrategyRef const> get_strategy(std::string const& strategy_id); 
 	
 	std::vector<std::string> get_portfolio_ids();
-	size_t get_candle_count() { return this->hydra->get_candle_count(); }
+	size_t get_candle_count() { return this->hydra.get_candle_count(); }
 
 	[[nodiscard]] AgisResult<bool> new_exchange(
 		const std::string& exchange_id,
@@ -134,13 +133,13 @@ public:
 		std::optional<std::string> const& portfolio_id) const
 	{
 		std::optional<size_t> asset_index = std::nullopt;
-		if (asset_id.has_value()) asset_index = this->hydra->get_exchanges().get_asset_index(asset_id.value());
+		if (asset_id.has_value()) asset_index = this->hydra.get_exchanges().get_asset_index(asset_id.value());
 
 		std::optional<size_t> strategy_index = std::nullopt;
-		if (strategy_id.has_value()) strategy_index = this->hydra->__get_strategy_map().__get_strategy_index(strategy_id.value());
+		if (strategy_id.has_value()) strategy_index = this->hydra.__get_strategy_map().__get_strategy_index(strategy_id.value());
 
 		std::optional<size_t> portfolio_index = std::nullopt;
-		if (portfolio_id.has_value()) portfolio_index = this->hydra->get_portfolios().__get_portfolio_index(portfolio_id.value());
+		if (portfolio_id.has_value()) portfolio_index = this->hydra.get_portfolios().__get_portfolio_index(portfolio_id.value());
 
 		std::vector<std::shared_ptr<T>> return_vec;
 		auto it = events.begin();

@@ -3,10 +3,9 @@
 #include "NexusNodeModel.h"
 #include "NexusNodeWidget.h"
 
-#include "Hydra.h"
 
 ExchangeNode::ExchangeNode(
-    std::shared_ptr<Hydra> const hydra_,
+    HydraPtr hydra_,
     QWidget* parent_)
         : QWidget(parent_)
         , hydra(hydra_)

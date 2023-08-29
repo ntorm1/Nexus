@@ -106,6 +106,23 @@ void NexusPlot::removeSelectedGraph()
 
 
 //============================================================================
+void NexusPlot::remove_graph_by_name(std::string const& name)
+{
+	for (int i = 0; i < this->graphCount(); ++i)
+	{
+		QCPGraph* graph = this->graph(i);
+		if (!legend->hasItemWithPlottable(graph)) { continue; }
+		QCPPlottableLegendItem* item = this->legend->itemWithPlottable(graph);
+		if (item->plottable()->name().toStdString() == name)
+		{
+			this->removeGraph(graph);
+			this->replot();
+		}
+	}
+}
+
+
+//============================================================================
 void NexusPlot::selectionChanged()
 {
 	/*
@@ -137,10 +154,10 @@ void NexusPlot::selectionChanged()
 	}
 
 	// synchronize selection of graphs with selection of corresponding legend items:
+	this->selected_line = std::nullopt;
 	for (int i = 0; i < this->graphCount(); ++i)
 	{
 		QCPGraph* graph = this->graph(i);
-		// TODO allow for trades to be removed 
 		if (!legend->hasItemWithPlottable(graph)) { continue; }
 		QCPPlottableLegendItem* item = this->legend->itemWithPlottable(graph);
 		if (item->selected() || graph->selected())

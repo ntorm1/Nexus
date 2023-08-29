@@ -81,8 +81,8 @@ NexusAsset::NexusAsset(
 //============================================================================
 void NexusAsset::load_asset_data()
 {
-    this->dt_index = asset->__get_dt_index();
-    this->dt_index_str = asset->__get_dt_index_str();
+    this->dt_index = asset->__get_dt_index(false);
+    this->dt_index_str = asset->__get_dt_index_str(false);
     this->data = asset->__get__data();
     this->column_names = asset->get_column_names();
     auto& headers = asset->get_headers();
@@ -432,7 +432,7 @@ void NexusAssetPlot::plot_trades(std::vector<SharedTradePtr> const& trades)
 	}
 
     this->addGraph();
-    this->graph()->setName("Trade Entires");
+    this->graph()->setName("Trade Entries");
     this->graph()->data()->set(trade_entries, true);
     
     QPen graphPen;
@@ -458,16 +458,27 @@ void NexusAssetPlot::plot_trades(std::vector<SharedTradePtr> const& trades)
 //============================================================================
 void NexusAssetPlot::removeSelectedGraph()
 {
-    // make sure selected_line is not nullopt
-    if(!this->selected_line.has_value()) AGIS_THROW("expected seleceted line");
-    auto& line = selected_line.value();
+    auto line = selected_line.value_or("TRADES");
     // remove line from list of plotted graphs
     this->plotted_graphs.erase(std::remove(
         this->plotted_graphs.begin(),
         this->plotted_graphs.end(), line),
         this->plotted_graphs.end());
-    // call base function
-    NexusPlot::removeSelectedGraph();
+
+    // make sure selected_line is not nullopt otherwise remove trade segments
+    if (!this->selected_line.has_value())
+    {
+        for (auto trade_segment : this->trade_segments)
+        {
+            this->removeGraph(trade_segment);
+        }
+        this->remove_graph_by_name("Trade Exits");
+        this->remove_graph_by_name("Trade Entries");
+        this->replot();
+    }
+    else {
+        NexusPlot::removeSelectedGraph();
+    }
 }
 
 

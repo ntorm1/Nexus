@@ -9,6 +9,8 @@
 
 int main(int argc, char *argv[])
 {
+    qDebug() << "INIT MAIN";
+
     WCHAR path[MAX_PATH] = { 0 };
     DWORD size = GetModuleFileName(NULL, path, MAX_PATH);
 
@@ -59,5 +61,6 @@ int main(int argc, char *argv[])
     w.resize(1280, 720);
 	w.show();
 
+    qDebug() << "INIT MAIN COMPLETE\n EXECUTING QApplication";
     return a.exec();
 }

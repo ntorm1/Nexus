@@ -95,10 +95,13 @@ MainWindow::MainWindow(QWidget* parent):
     QMainWindow(parent),
     ui(new Ui::MainWindow)
 {
+    qDebug() << "INIT MAIN WINDOW";
 
     QString exePath = QCoreApplication::applicationDirPath();
-    this->nexus_env.load_env(exePath.toStdString(), "default");
+    this->nexus_env.set_env_name(exePath.toStdString(), "default");
+    qDebug() << "INIT MAIN WINDOW UI";  
     this->ui->setupUi(this);
+    qDebug() << "INIT MAIN WINDOW UI COMPLETE";
     ads::CDockComponentsFactory::setFactory(new CCustomComponentsFactory());
 
     // Create the dock manager. Because the parent parameter is a QMainWindow
@@ -112,9 +115,11 @@ MainWindow::MainWindow(QWidget* parent):
     CDockManager::setConfigFlag(CDockManager::DragPreviewHasWindowFrame, false);
     CDockManager::setAutoHideConfigFlags(CDockManager::DefaultAutoHideConfig);
 
+    qDebug() << "INIT MAIN WINDOW DOCK MANAGER";
     DockManager = new NexusDockManager(this, this);
     connect(DockManager, &CDockManager::focusedDockWidgetChanged,
         this, &MainWindow::on_widget_focus);
+    qDebug() << "INIT MAIN WINDOW DOCK MANAGER COMPLETE";
 
     setWindowTitle(tr("Nexus"));
     setup_help_menu();
@@ -124,6 +129,7 @@ MainWindow::MainWindow(QWidget* parent):
     setup_command_bar();
 
     // create file system widget
+    qDebug() << "INIT BASE WIDGETS";
     auto FileSystemWidget = create_file_system_tree_widget();
     FileSystemWidget->setFeature(ads::CDockWidget::DockWidgetFloatable, false);
     //FileSystemWidget->setFeature(ads::CDockWidget::DockWidgetMovable, false);
@@ -146,9 +152,10 @@ MainWindow::MainWindow(QWidget* parent):
     PortfoliosWidget->setFeature(ads::CDockWidget::DockWidgetClosable, false);
     container = this->DockManager->addAutoHideDockWidget(ads::SideBarLeft, PortfoliosWidget);
     container->setSize(200);
+    qDebug() << "INIT BASE WIDGETS COMPLETE";
 
-    
     applyVsStyle();
+    qDebug() << "INIT MAIN WINDOW COMPLETE";
 }
 
 
@@ -562,6 +569,7 @@ void MainWindow::create_editor()
 //============================================================================
 void MainWindow::setup_toolbar()
 {
+    qDebug() << "INIT TOOL BAR";
     ui->toolBar->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
 
     ui->toolBar->addAction(ui->actionSaveState);
@@ -600,6 +608,7 @@ void MainWindow::setup_toolbar()
     a->setIcon(svgIcon("./images/tab.svg"));
     connect(a, &QAction::triggered, this, &MainWindow::create_editor);
     ui->toolBar->addAction(a);
+    qDebug() << "INIT TOOL BAR COMPLETE";
 }
 
 //============================================================================
@@ -614,6 +623,7 @@ void MainWindow::setup_help_menu()
 
 void MainWindow::setup_command_bar()
 {
+    qDebug() << "INIT COMMAND BAR";
     QWidget* spacerWidget = new QWidget(ui->toolBar);
     spacerWidget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
     ui->toolBar->addWidget(spacerWidget);
@@ -640,6 +650,7 @@ void MainWindow::setup_command_bar()
     a->setIcon(svgIcon("./images/run.png"));
     connect(a, &QAction::triggered, this, &MainWindow::__run_lambda);
     ui->toolBar->addAction(a);
+    qDebug() << "INIT COMMAND BAR COMPLETE";
 }
 
 //============================================================================
@@ -682,7 +693,56 @@ void MainWindow::create_perspective_ui()
 //============================================================================
 void MainWindow::save_state()
 {
-    QSettings Settings("C:\\Users\\natha\\OneDrive\\Desktop\\C++\\Nexus\\x64\\Debug\\Settings.ini", QSettings::IniFormat);
+    // allow to save to any env, i.e. a folder in the envs folder
+    QString exePath = QCoreApplication::applicationDirPath();
+    fs::path exe_parent_dir_path(exePath.toStdString());
+    auto env_parent_path = exe_parent_dir_path / "envs";
+
+    fs::path env_path;
+    QString dirPath = QFileDialog::getExistingDirectory(this,
+        tr("Select Directory"),
+        QString::fromStdString(env_parent_path.string()));
+    if (!dirPath.isEmpty()) {
+        auto str_path = dirPath.toStdString();
+        env_path = fs::path(str_path);
+
+        // make sure it is valid dir
+        if (!fs::is_directory(str_path))
+        {
+            QMessageBox::critical(this, tr("Error"), tr("Invalid directory selected."));
+			return;
+        }
+
+        // Check to see if the directory is empty
+        bool isDirectoryEmpty = fs::is_empty(str_path);
+        if (!isDirectoryEmpty) {
+            // Prompt the user
+            QMessageBox msgBox;
+            msgBox.setIcon(QMessageBox::Warning);
+            msgBox.setText("Are you sure you want to clear the directory?");
+            msgBox.setInformativeText("This will delete all files in the directory.");
+            msgBox.setStandardButtons(QMessageBox::Yes | QMessageBox::No);
+            msgBox.setDefaultButton(QMessageBox::No);
+            if (msgBox.exec() == QMessageBox::No) {
+                return;
+            }
+        }
+
+        // Clear the directory
+        for (const auto& entry : fs::directory_iterator(str_path)) {
+            fs::remove_all(entry); // Remove all files and subdirectories
+        }
+    }
+    else {
+        QMessageBox::critical(this, "Error", "no folder selected");
+        return;
+    }
+    // extract the name of the selected env
+    fs::path lastDir = env_path.filename();
+    this->nexus_env.set_env_name(exePath.toStdString(), lastDir.string());
+
+    auto settings_path = this->nexus_env.get_env_path() / "Settings.ini";
+    QSettings Settings(QString::fromStdString(settings_path.string()), QSettings::IniFormat);
     Settings.setValue("mainWindow/Geometry", this->saveGeometry());
     Settings.setValue("mainWindow/State", this->saveState());
     Settings.setValue("mainWindow/DockingState", DockManager->saveState());
@@ -726,7 +786,9 @@ void MainWindow::restore_state()
     auto& editors = j["open_editors"];
 
     // Reset window geometry
-    QSettings Settings("C:\\Users\\natha\\OneDrive\\Desktop\\C++\\Nexus\\x64\\Debug\\Settings.ini", QSettings::IniFormat);
+    auto gui_settings_path = this->nexus_env.get_env_path() / "Settings.ini";
+    QSettings Settings(QString::fromStdString(gui_settings_path.string()), QSettings::IniFormat);
+
     qDebug() << "==== Restoring geometry ====";
     this->restoreGeometry(Settings.value("mainWindow/Geometry").toByteArray());
     qDebug() << "==== Restoring state ====";
@@ -787,9 +849,9 @@ void MainWindow::onViewVisibilityChanged(bool visible)
     {
         return;
     }
-
     //qDebug() << DockWidget->objectName() << " visibilityChanged(" << Visible << ")";
 }
+
 
 //============================================================================
 void MainWindow::onViewToggled(bool open)
@@ -799,7 +861,6 @@ void MainWindow::onViewToggled(bool open)
     {
         return;
     }
-
     //qDebug() << DockWidget->objectName() << " viewToggled(" << Open << ")";
 }
 
@@ -1193,7 +1254,8 @@ void MainWindow::__run_link()
 //============================================================================
 void MainWindow::applyVsStyle()
 {
-    QFile file("vs_light.qss");
+    qDebug() << "INIT STYLE APPLY";
+    QFile file("./style/vs_light.qss");
     if (file.open(QIODevice::ReadOnly | QIODevice::Text))
     {
         QTextStream stream(&file);
@@ -1207,4 +1269,5 @@ void MainWindow::applyVsStyle()
     { 
         throw std::runtime_error("Failed to load style sheet");
     }
+    qDebug() << "INIT STYLE COMPLETE";
 }

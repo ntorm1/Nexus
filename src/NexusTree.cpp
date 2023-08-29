@@ -475,7 +475,7 @@ AgisResult<bool> ExchangeTree::edit_exchange_instance(QString const& exchange_id
     {
         auto market_asset_id = popup->get_market_asset_id();
         auto beta_lookback = popup->get_beta_lookback();
-        if (market_asset_id != "__EMPTY__")
+        if (!market_asset_id.isEmpty())
         {
             auto market_asset = MarketAsset(
                 market_asset_id.toStdString(),
@@ -520,7 +520,7 @@ void ExchangeTree::create_new_item(const QModelIndex& parentIndex)
         auto market_asset_id = popup->get_market_asset_id();
         auto beta_lookback = popup->get_beta_lookback();
         std::optional<MarketAsset> market_asset = std::nullopt;
-        if (market_asset_id != "__EMPTY__")
+        if (!market_asset_id.isEmpty())
         {
             market_asset = MarketAsset(
                 market_asset_id.toStdString(),

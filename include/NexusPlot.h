@@ -48,6 +48,7 @@ protected slots:
 	void mousePress();
 	void mouseWheel();
 	virtual void removeSelectedGraph();
+	virtual void remove_graph_by_name(std::string const& name);
 	virtual void removeAllGraphs();
 	virtual void contextMenuRequest(QPoint pos);
 	void moveLegend();

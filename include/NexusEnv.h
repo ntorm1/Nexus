@@ -73,13 +73,13 @@ public:
 	void __link(bool assume_live = true);
 	void __reset();
 	void clear();
-	AgisResult<bool> restore(json const & j);
+	AgisResult<bool> restore(json const& j);
 
 	//============================================================================
 	fs::path const& get_env_path() const { return this->env_path; }
 	fs::path get_env_settings_path() const { return this->env_path / "env_settings.json"; }
 	bool save_env(json &j);
-	void load_env(std::string const & exe_path, std::string const & env_name);
+	void set_env_name(std::string const & exe_path, std::string const & env_name);
 
 	//============================================================================
 	[[nodiscard]] AgisResult<bool> new_node_editor(std::string strategy_id);

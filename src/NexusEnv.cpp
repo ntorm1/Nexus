@@ -39,8 +39,9 @@ NexusEnv::~NexusEnv()
 
 
 //============================================================================
-void NexusEnv::load_env(std::string const& exe_path_, std::string const & env_name_)
+void NexusEnv::set_env_name(std::string const& exe_path_, std::string const & env_name_)
 {
+	qDebug() << "LOADING ENV: " + env_name_;
 	this->env_name = env_name_;
 	fs::path exe_parent_dir_path(exe_path_);
 
@@ -57,6 +58,7 @@ void NexusEnv::load_env(std::string const& exe_path_, std::string const & env_na
 	{
 		fs::create_directory(this->env_path);
 	}
+	qDebug() << "LOADING ENV: " + env_name_ + " COMPLETE";
 }
 
 

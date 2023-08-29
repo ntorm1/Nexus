@@ -107,8 +107,15 @@ void NexusPortfolioPlot::contextMenuRequest(QPoint pos)
 void NexusPortfolioPlot::plot_nlv()
 {
     auto& portfolio = this->hydra->get_portfolio(this->portfolio_id);
+    auto x = this->hydra->__get_dt_index();
     auto y = portfolio->get_nlv_history();
     std::span<double> y_sp = std::span<double>(y.data(), y.size());
+
+    if (x.size() != y.size())
+    {
+        QMessageBox::critical(nullptr, "Error", "Failed find complete history");
+        return;
+    }
 
     this->plot(
         hydra->__get_dt_index(),

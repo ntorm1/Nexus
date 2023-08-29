@@ -104,7 +104,8 @@ public:
 		const std::string& exchange_id,
 		const std::string& source,
 		const std::string& freq,
-		const std::string& dt_format
+		const std::string& dt_format,
+		std::optional<MarketAsset> market_asset = std::nullopt
 	);
 	NexusStatusCode new_portfolio(
 		const std::string& portfolio_id,
@@ -123,6 +124,13 @@ public:
 	auto const& get_order_history() const { return this->order_history; }
 	auto const& get_trade_history() const { return this->trade_history; }
 	auto const& get_position_history() const { return this->position_history; }
+
+	[[nodiscard]] AgisResult<bool> set_market_asset(
+		std::string const& exchange_id,
+		std::string const& asset_id,
+		bool disable,
+		std::optional<size_t> beta_lookback
+	);
 
 	//============================================================================
 	template <typename T>

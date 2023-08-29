@@ -83,7 +83,8 @@ private slots:
         const QString& exchange_id,
         const QString& source,
         const QString& freq,
-        const QString& dt_format
+        const QString& dt_format,
+        std::optional<MarketAsset> market_asset
     );
 
     void on_remove_portfolio_request(const QString& name, const QModelIndex& parentIndex);

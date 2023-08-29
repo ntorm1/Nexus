@@ -2,6 +2,7 @@
 #include <qfiledialog.h>
 #include <filesystem>
 
+#include "Exchange.h"
 #include "NexusPopups.h"
 #include "ui_NewExchangePopup.h"
 #include "ui_NewPortfolioPopup.h"
@@ -112,14 +113,52 @@ void NewPortfolioPopup::on_submit()
         QMessageBox::critical(this, "Error", "Missing starting cash");
         return;
     }
+    
     QDialog::accept();
 }
 
-NewExchangePopup::NewExchangePopup(QWidget* parent) :
+NewExchangePopup::NewExchangePopup(
+    QWidget* parent,
+    std::optional<ExchangePtr> exchange
+) :
     QDialog(parent),
     ui(new Ui::NewExchangePopup)
 {
     ui->setupUi(this);
+
+    // load current exchange settings into the popup
+    if (exchange.has_value())
+    {
+        this->ui->exchange_id_edit->setText(QString::fromStdString(
+            exchange.value()->get_exchange_id())
+        );
+
+        this->ui->folder_path_label->setText(QString::fromStdString(
+			exchange.value()->get_source())
+        );
+
+        auto frequency = freq_to_string(exchange.value()->get_frequency());
+        this->ui->freq_combo->setCurrentText(QString::fromStdString(frequency));
+
+        this->ui->dt_format_combo->setCurrentText(QString::fromStdString(
+			exchange.value()->get_dt_format())
+        		);
+
+        auto market_asset = exchange.value()->__get_market_asset_struct();
+        if (market_asset.has_value())
+        {
+            this->ui->market_asset->setText(
+                QString::fromStdString(market_asset.value().market_id)
+            );
+            if (market_asset.value().beta_lookback.has_value())
+            {
+                auto v = market_asset.value().beta_lookback.value();
+                this->ui->beta_lookback->setText(
+                    QString::fromStdString(std::to_string(v))
+                );
+            }
+        }
+    }
 
     connect(ui->folder_button, &QPushButton::clicked, this, &NewExchangePopup::selectFolder);
     connect(ui->submit_button, &QPushButton::clicked, this, &NewExchangePopup::on_submit);
@@ -143,11 +182,11 @@ void NewExchangePopup::on_submit()
         QMessageBox::critical(this, "Error", "Missing source");
         return;
     }
-    //if (!isValidDirectory(this->get_source().toStdString()))
-    //{
-    //    QMessageBox::critical(this, "Error", "Invlaid Dir");
-    //    return;
-    //}
+    if (this->get_beta_lookback().isEmpty() || this->get_market_asset_id().isEmpty())
+    {
+        QMessageBox::critical(this, "Error", "Missing beta");
+        return;
+    }
     QDialog::accept();
 }
 
@@ -169,6 +208,16 @@ QString NewExchangePopup::get_freq() const
 QString NewExchangePopup::get_dt_format() const
 {
     return ui->dt_format_combo->currentText();
+}
+
+QString NewExchangePopup::get_market_asset_id() const
+{
+    return ui->market_asset->text();
+}
+
+QString NewExchangePopup::get_beta_lookback() const
+{
+    return ui->beta_lookback->text();
 }
 
 void NewExchangePopup::selectFolder()

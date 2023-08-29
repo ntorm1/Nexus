@@ -252,7 +252,8 @@ NexusNodeEditor::NexusNodeEditor(
 	});
 
 	// set widget values to class values
-	this->allocation->setText(QString::fromStdString(std::to_string(strategy.get()->get_allocation())));
+	auto double_allocation = strategy.get()->get_allocation();
+	this->allocation->setText(QString::fromStdString(std::to_string(double_allocation)));
 	auto w = strategy.get()->get_trading_window();
 	auto w_str = trading_window_to_key_str(w);
 	int index = this->trading_window->findText(QString::fromStdString(w_str));

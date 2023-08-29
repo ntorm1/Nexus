@@ -1,9 +1,10 @@
 
-
+#include <qmessagebox.h>
 #include <QContextMenuEvent>
 #include <QInputDialog>
 
 #include "NexusTree.h"
+#include "NexusEnv.h"
 
 enum CustomRoles {
     ParentItemRole = Qt::UserRole + 1,
@@ -418,9 +419,10 @@ void PortfolioTree::mouseDoubleClickEvent(QMouseEvent* event)
 }
 
 //============================================================================
-ExchangeTree::ExchangeTree(QWidget* parent, HydraPtr hydra_) :
+ExchangeTree::ExchangeTree(QWidget* parent, NexusEnv* nexus_env_) :
     NexusTree(parent),
-    hydra(hydra_)
+    hydra(nexus_env_->get_hydra()),
+    nexus_env(nexus_env_)
 {
     this->setObjectName("Exchanges");
     connect(this, &NexusTree::customContextMenuRequested, this, &NexusTree::handle_new_item_action);
@@ -464,6 +466,75 @@ void ExchangeTree::new_item_accepted(const QModelIndex& parentIndex, const QStri
 
 
 //============================================================================
+AgisResult<bool> ExchangeTree::edit_exchange_instance(QString const& exchange_id)
+{
+    auto exchange = this->hydra->get_exchanges().get_exchange(exchange_id.toStdString());
+    NewExchangePopup* popup = new NewExchangePopup(nullptr, exchange);
+    
+    if (popup->exec() == QDialog::Accepted)
+    {
+        auto market_asset_id = popup->get_market_asset_id();
+        auto beta_lookback = popup->get_beta_lookback();
+        if (market_asset_id != "__EMPTY__")
+        {
+            auto market_asset = MarketAsset(
+                market_asset_id.toStdString(),
+                stoi(beta_lookback.toStdString())
+            );
+
+            //test to see if market asset is the same
+            auto market_asset_struct = exchange->__get_market_asset_struct();
+            if (market_asset_struct.has_value())
+            {
+                if (market_asset_struct.value() == market_asset)
+                {
+					return AgisResult<bool>(true);
+				}
+            }
+
+            auto res = this->nexus_env->set_market_asset(
+                exchange_id.toStdString(),
+                market_asset_id.toStdString(),
+                true, 
+                stoi(beta_lookback.toStdString())
+            );
+            return res;
+        }
+    }
+
+    return AgisResult<bool>(true);
+}
+
+
+//============================================================================
+void ExchangeTree::create_new_item(const QModelIndex& parentIndex)
+{
+    NewExchangePopup* popup = new NewExchangePopup();
+    if (popup->exec() == QDialog::Accepted)
+    {
+        auto exchange_id = popup->get_exchange_id();
+        auto source = popup->get_source();
+        auto freq = popup->get_freq();
+        auto dt_format = popup->get_dt_format();
+
+        auto market_asset_id = popup->get_market_asset_id();
+        auto beta_lookback = popup->get_beta_lookback();
+        std::optional<MarketAsset> market_asset = std::nullopt;
+        if (market_asset_id != "__EMPTY__")
+        {
+            market_asset = MarketAsset(
+                market_asset_id.toStdString(),
+                stoi(beta_lookback.toStdString())
+            );
+        }
+
+        // Send signal to main window asking to create the new item
+        emit new_item_requested(parentIndex, exchange_id, source, freq, dt_format, market_asset);
+    }
+}
+
+
+//============================================================================
 void ExchangeTree::mouseDoubleClickEvent(QMouseEvent* event)
 {
     QModelIndex index = indexAt(event->pos());
@@ -473,9 +544,20 @@ void ExchangeTree::mouseDoubleClickEvent(QMouseEvent* event)
         if (itemData.canConvert<QString>())
         {
             QString itemName = itemData.toString();
+            // open asset view window
             if (this->hydra->asset_exists(itemName.toStdString()))
             {
                 emit asset_double_click(itemName);
+            }
+            // open exchange settings popup
+            else if (this->hydra->get_exchanges().exchange_exists(itemName.toStdString()))
+            {
+                auto res = this->edit_exchange_instance(itemName);
+                if (res.is_exception())
+                {
+                    QMessageBox::critical(this, "Error", QString::fromStdString(res.get_exception()));
+                    return;
+                }
             }
         }
     }
@@ -499,22 +581,6 @@ void ExchangeTree::restore_ids(QStandardItem* addedItem, QString exchange_id)
         newItem->setEditable(false);
         newItem->setData(QVariant::fromValue(addedItem), ParentItemRole);  // Set the parent item using custom role
         addedItem->appendRow(newItem);
-    }
-}
-
-
-//============================================================================
-void ExchangeTree::create_new_item(const QModelIndex& parentIndex)
-{
-    NewExchangePopup* popup = new NewExchangePopup();
-    if (popup->exec() == QDialog::Accepted)
-    {
-        auto exchange_id = popup->get_exchange_id();
-        auto source = popup->get_source();
-        auto freq = popup->get_freq();
-        auto dt_format = popup->get_dt_format();
-        // Send signal to main window asking to create the new item
-        emit new_item_requested(parentIndex, exchange_id, source, freq, dt_format);
     }
 }
 

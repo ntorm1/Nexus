@@ -198,14 +198,17 @@ AgisResult<bool> NexusEnv::new_exchange(
 	const std::string& exchange_id,
 	const std::string& source,
 	const std::string& freq,
-	const std::string& dt_format)
+	const std::string& dt_format,
+	std::optional<MarketAsset> market_asset
+)
 {
 	qDebug() << "Building new exchange: " << exchange_id;
 	return this->hydra.new_exchange(
 		exchange_id,
 		source,
 		string_to_freq(freq),
-		dt_format
+		dt_format,
+		market_asset
 		);
 }
 
@@ -273,6 +276,18 @@ NexusStatusCode NexusEnv::remove_strategy(const std::string& name)
 	if (!this->hydra.strategy_exists(name)) return NexusStatusCode::InvalidArgument;
 	this->hydra.remove_strategy(name);
 	return NexusStatusCode::Ok;
+}
+
+
+//============================================================================
+[[nodiscard]] AgisResult<bool> NexusEnv::set_market_asset(
+	std::string const& exchange_id, 
+	std::string const& asset_id,
+	bool disable,
+	std::optional<size_t> beta_lookback)
+{
+	// forward all arguments to this->exchange_map.set_market_asset
+	return this->hydra.set_market_asset(exchange_id, asset_id, disable, beta_lookback);
 }
 
 

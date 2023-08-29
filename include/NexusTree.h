@@ -12,6 +12,7 @@
 
 #include "Hydra.h"
 
+class NexusEnv;
 
 class ToggleButtonDelegate : public QStyledItemDelegate {
 public:
@@ -164,7 +165,7 @@ class ExchangeTree : public NexusTree
     Q_OBJECT
 
 public:
-    explicit ExchangeTree(QWidget* parent, HydraPtr  hydra);
+    explicit ExchangeTree(QWidget* parent, NexusEnv* nexus_env);
     void restore_tree(json const& j) override;
     void restore_ids(QStandardItem* newItem, QString exchange_id);
 
@@ -190,9 +191,20 @@ private:
     void clear();
 
     /// <summary>
+    /// On double click of exchange allow for editing of params
+    /// </summary>
+    /// <param name="exchange_id"></param>
+    AgisResult<bool> edit_exchange_instance(QString const& exchange_id);
+
+    /// <summary>
     /// Parent hydra instance
     /// </summary>
     HydraPtr hydra;
+
+    /// <summary>
+    /// Parent nexus env pointer
+    /// </summary>
+    NexusEnv* nexus_env;
 
 signals:
     void asset_double_click(const QString& asset_id);
@@ -200,7 +212,8 @@ signals:
         const QString& exchange_id,
         const QString& source,
         const QString& freq,
-        const QString& dt_format
+        const QString& dt_format,
+        std::optional<MarketAsset> market_asset
     );
 
 public slots:

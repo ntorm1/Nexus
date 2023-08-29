@@ -283,16 +283,16 @@ ads::CDockWidget* MainWindow::create_exchanges_widget()
 {
     static int exchanges_widgets_counter = 0;
 
-    ExchangeTree* w = new ExchangeTree(this, this->nexus_env.get_hydra());
+    ExchangeTree* w = new ExchangeTree(this, &this->nexus_env);
     this->nexus_env.new_tree(w);
     this->exchange_tree = w;
 
     // Signal that requests new exchanges
     QObject::connect(
         w, 
-        SIGNAL(new_item_requested(QModelIndex, QString, QString, QString, QString)),
+        SIGNAL(new_item_requested(QModelIndex, QString, QString, QString, QString, std::optional<MarketAsset>)),
         this, 
-        SLOT(on_new_exchange_request(QModelIndex, QString, QString, QString, QString))
+        SLOT(on_new_exchange_request(QModelIndex, QString, QString, QString, QString, std::optional<MarketAsset>))
     );
     // Signal to accept  new exchanges
     QObject::connect(
@@ -973,13 +973,15 @@ void MainWindow::on_new_exchange_request(const QModelIndex& parentIndex,
     const QString& exchange_id,
     const QString& source,
     const QString& freq,
-    const QString& dt_format)
+    const QString& dt_format,
+    std::optional<MarketAsset> market_asset)
 {
     auto res = this->nexus_env.new_exchange(
         exchange_id.toStdString(),
         source.toStdString(),
         freq.toStdString(),
-        dt_format.toStdString());
+        dt_format.toStdString(),
+        market_asset);
     if (res.is_exception())
     {
         QMessageBox::critical(this, "Error", QString::fromStdString(res.get_exception()));

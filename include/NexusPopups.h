@@ -9,6 +9,9 @@
 #include <QtWidgets/QLineEdit>
 #include <QtWidgets/QComboBox>
 
+class Exchange;
+typedef std::shared_ptr<Exchange> ExchangePtr;
+
 QT_BEGIN_NAMESPACE
 namespace Ui {
     class NewExchangePopup;
@@ -54,18 +57,25 @@ class NewExchangePopup : public QDialog
     Q_OBJECT
 
 public:
-    explicit NewExchangePopup(QWidget* parent = nullptr);
+    explicit NewExchangePopup(
+        QWidget* parent = nullptr,
+        std::optional<ExchangePtr> exchange = std::nullopt
+    );
     ~NewExchangePopup();
 
     QString get_source() const;
     QString get_exchange_id() const;
     QString get_freq() const;
     QString get_dt_format() const;
+    QString get_market_asset_id() const;
+    QString get_beta_lookback() const;
+
+    Ui::NewExchangePopup* ui;
 
 private slots:
     void selectFolder();
 
 private:
     void on_submit();
-    Ui::NewExchangePopup* ui;
+    
 };

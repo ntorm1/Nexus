@@ -719,18 +719,13 @@ AgisResult<bool> MainWindow::save_state()
             // Prompt the user
             QMessageBox msgBox;
             msgBox.setIcon(QMessageBox::Warning);
-            msgBox.setText("Are you sure you want to clear the directory?");
-            msgBox.setInformativeText("This will delete all files in the directory.");
+            msgBox.setText("Are you sure you want to overwrite previous env?");
+            msgBox.setInformativeText("This will overwrite env json and all abstract flow graphs.");
             msgBox.setStandardButtons(QMessageBox::Yes | QMessageBox::No);
             msgBox.setDefaultButton(QMessageBox::No);
             if (msgBox.exec() == QMessageBox::No) {
                 return AgisResult<bool>(true);
             }
-        }
-
-        // Clear the directory
-        for (const auto& entry : fs::directory_iterator(str_path)) {
-            fs::remove_all(entry); // Remove all files and subdirectories
         }
     }
     else {

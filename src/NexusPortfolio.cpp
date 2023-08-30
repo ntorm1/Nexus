@@ -135,9 +135,15 @@ void NexusPortfolioPlot::contextMenuRequest(QPoint pos)
     else  // general context menu on graphs requested
     {
         QMenu* moveSubMenu = menu->addMenu("Plot");
+
         QAction* action = moveSubMenu->addAction("NLV");
         connect(action, &QAction::triggered, this, [this]() {
             this->plot_nlv();
+            });
+
+        action = moveSubMenu->addAction("CASH");
+        connect(action, &QAction::triggered, this, [this]() {
+            this->plot_cash();
             });
 
         if (this->selectedGraphs().size() > 0)
@@ -148,6 +154,29 @@ void NexusPortfolioPlot::contextMenuRequest(QPoint pos)
 
     menu->popup(this->mapToGlobal(pos));
 }
+
+
+//============================================================================
+void NexusPortfolioPlot::plot_cash()
+{
+    auto& portfolio = this->hydra->get_portfolio(this->portfolio_id);
+    auto x = this->hydra->__get_dt_index();
+    auto y = portfolio->get_cash_history();
+    std::span<double> y_sp = std::span<double>(y.data(), y.size());
+
+    if (x.size() != y.size())
+    {
+        QMessageBox::critical(nullptr, "Error", "Failed find complete history");
+        return;
+    }
+
+    this->plot(
+        x,
+        y_sp,
+        "NLV"
+    );
+}
+
 
 //============================================================================
 void NexusPortfolioPlot::plot_nlv()
@@ -164,7 +193,7 @@ void NexusPortfolioPlot::plot_nlv()
     }
 
     this->plot(
-        hydra->__get_dt_index(),
+        x,
         y_sp,
         "NLV"
     );

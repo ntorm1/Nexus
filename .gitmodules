@@ -4,3 +4,6 @@
 [submodule "AgisCoreTest"]
 	path = AgisCoreTest
 	url = https://github.com/ntorm1/AgisCoreTest.git
+[submodule "Qt-Advanced-Docking-System"]
+	path = Qt-Advanced-Docking-System
+	url = https://github.com/ntorm1/Qt-Advanced-Docking-System.git

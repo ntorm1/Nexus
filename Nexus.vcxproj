@@ -59,13 +59,14 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'">
     <LibraryPath>C:\Users\natha\OneDrive\Desktop\C++\external\nodeeditor\out\build\x64-Debug\lib;C:\Users\natha\OneDrive\Desktop\C++\external\nodeeditor\out\build\x64-Debug\bin;C:\dev\vcpkg\installed\x64-windows\bin;$(LibraryPath)</LibraryPath>
-    <IncludePath>$(SolutionDir)AgisCore\external\include;$(VC_IncludePath);$(WindowsSDK_IncludePath);</IncludePath>
+    <IncludePath>$(SolutionDir)AgisCore\external\include;$(VC_IncludePath);$(WindowsSDK_IncludePath);$(SolutionDir)Qt-Advanced-Docking-System\src</IncludePath>
     <EnableClangTidyCodeAnalysis>false</EnableClangTidyCodeAnalysis>
+    <SourcePath>$(VC_SourcePath);$(SolutionDir)Qt-Advanced-Docking-System\src</SourcePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'">
     <LibraryPath>C:\Users\natha\OneDrive\Desktop\C++\external\nodeeditor\out\build\x64-Release\bin;C:\Users\natha\OneDrive\Desktop\C++\external\nodeeditor\out\build\x64-Release\lib;C:\dev\vcpkg\installed\x64-windows\bin;$(LibraryPath)</LibraryPath>
     <ExecutablePath>$(VC_ExecutablePath_x64);$(CommonExecutablePath);C:\dev\vcpkg\installed\x64-windows\bin</ExecutablePath>
-    <IncludePath>$(SolutionDir)AgisCore\external\include;$(VC_IncludePath);$(WindowsSDK_IncludePath);C:\Program Files (x86)\Intel\oneAPI\tbb\2021.9.0\include</IncludePath>
+    <IncludePath>$(SolutionDir)AgisCore\external\include;$(VC_IncludePath);$(WindowsSDK_IncludePath);C:\Program Files (x86)\Intel\oneAPI\tbb\2021.9.0\include;$(SolutionDir)Qt-Advanced-Docking-System\src</IncludePath>
     <EnableClangTidyCodeAnalysis>true</EnableClangTidyCodeAnalysis>
   </PropertyGroup>
   <PropertyGroup Label="Vcpkg" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -73,8 +74,8 @@
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
-      <AdditionalIncludeDirectories>C:\Users\natha\OneDrive\Desktop\C++\external\nodeeditor\include;$(SolutionDir)AgisCore;$(SolutionDir)include;$(SolutionDir)ads;C:\Users\natha\OneDrive\Desktop\C++\external\qcustomplot;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>$(Qt_DEFINES_);%(PreprocessorDefinitions);NODE_EDITOR_SHARED</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>C:\Users\natha\OneDrive\Desktop\C++\external\nodeeditor\include;$(SolutionDir)AgisCore;$(SolutionDir)include;$(SolutionDir)Qt-Advanced-Docking-System\src;C:\Users\natha\OneDrive\Desktop\C++\external\qcustomplot;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>$(Qt_DEFINES_);%(PreprocessorDefinitions);NODE_EDITOR_SHARED;ADS_STATIC</PreprocessorDefinitions>
       <LanguageStandard>stdcpp20</LanguageStandard>
     </ClCompile>
     <Link>
@@ -118,29 +119,29 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="ads\ads_globals.cpp" />
-    <ClCompile Include="ads\AutoHideDockContainer.cpp" />
-    <ClCompile Include="ads\AutoHideSideBar.cpp" />
-    <ClCompile Include="ads\AutoHideTab.cpp" />
-    <ClCompile Include="ads\DockAreaTabBar.cpp" />
-    <ClCompile Include="ads\DockAreaTitleBar.cpp" />
-    <ClCompile Include="ads\DockAreaWidget.cpp" />
-    <ClCompile Include="ads\DockComponentsFactory.cpp" />
-    <ClCompile Include="ads\DockContainerWidget.cpp" />
-    <ClCompile Include="ads\DockFocusController.cpp" />
-    <ClCompile Include="ads\DockingStateReader.cpp" />
-    <ClCompile Include="ads\DockManager.cpp" />
-    <ClCompile Include="ads\DockOverlay.cpp" />
-    <ClCompile Include="ads\DockSplitter.cpp" />
-    <ClCompile Include="ads\DockWidget.cpp" />
-    <ClCompile Include="ads\DockWidgetTab.cpp" />
-    <ClCompile Include="ads\ElidingLabel.cpp" />
-    <ClCompile Include="ads\FloatingDockContainer.cpp" />
-    <ClCompile Include="ads\FloatingDragPreview.cpp" />
-    <ClCompile Include="ads\IconProvider.cpp" />
-    <ClCompile Include="ads\PushButton.cpp" />
-    <ClCompile Include="ads\ResizeHandle.cpp" />
     <ClCompile Include="QCustomPlot\qcustomplot.cpp" />
+    <ClCompile Include="Qt-Advanced-Docking-System\src\ads_globals.cpp" />
+    <ClCompile Include="Qt-Advanced-Docking-System\src\AutoHideDockContainer.cpp" />
+    <ClCompile Include="Qt-Advanced-Docking-System\src\AutoHideSideBar.cpp" />
+    <ClCompile Include="Qt-Advanced-Docking-System\src\AutoHideTab.cpp" />
+    <ClCompile Include="Qt-Advanced-Docking-System\src\DockAreaTabBar.cpp" />
+    <ClCompile Include="Qt-Advanced-Docking-System\src\DockAreaTitleBar.cpp" />
+    <ClCompile Include="Qt-Advanced-Docking-System\src\DockAreaWidget.cpp" />
+    <ClCompile Include="Qt-Advanced-Docking-System\src\DockComponentsFactory.cpp" />
+    <ClCompile Include="Qt-Advanced-Docking-System\src\DockContainerWidget.cpp" />
+    <ClCompile Include="Qt-Advanced-Docking-System\src\DockFocusController.cpp" />
+    <ClCompile Include="Qt-Advanced-Docking-System\src\DockingStateReader.cpp" />
+    <ClCompile Include="Qt-Advanced-Docking-System\src\DockManager.cpp" />
+    <ClCompile Include="Qt-Advanced-Docking-System\src\DockOverlay.cpp" />
+    <ClCompile Include="Qt-Advanced-Docking-System\src\DockSplitter.cpp" />
+    <ClCompile Include="Qt-Advanced-Docking-System\src\DockWidget.cpp" />
+    <ClCompile Include="Qt-Advanced-Docking-System\src\DockWidgetTab.cpp" />
+    <ClCompile Include="Qt-Advanced-Docking-System\src\ElidingLabel.cpp" />
+    <ClCompile Include="Qt-Advanced-Docking-System\src\FloatingDockContainer.cpp" />
+    <ClCompile Include="Qt-Advanced-Docking-System\src\FloatingDragPreview.cpp" />
+    <ClCompile Include="Qt-Advanced-Docking-System\src\IconProvider.cpp" />
+    <ClCompile Include="Qt-Advanced-Docking-System\src\PushButton.cpp" />
+    <ClCompile Include="Qt-Advanced-Docking-System\src\ResizeHandle.cpp" />
     <ClCompile Include="src\NexusAsset.cpp" />
     <ClCompile Include="src\NexusDockManager.cpp" />
     <ClCompile Include="src\NexusEnv.cpp" />
@@ -153,8 +154,8 @@
     <ClCompile Include="src\QTerminal.cpp" />
     <ClCompile Include="src\QTerminalImpl.cpp" />
     <ClCompile Include="src\NexusTree.cpp" />
-    <QtRcc Include="ads\ads.qrc" />
     <QtRcc Include="MainWindow.qrc" />
+    <QtRcc Include="Qt-Advanced-Docking-System\src\ads.qrc" />
     <QtUic Include="MainWindow.ui" />
     <QtMoc Include="include\MainWindow.h" />
     <ClCompile Include="src\CodeEditor.cpp" />
@@ -202,6 +203,7 @@
     <None Include="images\zoom_in.svg" />
     <None Include="images\zoom_out.svg" />
     <None Include="images\zoom_out_map.svg" />
+    <None Include="Qt-Advanced-Docking-System\src\qtadvanceddockingConfig.cmake" />
     <None Include="styles\NexusTree.qss" />
     <None Include="vs_light.qss" />
   </ItemGroup>
@@ -232,33 +234,29 @@
     <Image Include="images\win\zoomout.png" />
   </ItemGroup>
   <ItemGroup>
-    <QtMoc Include="ads\ads_globals.h" />
-  </ItemGroup>
-  <ItemGroup>
-    <QtMoc Include="ads\AutoHideDockContainer.h" />
-  </ItemGroup>
-  <ItemGroup>
-    <QtMoc Include="ads\AutoHideSideBar.h" />
-  </ItemGroup>
-  <ItemGroup>
-    <QtMoc Include="ads\AutoHideTab.h" />
-  </ItemGroup>
-  <ItemGroup>
-    <QtMoc Include="ads\DockAreaTabBar.h" />
-  </ItemGroup>
-  <ItemGroup>
-    <QtMoc Include="ads\DockAreaTitleBar.h" />
-  </ItemGroup>
-  <ItemGroup>
-    <QtMoc Include="ads\DockAreaTitleBar_p.h" />
-  </ItemGroup>
-  <ItemGroup>
-    <QtMoc Include="ads\DockAreaWidget.h" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="ads\DockComponentsFactory.h" />
-    <ClInclude Include="ads\DockingStateReader.h" />
-    <ClInclude Include="ads\IconProvider.h" />
+    <ClInclude Include="Qt-Advanced-Docking-System\src\DockComponentsFactory.h" />
+    <ClInclude Include="Qt-Advanced-Docking-System\src\DockingStateReader.h" />
+    <ClInclude Include="Qt-Advanced-Docking-System\src\IconProvider.h" />
+    <QtMoc Include="Qt-Advanced-Docking-System\src\ResizeHandle.h" />
+    <QtMoc Include="Qt-Advanced-Docking-System\src\PushButton.h" />
+    <QtMoc Include="Qt-Advanced-Docking-System\src\FloatingDragPreview.h" />
+    <QtMoc Include="Qt-Advanced-Docking-System\src\FloatingDockContainer.h" />
+    <QtMoc Include="Qt-Advanced-Docking-System\src\ElidingLabel.h" />
+    <QtMoc Include="Qt-Advanced-Docking-System\src\DockWidgetTab.h" />
+    <QtMoc Include="Qt-Advanced-Docking-System\src\DockWidget.h" />
+    <QtMoc Include="Qt-Advanced-Docking-System\src\DockSplitter.h" />
+    <QtMoc Include="Qt-Advanced-Docking-System\src\DockOverlay.h" />
+    <QtMoc Include="Qt-Advanced-Docking-System\src\DockManager.h" />
+    <QtMoc Include="Qt-Advanced-Docking-System\src\DockFocusController.h" />
+    <QtMoc Include="Qt-Advanced-Docking-System\src\DockContainerWidget.h" />
+    <QtMoc Include="Qt-Advanced-Docking-System\src\DockAreaWidget.h" />
+    <QtMoc Include="Qt-Advanced-Docking-System\src\DockAreaTitleBar_p.h" />
+    <QtMoc Include="Qt-Advanced-Docking-System\src\DockAreaTitleBar.h" />
+    <QtMoc Include="Qt-Advanced-Docking-System\src\DockAreaTabBar.h" />
+    <QtMoc Include="Qt-Advanced-Docking-System\src\AutoHideTab.h" />
+    <QtMoc Include="Qt-Advanced-Docking-System\src\AutoHideSideBar.h" />
+    <QtMoc Include="Qt-Advanced-Docking-System\src\AutoHideDockContainer.h" />
+    <QtMoc Include="Qt-Advanced-Docking-System\src\ads_globals.h" />
     <QtMoc Include="include\NexusPortfolio.h" />
     <ClInclude Include="include\NexusDockManager.h" />
     <QtMoc Include="include\NexusNode.h" />
@@ -274,21 +272,10 @@
     <QtMoc Include="include\QTerminal.h" />
     <QtMoc Include="include\NexusAsset.h" />
     <ClInclude Include="include\NexusEnv.h" />
-    <QtMoc Include="ads\ResizeHandle.h" />
-    <QtMoc Include="ads\PushButton.h" />
-    <QtMoc Include="ads\FloatingDragPreview.h" />
-    <QtMoc Include="ads\FloatingDockContainer.h" />
-    <QtMoc Include="ads\ElidingLabel.h" />
-    <QtMoc Include="ads\DockWidgetTab.h" />
-    <QtMoc Include="ads\DockWidget.h" />
-    <QtMoc Include="ads\DockSplitter.h" />
-    <QtMoc Include="ads\DockOverlay.h" />
-    <QtMoc Include="ads\DockManager.h" />
-    <QtMoc Include="ads\DockFocusController.h" />
-    <QtMoc Include="ads\DockContainerWidget.h" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="images\material_icons_license.txt" />
+    <Text Include="Qt-Advanced-Docking-System\src\CMakeLists.txt" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Condition="Exists('$(QtMsBuild)\qt.targets')">

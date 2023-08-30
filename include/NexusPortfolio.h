@@ -31,6 +31,7 @@ private slots:
     void contextMenuRequest(QPoint pos) override;
     
     void plot_nlv();
+    void plot_cash();
 
 private:
     HydraPtr hydra = nullptr;

@@ -371,6 +371,12 @@ void NexusAssetPlot::plot_orders(std::vector<SharedOrderPtr> const& orders)
 
 
 //============================================================================
+void NexusAssetPlot::plot_beta()
+{
+}
+
+
+//============================================================================
 void NexusAssetPlot::plot_trades(std::vector<SharedTradePtr> const& trades)
 {
     // remove any existing trade segments from the graph
@@ -523,6 +529,10 @@ void NexusAssetPlot::contextMenuRequest(QPoint pos)
         action = moveSubMenu->addAction("ORDERS");
         connect(action, &QAction::triggered, this, [this]() {
             this->plot_orders(this->nexus_asset->orders);
+            });
+        action = moveSubMenu->addAction("BETA");
+        connect(action, &QAction::triggered, this, [this]() {
+            this->plot_beta();
             });
 
 

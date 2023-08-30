@@ -122,7 +122,7 @@ void init_exchange(py::module& m)
             py::arg("col"),
             py::arg("row") = 0,
             py::arg("query_type") = ExchangeQueryType::Default,
-            py::arg("N") = 1,
+            py::arg("N") = -1,
             py::arg("panic") = false
         );
 
@@ -130,6 +130,11 @@ void init_exchange(py::module& m)
         .def(py::init<>())
         .def_readwrite("view", &ExchangeView::view)
         .def("apply_weights", &ExchangeView::apply_weights)
+        .def("apply_weights",
+            &ExchangeView::apply_weights,
+            py::arg("type"),
+            py::arg("c"),
+            py::arg("x") = py::none())
         .def("__len__", &ExchangeView::size)
         .def("__sub__", &ExchangeView::operator-, py::is_operator())  // Wrap the subtraction operator
         .def("__add__", &ExchangeView::operator+, py::is_operator())  // Wrap the subtraction operator

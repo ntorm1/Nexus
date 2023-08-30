@@ -85,6 +85,8 @@ private:
 
     QLineEdit* allocation;
     QComboBox* trading_window;
+    QCheckBox* beta_scale;
+    QCheckBox* beta_hedge;
 
     QMenuBar* menuBar;
     QMenu* fileMenu;

@@ -677,12 +677,7 @@ void NexusEnv::clear()
 AgisResult<bool> NexusEnv::restore(json const& j)
 {
 	this->hydra.clear();
-	try {
-		this->hydra.restore(j);
-	}
-	catch (const std::exception& e) {
-		return AgisResult<bool>(AGIS_EXCEP(e.what()));
-	}
+	AGIS_DO_OR_RETURN(this->hydra.restore(j), bool);
 
 	// restore cpp strategy tree by linking to all strats if the AgisStrategy library
 	fs::path output_dir = this->env_path / "build" / build_method;
@@ -690,7 +685,7 @@ AgisResult<bool> NexusEnv::restore(json const& j)
 	// if agis_strategy_dll exists call __link
 	if (fs::exists(agis_strategy_dll))
 	{
-		AGIS_TRY(this->__link(false);)
+		AGIS_TRY_RESULT(this->__link(false), bool);
 	}
 
 	// for all strategies loaded, check if they are live

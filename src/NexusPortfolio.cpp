@@ -105,8 +105,11 @@ void NexusPortfolio::on_new_hydra_run()
             }
         }
     }
-
+    // update the stats widget label
     this->stats_widget->update();
+
+    // remove all graphs from the plot
+    this->nexus_plot->clearGraphs();
 }
 
 

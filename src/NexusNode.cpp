@@ -147,14 +147,14 @@ void NexusNodeEditor::create_strategy_tab(QVBoxLayout* l)
 	l->addLayout(row_layout);
 	
 	// strategy beta settings
-	QCheckBox* cb1 = new QCheckBox("Beta Scale Positions");
-	QCheckBox* cb2 = new QCheckBox("Beta Hedge Positions");
-	cb1->setChecked(false);
-	cb2->setChecked(false);
-	l->addWidget(cb1);
-	l->addWidget(cb2);
+	this->beta_scale = new QCheckBox("Beta Scale Positions");
+	this->beta_hedge = new QCheckBox("Beta Hedge Positions");
+	beta_hedge->setChecked(this->strategy.get()->__is_beta_hedged());
+	beta_scale->setChecked(this->strategy.get()->__is_beta_scaling());
+	l->addWidget(beta_hedge);
+	l->addWidget(beta_scale);
 	
-	connect(cb1, &QCheckBox::stateChanged, [this, cb1](int state) {
+	connect(beta_scale, &QCheckBox::stateChanged, [this](int state) {
 		AgisResult<bool> res;
 		if (state == Qt::Checked) {
 			res = this->strategy.get()->set_beta_scale_positions(true);
@@ -165,10 +165,10 @@ void NexusNodeEditor::create_strategy_tab(QVBoxLayout* l)
 		if (res.is_exception())
 		{
 			QMessageBox::critical(this, "Error", QString::fromStdString(res.get_exception()));
-			cb1->setChecked(false);
+			beta_scale->setChecked(false);
 		}
 	});
-	connect(cb2, &QCheckBox::stateChanged, [this, cb2](int state) {
+	connect(beta_hedge, &QCheckBox::stateChanged, [this](int state) {
 		AgisResult<bool> res;
 		if (state == Qt::Checked) {
 			res = this->strategy.get()->set_beta_hedge_positions(true);
@@ -179,7 +179,7 @@ void NexusNodeEditor::create_strategy_tab(QVBoxLayout* l)
 		if (res.is_exception())
 		{
 			QMessageBox::critical(this, "Error", QString::fromStdString(res.get_exception()));
-			cb2->setChecked(false);
+			beta_hedge->setChecked(false);
 		}
 	});
 

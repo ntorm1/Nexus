@@ -30,7 +30,6 @@ public:
     void add_plot(std::string plot_name);
     void plot_trades(std::vector<SharedTradePtr> const& trades);
     void plot_orders(std::vector<SharedOrderPtr> const& orders);
-    void plot_beta();
 
     /// <summary>
     /// List of columns currently plotted

@@ -15,6 +15,7 @@ NexusPortfolio::NexusPortfolio(
 	DockWidget(DockWidget_)
 {
 	ui->setupUi(this);
+    this->menu_bar = new QMenuBar(this);
 	this->portfolio_id = portfolio_id_;
 
 	// Retrieve the central widget from the UI as well as the stats widget
@@ -51,7 +52,7 @@ NexusPortfolio::NexusPortfolio(
     splitter->addWidget(stats_widget);
 
     // Calculate the initial size for the NexusPlot widget (e.g., 65% of the total size)
-    int initialNexusPlotWidth = centralWidget->width() * 0.65;
+    int initialNexusPlotWidth = centralWidget->width() * 0.85;
 
     // Set the sizes for the widgets in the splitter
     splitter->setSizes({ initialNexusPlotWidth, centralWidget->width() - initialNexusPlotWidth });
@@ -62,6 +63,55 @@ NexusPortfolio::NexusPortfolio(
 
     // Set the layout for the central widget
     centralWidget->setLayout(layout);
+
+    // load in the NexusPortfolio to the plot
+    this->set_up_strategies_menu();
+    this->nexus_plot->load_portfolio(this);
+}
+
+
+//============================================================================
+std::vector<std::string> NexusPortfolio::get_selected_strategies() const
+{
+    // loop over strategy checkboxes and get the selected ones
+    std::vector<std::string> selected_strategies;
+    for (auto& [id, checkbox] : this->strategies_checkboxes)
+    {
+        if (checkbox->isChecked())
+        {
+            selected_strategies.push_back(id);
+        }
+    }
+    return selected_strategies;
+}
+
+//============================================================================
+void NexusPortfolio::set_up_strategies_menu()
+{
+    // Create a new QAction for the dropdown with checkboxes for the strats
+    QAction* settingsAction = new QAction("Strategies", this);
+    QMenu* settingsMenu = new QMenu(this);
+    settingsAction->setMenu(settingsMenu);
+    this->menu_bar->addAction(settingsAction);
+
+    PortfolioPtr portfolio = this->nexus_env->get_hydra()->get_portfolio(this->portfolio_id);
+    auto strategy_ids = portfolio->get_strategy_ids();
+
+    this->strategies_checkboxes.clear();
+    auto new_action = new QAction("AGGREGATE", this);
+    new_action->setCheckable(true);
+    new_action->setChecked(true);
+    this->strategies_checkboxes.insert({ "AGGREGATE",new_action });
+    settingsMenu->addAction(new_action);
+
+    for (auto& id : strategy_ids)
+    {
+        new_action = new QAction(QString::fromStdString(id), this);
+        new_action->setCheckable(true);
+        new_action->setChecked(true);
+        this->strategies_checkboxes.insert({ id, new_action });
+        settingsMenu->addAction(new_action);
+    }
 }
 
 
@@ -138,12 +188,12 @@ void NexusPortfolioPlot::contextMenuRequest(QPoint pos)
 
         QAction* action = moveSubMenu->addAction("NLV");
         connect(action, &QAction::triggered, this, [this]() {
-            this->plot_nlv();
+            this->add_plot("NLV");
             });
 
         action = moveSubMenu->addAction("CASH");
         connect(action, &QAction::triggered, this, [this]() {
-            this->plot_cash();
+            this->add_plot("CASH");
             });
 
         if (this->selectedGraphs().size() > 0)
@@ -157,44 +207,68 @@ void NexusPortfolioPlot::contextMenuRequest(QPoint pos)
 
 
 //============================================================================
-void NexusPortfolioPlot::plot_cash()
+void NexusPortfolioPlot::removeAllGraphs()
 {
-    auto& portfolio = this->hydra->get_portfolio(this->portfolio_id);
-    auto x = this->hydra->__get_dt_index();
-    auto y = portfolio->get_cash_history();
-    std::span<double> y_sp = std::span<double>(y.data(), y.size());
-
-    if (x.size() != y.size())
-    {
-        QMessageBox::critical(nullptr, "Error", "Failed find complete history");
-        return;
-    }
-
-    this->plot(
-        x,
-        y_sp,
-        "NLV"
-    );
+    this->plotted_graphs.clear();
+    NexusPlot::removeAllGraphs();
 }
 
 
 //============================================================================
-void NexusPortfolioPlot::plot_nlv()
+void NexusPortfolioPlot::removeSelectedGraph()
 {
+    // remove line from list of plotted graphs
+    this->plotted_graphs.erase(std::remove(
+        this->plotted_graphs.begin(),
+        this->plotted_graphs.end(), selected_line.value()),
+        this->plotted_graphs.end());
+
+    NexusPlot::removeSelectedGraph();
+}
+
+//============================================================================
+void NexusPortfolioPlot::add_plot(QString const& name)
+{
+    this->plotted_graphs.push_back(name.toStdString());
     auto& portfolio = this->hydra->get_portfolio(this->portfolio_id);
     auto x = this->hydra->__get_dt_index();
-    auto y = portfolio->get_nlv_history();
-    std::span<double> y_sp = std::span<double>(y.data(), y.size());
 
-    if (x.size() != y.size())
+    // get a vector of strategy ids that are currently selected by the portfolio widget
+    auto selected_strategies = this->nexus_portfolio->get_selected_strategies();
+    for (auto& strategy_id : selected_strategies)
     {
-        QMessageBox::critical(nullptr, "Error", "Failed find complete history");
-        return;
-    }
+        std::span<double const> y_span;
+        PortfolioStats const* stats = nullptr;
 
-    this->plot(
-        x,
-        y_sp,
-        "NLV"
-    );
+        // if aggregate id then look at the entire portfolio, else get the strategy stats
+        if (strategy_id == "AGGREGATE")
+        {
+            stats = portfolio->get_portfolio_stats();
+        }
+        else {
+            auto strategy = portfolio->__get_strategy(strategy_id);
+            stats = strategy.get()->get_portfolio_stats();
+        }
+        // extract the span of data to plot
+        if (name == "CASH") y_span = stats->cash_history;
+        else if (name == "NLV") y_span = stats->nlv_history;
+        else
+        {
+            QMessageBox::critical(nullptr, "Error", "Failed to add plot");
+            return;
+        }
+
+        if (x.size() != y_span.size())
+        {
+            QMessageBox::critical(nullptr, "Error", "Failed find complete history");
+            return;
+        }
+
+        this->plot(
+            x,
+            y_span,
+            strategy_id + " " + name.toStdString()
+        );
+        this->plotted_graphs.push_back(strategy_id + " " + name.toStdString());
+    }
 }

@@ -371,12 +371,6 @@ void NexusAssetPlot::plot_orders(std::vector<SharedOrderPtr> const& orders)
 
 
 //============================================================================
-void NexusAssetPlot::plot_beta()
-{
-}
-
-
-//============================================================================
 void NexusAssetPlot::plot_trades(std::vector<SharedTradePtr> const& trades)
 {
     // remove any existing trade segments from the graph
@@ -492,6 +486,7 @@ void NexusAssetPlot::removeSelectedGraph()
 void NexusAssetPlot::removeAllGraphs()
 {
     this->plotted_graphs.clear();
+    NexusPlot::removeAllGraphs();
 }
 
 
@@ -532,7 +527,7 @@ void NexusAssetPlot::contextMenuRequest(QPoint pos)
             });
         action = moveSubMenu->addAction("BETA");
         connect(action, &QAction::triggered, this, [this]() {
-            this->plot_beta();
+            this->add_plot("BETA");
             });
 
 
@@ -552,12 +547,20 @@ void NexusAssetPlot::new_plot(QString name)
     auto column_name = name.toStdString();
     this->plotted_graphs.push_back(column_name);
 
-    auto headers = nexus_asset->asset->get_headers();
-    auto column_index = headers.at(column_name);
-    auto y_vec = nexus_asset->asset->__get_column(column_index);
+    std::span<double const> y_span;
+    if (name == "BETA")
+    {
+        y_span = nexus_asset->asset->get_beta_column();
+    }
+    else{
+        auto& headers = nexus_asset->asset->get_headers();
+        auto column_index = headers.at(column_name);
+        y_span = nexus_asset->asset->__get_column(column_index);
+	}
+
     this->plot(
         nexus_asset->dt_index,
-        y_vec,
+        y_span,
         name.toStdString()
     );
 }

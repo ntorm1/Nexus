@@ -30,7 +30,7 @@ public:
 	void set_title(std::string title) {};
 	void plot(
 		std::span<long long> x,
-		std::span<double> y,
+		std::span<double const> y,
 		std::string name
 	);
 

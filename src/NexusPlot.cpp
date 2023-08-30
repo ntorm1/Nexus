@@ -225,7 +225,7 @@ void NexusPlot::graphClicked(QCPAbstractPlottable* plottable, int dataIndex)
 
 
 //============================================================================
-void NexusPlot::plot(std::span<long long> x, std::span<double> y, std::string name)
+void NexusPlot::plot(std::span<long long> x, std::span<double const> y, std::string name)
 {
 	this->addGraph();
 	auto q_name = QString::fromStdString(name);

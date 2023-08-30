@@ -60,7 +60,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'">
     <LibraryPath>C:\Users\natha\OneDrive\Desktop\C++\external\nodeeditor\out\build\x64-Debug\lib;C:\Users\natha\OneDrive\Desktop\C++\external\nodeeditor\out\build\x64-Debug\bin;C:\dev\vcpkg\installed\x64-windows\bin;$(LibraryPath)</LibraryPath>
     <IncludePath>$(SolutionDir)AgisCore\external\include;$(VC_IncludePath);$(WindowsSDK_IncludePath);</IncludePath>
-    <EnableClangTidyCodeAnalysis>true</EnableClangTidyCodeAnalysis>
+    <EnableClangTidyCodeAnalysis>false</EnableClangTidyCodeAnalysis>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'">
     <LibraryPath>C:\Users\natha\OneDrive\Desktop\C++\external\nodeeditor\out\build\x64-Release\bin;C:\Users\natha\OneDrive\Desktop\C++\external\nodeeditor\out\build\x64-Release\lib;C:\dev\vcpkg\installed\x64-windows\bin;$(LibraryPath)</LibraryPath>

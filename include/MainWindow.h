@@ -100,7 +100,7 @@ protected:
 
 private:
     void restore_state();
-    void save_state();
+    AgisResult<bool> save_state();
 
     void setup_toolbar();
     void setup_help_menu();

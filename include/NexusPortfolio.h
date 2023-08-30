@@ -53,6 +53,7 @@ public:
     ads::CDockWidget* DockWidget;
 
     QTableView* table_view;
+    QWidget* stats_widget;
     NexusPortfolioPlot* nexus_plot;
 
     std::string get_portfolio_id() { return this->portfolio_id; }

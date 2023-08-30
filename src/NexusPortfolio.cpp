@@ -17,8 +17,13 @@ NexusPortfolio::NexusPortfolio(
 	ui->setupUi(this);
 	this->portfolio_id = portfolio_id_;
 
-	// Retrieve the central widget from the UI
+	// Retrieve the central widget from the UI as well as the stats widget
 	QWidget* centralWidget = ui->centralwidget;
+    auto stats_layout = ui->stats;
+    this->stats_widget = new QWidget(this);
+    
+    // setup the stats widget
+    stats_widget->setLayout(stats_layout);
 
     // Create a layout for the central widget
     QHBoxLayout* layout = new QHBoxLayout(centralWidget);
@@ -26,11 +31,11 @@ NexusPortfolio::NexusPortfolio(
     layout->setContentsMargins(10, 10, 10, 10); // Set margins around the layout
 
     // Create a QTableWidget
-    this->table_view = new QTableView(this);
-    this->table_view->setEditTriggers(QAbstractItemView::NoEditTriggers);
-    QScrollArea* scrollArea = new QScrollArea(this);
-    scrollArea->setWidgetResizable(true);
-    scrollArea->setWidget(this->table_view);
+    //this->table_view = new QTableView(this);
+    //this->table_view->setEditTriggers(QAbstractItemView::NoEditTriggers);
+    //QScrollArea* scrollArea = new QScrollArea(this);
+    //scrollArea->setWidgetResizable(true);
+    //scrollArea->setWidget(this->table_view);
     //this->load_asset_data();
 
     // Retrieve the NexusPlot widget from the UI
@@ -43,7 +48,7 @@ NexusPortfolio::NexusPortfolio(
 
     // Add the NexusPlot widget and table widget to the splitter
     splitter->addWidget(this->nexus_plot);
-    splitter->addWidget(scrollArea);
+    splitter->addWidget(stats_widget);
 
     // Calculate the initial size for the NexusPlot widget (e.g., 65% of the total size)
     int initialNexusPlotWidth = centralWidget->width() * 0.65;
@@ -63,7 +68,45 @@ NexusPortfolio::NexusPortfolio(
 //============================================================================
 void NexusPortfolio::on_new_hydra_run()
 {
-    qDebug() << "HERE";
+    // get the absolute and pct returns for the portfolio
+    auto hydra = this->nexus_env->get_hydra();
+    auto& stats = hydra->get_portfolio(this->portfolio_id)->get_stats();
+    auto dt_index = hydra->__get_dt_index();
+
+    // calculate total returns 
+    QString formattedPct = QString::number(stats.get_stats_total_pl(), 'f', 2);
+    this->ui->total_return->setText("$" + formattedPct);
+
+    // calculate pct returns
+    formattedPct = QString::number(stats.get_stats_pct_returns());
+    this->ui->pct_return->setText(formattedPct + "%");
+
+    // calculate annualized returns
+    formattedPct = QString::number(stats.get_stats_annualized_pct_returns(), 'f', 2);
+    this->ui->annualized_return->setText(formattedPct + "%");
+
+    // calculate annualized volatility
+    formattedPct = QString::number(stats.get_stats_annualized_volatility(), 'f', 2);
+    this->ui->annualized_volatility->setText(formattedPct + "%");
+
+    // calculate annualized sharpe
+    formattedPct = QString::number(stats.get_stats_sharpe_ratio(), 'f', 2);
+    this->ui->sharpe_ratio->setText(formattedPct);
+
+    for (int row = 0; row < ui->stats->rowCount(); ++row) {
+        for (int col = 0; col < ui->stats->columnCount(); ++col) {
+            QWidget* widget = ui->stats->itemAtPosition(row, col)->widget();
+            if (widget) {
+                QLabel* label = qobject_cast<QLabel*>(widget);
+                if (label) {
+                    label->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
+                    label->adjustSize(); // This will force the label to resize to fit the new text
+                }
+            }
+        }
+    }
+
+    this->stats_widget->update();
 }
 
 

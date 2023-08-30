@@ -691,7 +691,7 @@ void MainWindow::create_perspective_ui()
 }
 
 //============================================================================
-void MainWindow::save_state()
+AgisResult<bool> MainWindow::save_state()
 {
     // allow to save to any env, i.e. a folder in the envs folder
     QString exePath = QCoreApplication::applicationDirPath();
@@ -710,7 +710,7 @@ void MainWindow::save_state()
         if (!fs::is_directory(str_path))
         {
             QMessageBox::critical(this, tr("Error"), tr("Invalid directory selected."));
-			return;
+            return AgisResult<bool>(AGIS_EXCEP("Invalid directory selected."));
         }
 
         // Check to see if the directory is empty
@@ -724,7 +724,7 @@ void MainWindow::save_state()
             msgBox.setStandardButtons(QMessageBox::Yes | QMessageBox::No);
             msgBox.setDefaultButton(QMessageBox::No);
             if (msgBox.exec() == QMessageBox::No) {
-                return;
+                return AgisResult<bool>(true);
             }
         }
 
@@ -735,7 +735,7 @@ void MainWindow::save_state()
     }
     else {
         QMessageBox::critical(this, "Error", "no folder selected");
-        return;
+        return AgisResult<bool>(AGIS_EXCEP("no folder selected"));
     }
     // extract the name of the selected env
     fs::path lastDir = env_path.filename();
@@ -751,6 +751,7 @@ void MainWindow::save_state()
     // Save the open widgets and the Nexus env state
     j["widgets"] = this->DockManager->save_widgets();
     this->nexus_env.save_env(j);
+    return AgisResult<bool>(true);
 }
 
 
@@ -1130,18 +1131,17 @@ void MainWindow::on_strategy_toggle(const QString& name, bool toggle)
 //============================================================================
 void MainWindow::closeEvent(QCloseEvent* event)
 {
+    QMessageBox msgBox;
+    msgBox.setWindowTitle("Closing Nexus");
+    msgBox.setText("Save State?");
+    msgBox.setStandardButtons(QMessageBox::Yes | QMessageBox::No | QMessageBox::Cancel);
+    msgBox.setDefaultButton(QMessageBox::Cancel); // Set default to Cancel
 
-    int Result = QMessageBox::question(this, "Closing Nexus", QString("Save State?"));
+    int Result = msgBox.exec();
     if (QMessageBox::Yes == Result)
     {
-        this->saveState();
-        json j;
-        j["widgets"] = this->DockManager->save_widgets();
-        if (!this->nexus_env.save_env(j))
-        {
-            QMessageBox::critical(this, "Error", "Failed to save Nexus Env");
-            return;
-        };
+        auto res = this->save_state();
+        if (res.is_exception()) event->ignore();
     }
     else if (Result == QMessageBox::No) {
         // Delete dock manager here to delete all floating widgets. This ensures
@@ -1215,8 +1215,7 @@ void MainWindow::__run_lambda()
         durationMs = std::get<long long>(res);
     }
 
-    size_t candles = this->nexus_env.get_candle_count();
-    auto cps = candles / (durationMs / 1000.0);
+    double cps = this->nexus_env.get_candle_count() / (durationMs / 1000.0f);
 
     // Create a QLocale instance with the desired number formatting settings
     QLocale locale(QLocale::English);
@@ -1229,7 +1228,8 @@ void MainWindow::__run_lambda()
 
     QMessageBox::information(nullptr, "Execution Time", msg , QMessageBox::Ok);
 
-    // save the history and notify the UI that new hydra run has completed
+    // save the history and notify the UI that new hydra run has completed then
+    // analyze the portfolio historys
     this->nexus_env.__save_history();
     emit new_hydra_run();
 }

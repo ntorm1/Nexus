@@ -120,27 +120,27 @@ void NexusPortfolio::on_new_hydra_run()
 {
     // get the absolute and pct returns for the portfolio
     auto hydra = this->nexus_env->get_hydra();
-    auto& stats = hydra->get_portfolio(this->portfolio_id)->get_stats();
+    auto& nlv = hydra->get_portfolio(this->portfolio_id)->get_nlv_history_vec();
     auto dt_index = hydra->__get_dt_index();
 
     // calculate total returns 
-    QString formattedPct = QString::number(stats.get_stats_total_pl(), 'f', 2);
+    QString formattedPct = QString::number(get_stats_total_pl(nlv), 'f', 2);
     this->ui->total_return->setText("$" + formattedPct);
 
     // calculate pct returns
-    formattedPct = QString::number(stats.get_stats_pct_returns());
+    formattedPct = QString::number(get_stats_pct_returns(nlv));
     this->ui->pct_return->setText(formattedPct + "%");
 
     // calculate annualized returns
-    formattedPct = QString::number(stats.get_stats_annualized_pct_returns(), 'f', 2);
+    formattedPct = QString::number(get_stats_annualized_pct_returns(nlv), 'f', 2);
     this->ui->annualized_return->setText(formattedPct + "%");
 
     // calculate annualized volatility
-    formattedPct = QString::number(stats.get_stats_annualized_volatility(), 'f', 2);
+    formattedPct = QString::number(get_stats_annualized_volatility(nlv), 'f', 2);
     this->ui->annualized_volatility->setText(formattedPct + "%");
 
     // calculate annualized sharpe
-    formattedPct = QString::number(stats.get_stats_sharpe_ratio(), 'f', 2);
+    formattedPct = QString::number(get_stats_sharpe_ratio(nlv), 'f', 2);
     this->ui->sharpe_ratio->setText(formattedPct);
 
     for (int row = 0; row < ui->stats->rowCount(); ++row) {
@@ -238,20 +238,32 @@ void NexusPortfolioPlot::add_plot(QString const& name)
     for (auto& strategy_id : selected_strategies)
     {
         std::span<double const> y_span;
-        PortfolioStats const* stats = nullptr;
+        std::variant<AgisStrategyRef, PortfolioPtr> entity = nullptr;
 
-        // if aggregate id then look at the entire portfolio, else get the strategy stats
-        if (strategy_id == "AGGREGATE")
-        {
-            stats = portfolio->get_portfolio_stats();
+        if (this->hydra->strategy_exists(strategy_id)) {
+            entity = portfolio->__get_strategy(strategy_id);
         }
         else {
-            auto strategy = portfolio->__get_strategy(strategy_id);
-            stats = strategy.get()->get_portfolio_stats();
+            entity = portfolio;
         }
+
         // extract the span of data to plot
-        if (name == "CASH") y_span = stats->cash_history;
-        else if (name == "NLV") y_span = stats->nlv_history;
+        if (name == "CASH") {
+            if (std::holds_alternative<AgisStrategyRef>(entity)) {
+                y_span = std::get<AgisStrategyRef>(entity).get()->get_cash_history();
+            }
+			else {
+				y_span = std::get<PortfolioPtr>(entity).get()->get_cash_history();
+			}
+        }
+        else if (name == "NLV") {
+            if (std::holds_alternative<AgisStrategyRef>(entity)) {
+                y_span = std::get<AgisStrategyRef>(entity).get()->get_nlv_history();
+            }
+            else {
+                y_span = std::get<PortfolioPtr>(entity).get()->get_nlv_history();
+            }
+        }
         else
         {
             QMessageBox::critical(nullptr, "Error", "Failed to add plot");

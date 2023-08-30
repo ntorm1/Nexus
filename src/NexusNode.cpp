@@ -105,7 +105,7 @@ void NexusNodeEditor::on_tw_change(int index)
 //============================================================================
 void NexusNodeEditor::on_alloc_change(double allocation)
 {
-	this->strategy.get()->set_allocation(allocation);
+	this->strategy.get()->__set_allocation(allocation);
 }
 
 

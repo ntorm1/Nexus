@@ -114,7 +114,8 @@ public:
 	NexusStatusCode new_strategy(
 		const std::string& portfolio_id,
 		const std::string& strategy_id,
-		const std::string& allocation
+		const std::string& allocation,
+		AgisStrategyType strategy_type = AgisStrategyType::FLOW
 	);
 
 	NexusStatusCode remove_exchange(const std::string& name);

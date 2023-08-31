@@ -209,7 +209,8 @@ void NexusPortfolioPlot::contextMenuRequest(QPoint pos)
         QMenu* moveSubMenu = menu->addMenu("Plot");
 
         std::vector<std::string> menu_cols = { 
-            "CASH", "NET BETA DOLLARS / NLV", "NET BETA DOLLARS", "NLV", "UNDERWATER" 
+            "CASH", "NET BETA DOLLARS / NLV", "NET BETA DOLLARS","NET LEVERAGE",
+            "NLV","UNDERWATER" 
         };
         for (auto& col : menu_cols)
 		{
@@ -266,6 +267,14 @@ std::vector<double> NexusPortfolioPlot::get_data(
         }
         else {
             return std::get<PortfolioPtr>(entity).get()->get_beta_history();
+        }
+    }
+    else if (name == "NET LEVERAGE") {
+        if (std::holds_alternative<AgisStrategyRef>(entity)) {
+            return std::get<AgisStrategyRef>(entity).get()->get_net_leverage_ratio_history();
+        }
+        else {
+            //return std::get<PortfolioPtr>(entity).get()->get_ne();
         }
     }
     else if (name == "UNDERWATER") {

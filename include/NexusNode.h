@@ -87,9 +87,10 @@ private:
     QLineEdit* allocation;
     QComboBox* trading_window;
 
-    QCheckBox* beta_trace; ///< Wether or not to store the net beta of the strategy every t
-    QCheckBox* beta_scale; ///< Wether or not to scale the strategy allocation by the beta
-    QCheckBox* beta_hedge; ///< Wether or not to hedge the beta of the strategy
+    QCheckBox* beta_trace;          ///< Wether or not to store the net beta of the strategy every t
+    QCheckBox* beta_scale;          ///< Wether or not to scale the strategy allocation by the beta
+    QCheckBox* beta_hedge;          ///< Wether or not to hedge the beta of the strategy
+    QCheckBox* net_leverage_trace;  ///< Wether or not to store the net leverage of the strategy every t
 
     QMenuBar* menuBar;
     QMenu* fileMenu;

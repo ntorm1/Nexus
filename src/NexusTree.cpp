@@ -297,6 +297,25 @@ void PortfolioTree::create_new_strategy(const QModelIndex& parentIndex)
 
 
 //============================================================================
+void PortfolioTree::set_benchmark_strategy(const QModelIndex& parentIndex)
+{
+    QVariant itemData = parentIndex.data(Qt::DisplayRole);
+    QString portfolio_id = itemData.toString();
+
+    auto portfolio = this->hydra->get_portfolio(portfolio_id.toStdString());
+    auto& exchanges = this->hydra->get_exchanges();
+    auto market_asset = exchanges.__get_market_asset(portfolio->get_frequency());
+
+    if(market_asset.is_exception()) {
+		QMessageBox::warning(this, "Warning", "No market asset found for portfolio frequency");
+		return;
+	}
+
+
+
+}
+
+//============================================================================
 void PortfolioTree::delete_strategy(const QModelIndex& parentIndex)
 {
     QVariant itemData = parentIndex.data(Qt::DisplayRole);
@@ -328,6 +347,10 @@ void PortfolioTree::contextMenuEvent(QContextMenuEvent* event)
             {
                 QAction* addAction = new QAction("Add Strategy", this);
                 connect(addAction, &QAction::triggered, [this, index]() { create_new_strategy(index); });
+                menu.addAction(addAction);
+                
+                addAction = new QAction("Set Benchmark Strategy", this);
+                connect(addAction, &QAction::triggered, [this, index]() { set_benchmark_strategy(index); });
                 menu.addAction(addAction);
             }
             menu.exec(event->globalPos());

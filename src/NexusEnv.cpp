@@ -234,23 +234,36 @@ NexusStatusCode NexusEnv::new_portfolio(const std::string& portfolio_id, const s
 NexusStatusCode NexusEnv::new_strategy(
 	const std::string& portfolio_id,
 	const std::string& strategy_id,
-	const std::string& allocation)
+	const std::string& allocation,
+	AgisStrategyType strategy_type
+)
 {
-	double result;
+	double allocation_double;
 	try {
-		result = std::stod(allocation);
+		allocation_double = std::stod(allocation);
 	}
 	catch (const std::invalid_argument& e) {
 		return NexusStatusCode::InvalidArgument;
 	}
 	
 	auto& portfolio = this->hydra.get_portfolio(portfolio_id);
-	auto strategy = std::make_unique<AbstractAgisStrategy>(
-		portfolio,
-		strategy_id,
-		result
-	);
-	this->hydra.register_strategy(std::move(strategy));
+	if (strategy_type == AgisStrategyType::FLOW) {
+
+		auto strategy = std::make_unique<AbstractAgisStrategy>(
+			portfolio,
+			strategy_id,
+			allocation_double
+		);
+		this->hydra.register_strategy(std::move(strategy));
+	}
+	else if (strategy_type == AgisStrategyType::BENCHMARK) {
+
+		auto strategy = std::make_unique<BenchMarkStrategy>(
+			portfolio,
+			strategy_id
+		);
+		this->hydra.register_strategy(std::move(strategy));
+	}
 
 	return NexusStatusCode::Ok;
 }

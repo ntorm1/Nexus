@@ -101,6 +101,9 @@ MainWindow::MainWindow(QWidget* parent):
     this->nexus_env.set_env_name(exePath.toStdString(), "default");
     qDebug() << "INIT MAIN WINDOW UI";  
     this->ui->setupUi(this);
+    this->ProgressBar = new QProgressBar(this);
+    this->ProgressBar->setFixedWidth(100);
+    this->ProgressBar->setVisible(true);
     qDebug() << "INIT MAIN WINDOW UI COMPLETE";
     ads::CDockComponentsFactory::setFactory(new CCustomComponentsFactory());
 
@@ -650,6 +653,7 @@ void MainWindow::setup_command_bar()
     a->setIcon(svgIcon("./images/run.png"));
     connect(a, &QAction::triggered, this, &MainWindow::__run_lambda);
     ui->toolBar->addAction(a);
+    ui->toolBar->addWidget(this->ProgressBar);
     qDebug() << "INIT COMMAND BAR COMPLETE";
 }
 
@@ -768,6 +772,10 @@ std::optional<fs::path> get_editor_by_id(nlohmann::json const& open_editors, int
 //============================================================================
 void MainWindow::restore_state()
 {
+    //this->center_progress_bar();
+    ProgressBar->setMinimum(0);
+    ProgressBar->setMaximum(8);
+    ProgressBar->setValue(0);
     qDebug() << "==== Restoring state ====";
     // Load in env settings
     auto env_settings = this->nexus_env.get_env_settings_path();
@@ -777,9 +785,11 @@ void MainWindow::restore_state()
         QMessageBox::critical(nullptr, "Error", "Failed to find env state");
         return;
     }
+    ProgressBar->setValue(1);
     std::string jsonString((std::istreambuf_iterator<char>(env_settings_file)), std::istreambuf_iterator<char>());
     json j = nlohmann::json::parse(jsonString);
     auto& editors = j["open_editors"];
+    ProgressBar->setValue(2);
 
     // Reset window geometry
     auto gui_settings_path = this->nexus_env.get_env_path() / "Settings.ini";
@@ -787,8 +797,10 @@ void MainWindow::restore_state()
 
     qDebug() << "==== Restoring geometry ====";
     this->restoreGeometry(Settings.value("mainWindow/Geometry").toByteArray());
+    ProgressBar->setValue(3);
     qDebug() << "==== Restoring state ====";
     this->restoreState(Settings.value("mainWindow/State").toByteArray());
+    ProgressBar->setValue(4);
     
     // Clear existing Nexus env
     this->nexus_env.clear();
@@ -799,9 +811,11 @@ void MainWindow::restore_state()
     {
         NEXUS_INTERUPT(res.get_exception());
     }
+    ProgressBar->setValue(5);
   
     // Restore widgets
     this->DockManager->restore_widgets(j);
+    ProgressBar->setValue(6);
 
     // Restore dock manager state
     qDebug() << "==== Restoring docking manager ====";
@@ -811,6 +825,7 @@ void MainWindow::restore_state()
         QMessageBox::critical(nullptr, "Error", "Failed to restore state");
         return;
     }
+    ProgressBar->setValue(7);
     
     // Open files for the text edit widgets
     for (auto DockWidget : DockManager->get_widgets().values())
@@ -833,7 +848,8 @@ void MainWindow::restore_state()
             editor->load(q_open_file);
         }
     }
-
+    ProgressBar->setValue(8);
+    ProgressBar->setVisible(false);
     qDebug() << "==== State Restored ====";
 }
 
@@ -1154,6 +1170,8 @@ void MainWindow::closeEvent(QCloseEvent* event)
 //============================================================================
 void MainWindow::__run_lambda()
 {
+    this->ProgressBar->setValue(0);
+    this->ProgressBar->setMaximum(6);
     QEventLoop eventLoop;
     // for all open node editors, extract the current lambda
     for (auto nexus_widget : this->DockManager->get_widgets())
@@ -1169,7 +1187,7 @@ void MainWindow::__run_lambda()
             strategy->extract_ev_lambda();
         }
     }
-
+    ProgressBar->setValue(1);
     QFuture<std::variant<long long, std::string>> future = QtConcurrent::run([this, &eventLoop]() -> std::variant<long long, std::string> {
         try {
             // reset hydra to start of sim
@@ -1201,6 +1219,7 @@ void MainWindow::__run_lambda()
     
     long long durationMs;
     std::variant<long long, std::string> res = future.result();
+    ProgressBar->setValue(3);
     if (std::holds_alternative<std::string>(res))
     {
         NEXUS_INTERUPT(std::get<std::string>(res));
@@ -1211,22 +1230,28 @@ void MainWindow::__run_lambda()
     }
 
     double cps = this->nexus_env.get_candle_count() / (durationMs / 1000.0f);
+    size_t rows = this->nexus_env.get_hydra()->__get_dt_index().size();
+    double ms_per_row = durationMs / static_cast<double>(rows);
 
     // Create a QLocale instance with the desired number formatting settings
     QLocale locale(QLocale::English);
 
     // Format cps with commas and a decimal point
     QString cpsFormatted = locale.toString(cps, 'f', 2);
+    QString ms_per_row_formatted = locale.toString(ms_per_row, 'f', 5);
 
     auto msg = "Execution time: " + QString::number(durationMs) + " ms\n";
     msg += "Candles per second: " + cpsFormatted + "\n";
-
-    QMessageBox::information(nullptr, "Execution Time", msg , QMessageBox::Ok);
+    msg += "Ms per row: " + ms_per_row_formatted + "\n";
 
     // save the history and notify the UI that new hydra run has completed then
     // analyze the portfolio historys
+    ProgressBar->setValue(4);
     this->nexus_env.__save_history();
+    ProgressBar->setValue(5);
     emit new_hydra_run();
+    ProgressBar->setValue(6);
+    QMessageBox::information(nullptr, "Execution Time", msg, QMessageBox::Ok);
 }
 
 

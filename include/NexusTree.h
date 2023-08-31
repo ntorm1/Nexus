@@ -109,6 +109,13 @@ private:
     /// <param name="parentIndex"></param>
     void create_new_strategy(const QModelIndex& parentIndex);
 
+    
+    /// <summary>
+    /// Set the benchmark strategy for a portfolio
+    /// </summary>
+    /// <param name="parentIndex"></param>
+    void set_benchmark_strategy(const QModelIndex& parentIndex);
+
     /// <summary>
     /// Delete a new strategy underneath a portfolio
     /// </summary>

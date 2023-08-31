@@ -9,6 +9,7 @@
 #include <QStandardItemModel>
 #include <QThread>
 #include <QObject>
+#include <QProgressBar>
 #include <QtConcurrent/QtConcurrent>
 
 #include "DockManager.h"
@@ -119,6 +120,7 @@ private:
     QAction*        SavePerspectiveAction = nullptr;
     QWidgetAction*  PerspectiveListAction = nullptr;
     QComboBox*      PerspectiveComboBox = nullptr;
+    QProgressBar*   ProgressBar = nullptr;
 
     QPointer<ads::CDockWidget> LastDockedEditor;
     QPointer<ads::CDockWidget> LastCreatedFloatingEditor;
@@ -128,7 +130,7 @@ private:
     ExchangeTree*           exchange_tree;
     PortfolioTree*          portfolio_tree;
 
-    NexusDockManager*      DockManager;
+    NexusDockManager*       DockManager;
     ads::CDockAreaWidget*   StatusDockArea;
     ads::CDockWidget*       TimelineDockWidget;
 

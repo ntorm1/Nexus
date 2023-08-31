@@ -53,7 +53,7 @@ private:
     std::string portfolio_id;
 
     std::vector<double> get_data(
-        const std::variant<AgisStrategyRef, PortfolioPtr>& entity,
+        const std::variant<AgisStrategy *, PortfolioPtr>& entity,
         const std::string& name
     );
 };
@@ -73,9 +73,10 @@ public:
     Ui::NexusPortfolio* ui;
     ads::CDockWidget* DockWidget;
 
-    QTableView* table_view;
-    QWidget* stats_widget;
     QMenuBar* menu_bar;
+    QTabWidget* table_container;
+    QTableView* stats_table_view;
+    QTableView* trades_table_view;
 
     NexusPortfolioPlot* nexus_plot;
 

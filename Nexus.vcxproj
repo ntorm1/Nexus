@@ -234,6 +234,7 @@
     <Image Include="images\win\zoomout.png" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="include\NexusHelpers.h" />
     <ClInclude Include="Qt-Advanced-Docking-System\src\DockComponentsFactory.h" />
     <ClInclude Include="Qt-Advanced-Docking-System\src\DockingStateReader.h" />
     <ClInclude Include="Qt-Advanced-Docking-System\src\IconProvider.h" />

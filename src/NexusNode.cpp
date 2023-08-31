@@ -93,11 +93,11 @@ void NexusNodeEditor::on_tw_change(int index)
 {
 	auto str_tw = trading_window->currentText().toStdString();
 	if (str_tw == "") {
-		this->strategy.get()->set_trading_window(std::nullopt);
+		this->strategy->set_trading_window(std::nullopt);
 	}
 	else {
 		TradingWindow tw = agis_trading_window_map.at(str_tw);
-		this->strategy.get()->set_trading_window(tw);
+		this->strategy->set_trading_window(tw);
 	}
 }
 
@@ -105,7 +105,7 @@ void NexusNodeEditor::on_tw_change(int index)
 //============================================================================
 void NexusNodeEditor::on_alloc_change(double allocation)
 {
-	this->strategy.get()->__set_allocation(allocation);
+	this->strategy->__set_allocation(allocation);
 }
 
 
@@ -165,10 +165,10 @@ void NexusNodeEditor::create_strategy_tab(QVBoxLayout* l)
 	this->beta_trace = new QCheckBox("Beta Trace Positions");
 	this->net_leverage_trace = new QCheckBox("Net Leverage Trace Positions");
 
-	beta_hedge->setChecked(this->strategy.get()->__is_beta_hedged());
-	beta_scale->setChecked(this->strategy.get()->__is_beta_scaling());
-	beta_scale->setChecked(this->strategy.get()->__is_beta_trace());
-	net_leverage_trace->setChecked(this->strategy.get()->__is_net_lev_trace());
+	beta_hedge->setChecked(this->strategy->__is_beta_hedged());
+	beta_scale->setChecked(this->strategy->__is_beta_scaling());
+	beta_scale->setChecked(this->strategy->__is_beta_trace());
+	net_leverage_trace->setChecked(this->strategy->__is_net_lev_trace());
 
 	l->addWidget(beta_hedge);
 	l->addWidget(beta_scale);
@@ -178,22 +178,22 @@ void NexusNodeEditor::create_strategy_tab(QVBoxLayout* l)
 	// Connect stateChanged signal to the common function
 	connect(beta_scale, &QCheckBox::stateChanged, [this](int state) {
 		handleCheckBoxStateChange(beta_scale, [this](bool state) {
-			return this->strategy.get()->set_beta_scale_positions(state);
+			return this->strategy->set_beta_scale_positions(state);
 			});
 		});
 	connect(beta_hedge, &QCheckBox::stateChanged, [this](int state) {
 		handleCheckBoxStateChange(beta_hedge, [this](bool state) {
-			return this->strategy.get()->set_beta_hedge_positions(state);
+			return this->strategy->set_beta_hedge_positions(state);
 			});
 		});
 	connect(beta_trace, &QCheckBox::stateChanged, [this](int state) {
 		handleCheckBoxStateChange(beta_trace, [this](bool state) {
-			return this->strategy.get()->set_beta_trace(state);
+			return this->strategy->set_beta_trace(state);
 			});
 		});
 	connect(net_leverage_trace, &QCheckBox::stateChanged, [this](int state) {
 		handleCheckBoxStateChange(net_leverage_trace, [this](bool state) {
-			return this->strategy.get()->set_net_leverage_trace(state);
+			return this->strategy->set_net_leverage_trace(state);
 			});
 		});
 
@@ -211,7 +211,7 @@ void NexusNodeEditor::create_strategy_tab(QVBoxLayout* l)
 NexusNodeEditor::NexusNodeEditor(
 		NexusEnv const* nexus_env_,
 		ads::CDockWidget* DockWidget_,
-		AgisStrategyRef strategy_,
+		AgisStrategy* strategy_,
 		QWidget* parent) :
 	QMainWindow(parent),
 	ui(new Ui::NexusNodeEditor),
@@ -219,10 +219,10 @@ NexusNodeEditor::NexusNodeEditor(
 	strategy(strategy_),
 	DockWidget(DockWidget_)
 {
-	this->strategy_id = this->strategy.get()->get_strategy_id();
+	this->strategy_id = this->strategy->get_strategy_id();
 
 	ConnectionStyle::setConnectionStyle(
-	R"(
+	R"(f
 	  {
 		"ConnectionStyle": {
 		  "UseDataDefinedColors": true
@@ -261,15 +261,15 @@ NexusNodeEditor::NexusNodeEditor(
 	// attempt to load existing flow graph if it exists
 	RUN_WITH_ERROR_DIALOG(this->__load(scene);)
 
-	auto abstract_strategy = dynamic_cast<AbstractAgisStrategy*>(strategy.get().get());
+	auto abstract_strategy = dynamic_cast<AbstractAgisStrategy*>(strategy);
 	abstract_strategy->set_abstract_ev_lambda([this]() {
 		return this->__extract_abstract_strategy(this->dataFlowGraphModel);
 	});
 
 	// set widget values to class values
-	auto double_allocation = strategy.get()->get_allocation();
+	auto double_allocation = this->strategy->get_allocation();
 	this->allocation->setText(QString::fromStdString(std::to_string(double_allocation)));
-	auto w = strategy.get()->get_trading_window();
+	auto w = this->strategy->get_trading_window();
 	auto w_str = trading_window_to_key_str(w);
 	int index = this->trading_window->findText(QString::fromStdString(w_str));
 	this->trading_window->setCurrentIndex(index);
@@ -289,10 +289,10 @@ NexusNodeEditor::~NexusNodeEditor()
 
 
 //============================================================================
-void NexusNodeEditor::__set_strategy(AgisStrategyRef const strategy_)
+void NexusNodeEditor::__set_strategy(AgisStrategy* strategy_)
 {
 	this->strategy = strategy_;
-	this->strategy_id = this->strategy.get()->get_strategy_id();
+	this->strategy_id = this->strategy->get_strategy_id();
 }
 
 //============================================================================
@@ -302,7 +302,7 @@ void NexusNodeEditor::__save()
 	if (!fs::exists(base_path)) { fs::create_directory(base_path); }
 
 
-	auto strat_path = base_path / this->strategy.get()->get_strategy_id();
+	auto strat_path = base_path / this->strategy->get_strategy_id();
 	if (!fs::exists(strat_path)) { fs::create_directory(strat_path); }
 
 	auto flow_path = strat_path / "graph.flow";
@@ -314,7 +314,7 @@ void NexusNodeEditor::__save()
 		AGIS_THROW("Failed to open the strategy flow file: " + flow_path.string());
 	}
 
-	auto abstract_strategy = dynamic_cast<AbstractAgisStrategy*>(strategy.get().get());
+	auto abstract_strategy = dynamic_cast<AbstractAgisStrategy*>(strategy);
 	auto res = abstract_strategy->extract_ev_lambda();
 	if (res.is_exception()) NEXUS_INTERUPT(res.get_exception());
 }
@@ -327,7 +327,7 @@ void NexusNodeEditor::__load(BasicGraphicsScene* scene, std::optional<fs::path> 
 	{
 		strat_path = this->nexus_env->get_env_path()
 			/ "strategies"
-			/ this->strategy.get()->get_strategy_id()
+			/ this->strategy->get_strategy_id()
 			/ "graph.flow";
 	}
 	else {

@@ -452,7 +452,7 @@ ads::CDockWidget* MainWindow::create_portfolio_widget(const QString& portfolio_i
 ads::CDockWidget* MainWindow::create_node_editor_widget(const QString& strategy_id)
 {
     ads::CDockWidget* DockWidget = new ads::CDockWidget(QString("Strategy: %1").arg(strategy_id));
-    auto strategy_opt = this->nexus_env.get_strategy(strategy_id.toStdString());
+    auto strategy_opt = this->nexus_env.__get_strategy(strategy_id.toStdString());
     // make sure the strategy is real
     if (!strategy_opt.has_value()) {
 
@@ -460,9 +460,9 @@ ads::CDockWidget* MainWindow::create_node_editor_widget(const QString& strategy_
         delete DockWidget;
         return nullptr;
     }
-    AgisStrategyRef strategy = strategy_opt.value();
+    auto strategy = strategy_opt.value();
     // make sure the strategy is abstract
-    if (!strategy.get()->__is_abstract_class())
+    if (!strategy->__is_abstract_class())
     {
 		QMessageBox::critical(this, "Error", "Strategy is not abstract");
 		delete DockWidget;
@@ -1015,11 +1015,10 @@ void MainWindow::on_new_strategy_requested(
                 NexusNodeEditor* asset_child = static_cast<NexusNodeEditor*>(child);
                 
                 auto strategy_id = asset_child->get_strategy_id();
-                auto strategy_ref = this->nexus_env.get_strategy(strategy_id).value();
+                auto strategy_ref = this->nexus_env.__get_strategy(strategy_id).value();
                 asset_child->__set_strategy(strategy_ref);
             }
         }
-
         emit new_strategy_accepeted(parentIndex, strategy_id);
     }
 }
@@ -1128,13 +1127,13 @@ void MainWindow::on_new_node_editor_request(const QString& name)
 void MainWindow::on_strategy_toggle(const QString& name, bool toggle)
 {
     //check if strategy exists
-    auto strategy = this->nexus_env.get_strategy(name.toStdString());
+    auto strategy = this->nexus_env.__get_strategy(name.toStdString());
     if (!strategy.has_value()) NEXUS_INTERUPT("failed to find strategy being toggled");
 
     //check if strategy is already running
-    if (strategy->get()->__is_live() == toggle) NEXUS_INTERUPT("attempted mismatch toggle");
+    if (strategy.value()->__is_live() == toggle) NEXUS_INTERUPT("attempted mismatch toggle");
 
-    strategy->get()->set_is_live(toggle);
+    strategy.value()->set_is_live(toggle);
     qDebug() << "Strategy" << name << "toggled " << toggle;
 }
 
@@ -1166,13 +1165,9 @@ void MainWindow::closeEvent(QCloseEvent* event)
     }
 }
 
-
-//============================================================================
-void MainWindow::__run_lambda()
+//============================================================================ 
+void MainWindow::extract_flow_graphs()
 {
-    this->ProgressBar->setValue(0);
-    this->ProgressBar->setMaximum(6);
-    QEventLoop eventLoop;
     // for all open node editors, extract the current lambda
     for (auto nexus_widget : this->DockManager->get_widgets())
     {
@@ -1182,11 +1177,22 @@ void MainWindow::__run_lambda()
             NexusNodeEditor* asset_child = static_cast<NexusNodeEditor*>(child);
             auto strategy_id = asset_child->get_strategy_id();
 
-            AgisStrategyRef strategy_ref = this->nexus_env.get_strategy(strategy_id).value();
-            AbstractAgisStrategy* strategy = static_cast<AbstractAgisStrategy*>(strategy_ref.get().get());
+            auto strategy_ptr = this->nexus_env.__get_strategy(strategy_id).value();
+            AbstractAgisStrategy* strategy = static_cast<AbstractAgisStrategy*>(strategy_ptr);
             strategy->extract_ev_lambda();
         }
     }
+}
+
+
+//============================================================================
+void MainWindow::__run_lambda()
+{
+    this->ProgressBar->setValue(0);
+    this->ProgressBar->setMaximum(6);
+
+    this->extract_flow_graphs();
+    QEventLoop eventLoop;
     ProgressBar->setValue(1);
     QFuture<std::variant<long long, std::string>> future = QtConcurrent::run([this, &eventLoop]() -> std::variant<long long, std::string> {
         try {

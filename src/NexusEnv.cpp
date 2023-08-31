@@ -180,10 +180,10 @@ AgisResult<AssetPtr> const NexusEnv::get_asset(std::string const& asset_id)
 
 
 //============================================================================
-std::optional<AgisStrategyRef const> NexusEnv::get_strategy(std::string const& strategy_id)
+std::optional<AgisStrategy*> NexusEnv::__get_strategy(std::string const& strategy_id)
 {
 	if (!this->hydra.strategy_exists(strategy_id)) { return std::nullopt; }
-	auto strategy = this->hydra.get_strategy(strategy_id);
+	auto strategy = this->hydra.__get_strategy(strategy_id);
 	return strategy;
 }
 
@@ -656,8 +656,7 @@ void NexusEnv::__link(bool assume_live)
 			
 			if (this->hydra.strategy_exists(abstract_strategy_id))
 			{
-				auto& strategy = this->hydra.get_strategy(abstract_strategy_id);
-				strategy.get()->set_is_live(false);
+				hydra.__set_strategy_is_live(abstract_strategy_id, false);
 				qDebug() << "Disabling abstract strategy: " + abstract_strategy_id;
 			}
 		}
@@ -715,11 +714,11 @@ AgisResult<bool> NexusEnv::restore(json const& j)
 
 			// if strategy was linked but it is not live, remove it and force it to be re linked
 			// if we actually want to load it.
-			if (!is_live && !strategy.get()->__is_abstract_class())
+			if (!is_live && !strategy->__is_abstract_class())
 			{ 
 				this->hydra.remove_strategy(strategy_id);
 			}	
-			else strategy.get()->set_is_live(is_live);
+			else hydra.__set_strategy_is_live(strategy_id, is_live);
 		}
 	}
 

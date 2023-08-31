@@ -310,9 +310,7 @@ void PortfolioTree::set_benchmark_strategy(const QModelIndex& parentIndex)
 		QMessageBox::warning(this, "Warning", "No market asset found for portfolio frequency");
 		return;
 	}
-
-
-
+    // TODO
 }
 
 //============================================================================
@@ -407,7 +405,7 @@ void PortfolioTree::restore_strategies(QStandardItem* addedItem, QString id)
         newItem->setData(QVariant::fromValue(addedItem), ParentItemRole);  // Set the parent item using custom role
         
         auto strategy = this->hydra->get_strategy(strategy_id);
-        if (strategy.get()->__is_live()) {
+        if (strategy->__is_live()) {
 			newItem->setData(Qt::Checked, Qt::CheckStateRole);
 		}
         else {

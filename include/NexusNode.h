@@ -50,12 +50,12 @@ public:
     NexusNodeEditor(
         NexusEnv const* nexus_env,
         ads::CDockWidget* DockWidget,
-        AgisStrategyRef strategy,
+        AgisStrategy* strategy,
         QWidget* parent = nullptr
     );
     ~NexusNodeEditor();
 
-    void __set_strategy(AgisStrategyRef const strategy_);
+    void __set_strategy(AgisStrategy* strategy_);
     void __save();
     void __load(
         BasicGraphicsScene* scene,
@@ -79,7 +79,7 @@ private:
     GraphicsView* view;
 
     NexusEnv const* nexus_env;
-    AgisStrategyRef strategy;
+    AgisStrategy* strategy;
     std::string strategy_id;
     Ui::NexusNodeEditor* ui;
     ads::CDockWidget* DockWidget;

@@ -1,5 +1,6 @@
 #include "AgisOverloads.h"
 #include "NexusPortfolio.h"
+#include "NexusHelpers.h"
 #include "ui_NexusPortfolio.h"
 
 
@@ -20,24 +21,11 @@ NexusPortfolio::NexusPortfolio(
 
 	// Retrieve the central widget from the UI as well as the stats widget
 	QWidget* centralWidget = ui->centralwidget;
-    auto stats_layout = ui->stats;
-    this->stats_widget = new QWidget(this);
     
-    // setup the stats widget
-    stats_widget->setLayout(stats_layout);
-
     // Create a layout for the central widget
     QHBoxLayout* layout = new QHBoxLayout(centralWidget);
-    layout->setSpacing(10); // Set spacing between widgets
-    layout->setContentsMargins(10, 10, 10, 10); // Set margins around the layout
-
-    // Create a QTableWidget
-    //this->table_view = new QTableView(this);
-    //this->table_view->setEditTriggers(QAbstractItemView::NoEditTriggers);
-    //QScrollArea* scrollArea = new QScrollArea(this);
-    //scrollArea->setWidgetResizable(true);
-    //scrollArea->setWidget(this->table_view);
-    //this->load_asset_data();
+    layout->setSpacing(20); // Set spacing between widgets
+    layout->setContentsMargins(20, 20, 20, 20); // Set margins around the layout
 
     // Retrieve the NexusPlot widget from the UI
     this->nexus_plot = ui->widget;
@@ -47,9 +35,18 @@ NexusPortfolio::NexusPortfolio(
     QSplitter* splitter = new QSplitter(Qt::Horizontal, centralWidget);
     layout->addWidget(splitter);
 
+    this->table_container = new QTabWidget(this);
+    this->stats_table_view = new QTableView();
+    this->stats_table_view->setEditTriggers(QAbstractItemView::NoEditTriggers);
+    this->table_container->addTab(this->stats_table_view, QString("Results"));
+
+    this->trades_table_view = new QTableView();
+    this->trades_table_view->setEditTriggers(QAbstractItemView::NoEditTriggers);
+    this->table_container->addTab(this->trades_table_view, QString("Open Trades"));
+
     // Add the NexusPlot widget and table widget to the splitter
     splitter->addWidget(this->nexus_plot);
-    splitter->addWidget(stats_widget);
+    splitter->addWidget(this->table_container);
 
     // Calculate the initial size for the NexusPlot widget (e.g., 65% of the total size)
     int initialNexusPlotWidth = centralWidget->width() * 0.85;
@@ -100,7 +97,7 @@ void NexusPortfolio::set_up_strategies_menu()
     this->strategies_checkboxes.clear();
     auto new_action = new QAction("AGGREGATE", this);
     new_action->setCheckable(true);
-    new_action->setChecked(true);
+    new_action->setChecked(false);
     this->strategies_checkboxes.insert({ "AGGREGATE",new_action });
     settingsMenu->addAction(new_action);
 
@@ -118,47 +115,50 @@ void NexusPortfolio::set_up_strategies_menu()
 //============================================================================
 void NexusPortfolio::on_new_hydra_run()
 {
+    // set up the table view
+    QStandardItemModel* model = new QStandardItemModel(this);
+    static QStringList q_columns = { "Total P/L", "Pct Return", 
+        "Annualized Return", "Annualized Volatility", "Sharpe Ratio"};
+
+    auto selected_strategies = this->get_selected_strategies();
+    model->setRowCount(q_columns.size());
+    model->setColumnCount(selected_strategies.size());
+    model->setVerticalHeaderLabels(q_columns);
+    model->setHorizontalHeaderLabels(str_vec_to_qlist(selected_strategies));
+
     // get the absolute and pct returns for the portfolio
     auto hydra = this->nexus_env->get_hydra();
     auto& nlv = hydra->get_portfolio(this->portfolio_id)->get_nlv_history_vec();
     auto dt_index = hydra->__get_dt_index();
 
     // calculate total returns 
-    QString formattedPct = QString::number(get_stats_total_pl(nlv), 'f', 2);
-    this->ui->total_return->setText("$" + formattedPct);
+    QString formattedPct = "$" + QString::number(get_stats_total_pl(nlv), 'f', 2);
+    QStandardItem* item = new QStandardItem(formattedPct);
+    model->setItem(0, 0, item);
 
     // calculate pct returns
-    formattedPct = QString::number(get_stats_pct_returns(nlv));
-    this->ui->pct_return->setText(formattedPct + "%");
+    formattedPct = QString::number(get_stats_pct_returns(nlv)) + "%";
+    item = new QStandardItem(formattedPct);
+    model->setItem(1, 0, item);
 
     // calculate annualized returns
-    formattedPct = QString::number(get_stats_annualized_pct_returns(nlv), 'f', 2);
-    this->ui->annualized_return->setText(formattedPct + "%");
+    formattedPct = QString::number(get_stats_annualized_pct_returns(nlv), 'f', 2) + "%";
+    item = new QStandardItem(formattedPct);
+    model->setItem(2, 0, item);
 
     // calculate annualized volatility
-    formattedPct = QString::number(get_stats_annualized_volatility(nlv), 'f', 2);
-    this->ui->annualized_volatility->setText(formattedPct + "%");
+    formattedPct = QString::number(get_stats_annualized_volatility(nlv), 'f', 2) + "%";
+    item = new QStandardItem(formattedPct);
+    model->setItem(3, 0, item);
 
     // calculate annualized sharpe
     formattedPct = QString::number(get_stats_sharpe_ratio(nlv), 'f', 2);
-    this->ui->sharpe_ratio->setText(formattedPct);
+    item = new QStandardItem(formattedPct);
+    model->setItem(4, 0, item);
 
-    for (int row = 0; row < ui->stats->rowCount(); ++row) {
-        for (int col = 0; col < ui->stats->columnCount(); ++col) {
-            QWidget* widget = ui->stats->itemAtPosition(row, col)->widget();
-            if (widget) {
-                QLabel* label = qobject_cast<QLabel*>(widget);
-                if (label) {
-                    label->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
-                    label->adjustSize(); // This will force the label to resize to fit the new text
-                }
-            }
-        }
-    }
-    // update the stats widget label
-    this->stats_widget->update();
-
-    // remove all graphs from the plot
+    this->stats_table_view->reset();
+    this->stats_table_view->setModel(model);
+    this->stats_table_view->resizeColumnsToContents();
     this->nexus_plot->clearGraphs();
 }
 
@@ -232,46 +232,48 @@ void NexusPortfolioPlot::contextMenuRequest(QPoint pos)
 
 //============================================================================
 std::vector<double> NexusPortfolioPlot::get_data(
-    const std::variant<AgisStrategyRef, PortfolioPtr>& entity,
+    const std::variant<AgisStrategy *, PortfolioPtr>& entity,
     const std::string& name)
 {
     if (name == "CASH") {
-        if (std::holds_alternative<AgisStrategyRef>(entity)) {
-            return std::get<AgisStrategyRef>(entity).get()->get_cash_history();
+        if (std::holds_alternative<AgisStrategy *>(entity)) {
+            return std::get<AgisStrategy *>(entity)->get_cash_history();
         }
         else {
-            return std::get<PortfolioPtr>(entity).get()->get_cash_history();
+            return std::get<PortfolioPtr>(entity)->get_cash_history();
         }
     }
     else if (name == "NLV") {
-        if (std::holds_alternative<AgisStrategyRef>(entity)) {
-            return std::get<AgisStrategyRef>(entity).get()->get_nlv_history();
+        if (std::holds_alternative<AgisStrategy *>(entity)) {
+            return std::get<AgisStrategy *>(entity)->get_nlv_history();
         }
         else {
-            return std::get<PortfolioPtr>(entity).get()->get_nlv_history();
+            return std::get<PortfolioPtr>(entity)->get_nlv_history();
         }
     }
     else if (name == "NET BETA DOLLARS / NLV") {
-        if (std::holds_alternative<AgisStrategyRef>(entity)) {
-            AgisStrategyRef entity_ptr = std::get<AgisStrategyRef>(entity);
-            return entity_ptr.get()->get_beta_history() / entity_ptr.get()->get_nlv_history();
+        if (std::holds_alternative<AgisStrategy *>(entity)) {
+            AgisStrategy * entity_ptr = std::get<AgisStrategy *>(entity);
+            if(!entity_ptr->__is_beta_trace()) return std::vector<double>();
+            return entity_ptr->get_beta_history() / entity_ptr->get_nlv_history();
         }
         else {
             PortfolioPtr entity_ptr = std::get<PortfolioPtr>(entity);
+            if (!entity_ptr->__is_beta_trace()) return std::vector<double>();
             return entity_ptr->get_beta_history() / entity_ptr->get_nlv_history();
         }
     }
     else if (name == "NET BETA DOLLARS") {
-        if (std::holds_alternative<AgisStrategyRef>(entity)) {
-            return std::get<AgisStrategyRef>(entity).get()->get_beta_history();
+        if (std::holds_alternative<AgisStrategy *>(entity)) {
+            return std::get<AgisStrategy *>(entity)->get_beta_history();
         }
         else {
-            return std::get<PortfolioPtr>(entity).get()->get_beta_history();
+            return std::get<PortfolioPtr>(entity)->get_beta_history();
         }
     }
     else if (name == "NET LEVERAGE") {
-        if (std::holds_alternative<AgisStrategyRef>(entity)) {
-            return std::get<AgisStrategyRef>(entity).get()->get_net_leverage_ratio_history();
+        if (std::holds_alternative<AgisStrategy *>(entity)) {
+            return std::get<AgisStrategy *>(entity)->get_net_leverage_ratio_history();
         }
         else {
             //return std::get<PortfolioPtr>(entity).get()->get_ne();
@@ -279,11 +281,11 @@ std::vector<double> NexusPortfolioPlot::get_data(
     }
     else if (name == "UNDERWATER") {
         std::span<double const> y_span;
-        if (std::holds_alternative<AgisStrategyRef>(entity)) {
-            y_span = std::get<AgisStrategyRef>(entity).get()->get_nlv_history();
+        if (std::holds_alternative<AgisStrategy *>(entity)) {
+            y_span = std::get<AgisStrategy *>(entity)->get_nlv_history();
         }
         else {
-            y_span = std::get<PortfolioPtr>(entity).get()->get_nlv_history();
+            y_span = std::get<PortfolioPtr>(entity)->get_nlv_history();
         }
         return get_stats_underwater_plot(y_span);
 
@@ -304,9 +306,9 @@ void NexusPortfolioPlot::add_plot(QString const& name)
     auto selected_strategies = this->nexus_portfolio->get_selected_strategies();
     for (auto& strategy_id : selected_strategies)
     {
-        std::variant<AgisStrategyRef, PortfolioPtr> entity = nullptr;
+        std::variant<AgisStrategy*, PortfolioPtr> entity = nullptr;
         if (this->hydra->strategy_exists(strategy_id)) {
-            entity = portfolio->__get_strategy(strategy_id);
+            entity = this->hydra->__get_strategy(strategy_id);
         }
         else {
             entity = portfolio;

@@ -95,7 +95,7 @@ public:
 
 	HydraPtr  get_hydra() const;
 	AgisResult<AssetPtr> const get_asset(std::string const& asset_id);
-	std::optional<AgisStrategyRef const> get_strategy(std::string const& strategy_id); 
+	std::optional<AgisStrategy *> __get_strategy(std::string const& strategy_id); 
 	
 	std::vector<std::string> get_portfolio_ids();
 	size_t get_candle_count() { return this->hydra.get_candle_count(); }

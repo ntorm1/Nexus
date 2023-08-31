@@ -114,7 +114,7 @@ private:
     void onViewVisibilityChanged(bool open);
     void onViewToggled(bool open);
     void onFileDoubleClicked(const QModelIndex& index);
-
+    void extract_flow_graphs();
     void applyVsStyle();
 
     QAction*        SavePerspectiveAction = nullptr;

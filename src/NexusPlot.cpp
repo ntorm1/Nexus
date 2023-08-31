@@ -15,6 +15,8 @@ NexusPlot::NexusPlot(QWidget* parent) :
 	this->yAxis->setRange(-5, 5);
 	this->axisRect()->setupFullAxesBox();
 
+
+
 	this->xAxis->setLabel("Time");
 	this->yAxis->setLabel("y Axis");
 	this->legend->setVisible(true);
@@ -90,6 +92,7 @@ void NexusPlot::mouseWheel()
 void NexusPlot::removeAllGraphs()
 {
 	this->clearGraphs();
+	this->rescaleAxes();
 	this->replot();
 }
 
@@ -100,6 +103,7 @@ void NexusPlot::removeSelectedGraph()
 	if (this->selectedGraphs().size() > 0)
 	{
 		this->removeGraph(this->selectedGraphs().first());
+		this->rescaleAxes();
 		this->replot();
 	}
 }
@@ -116,6 +120,7 @@ void NexusPlot::remove_graph_by_name(std::string const& name)
 		if (item->plottable()->name().toStdString() == name)
 		{
 			this->removeGraph(graph);
+			this->rescaleAxes();
 			this->replot();
 		}
 	}

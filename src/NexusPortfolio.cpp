@@ -1,4 +1,4 @@
-
+#include "AgisOverloads.h"
 #include "NexusPortfolio.h"
 #include "ui_NexusPortfolio.h"
 
@@ -168,43 +168,6 @@ NexusPortfolioPlot::NexusPortfolioPlot(QWidget* parent_)
 {
 }
 
-//============================================================================
-void NexusPortfolioPlot::contextMenuRequest(QPoint pos)
-{
-    QMenu* menu = new QMenu(this);
-    menu->setAttribute(Qt::WA_DeleteOnClose);
-
-    if (this->legend->selectTest(pos, false) >= 0) // context menu on legend requested
-    {
-        menu->addAction("Move to top left", this, SLOT(moveLegend()))->setData((int)(Qt::AlignTop | Qt::AlignLeft));
-        menu->addAction("Move to top center", this, SLOT(moveLegend()))->setData((int)(Qt::AlignTop | Qt::AlignHCenter));
-        menu->addAction("Move to top right", this, SLOT(moveLegend()))->setData((int)(Qt::AlignTop | Qt::AlignRight));
-        menu->addAction("Move to bottom right", this, SLOT(moveLegend()))->setData((int)(Qt::AlignBottom | Qt::AlignRight));
-        menu->addAction("Move to bottom left", this, SLOT(moveLegend()))->setData((int)(Qt::AlignBottom | Qt::AlignLeft));
-    }
-    else  // general context menu on graphs requested
-    {
-        QMenu* moveSubMenu = menu->addMenu("Plot");
-
-        QAction* action = moveSubMenu->addAction("NLV");
-        connect(action, &QAction::triggered, this, [this]() {
-            this->add_plot("NLV");
-            });
-
-        action = moveSubMenu->addAction("CASH");
-        connect(action, &QAction::triggered, this, [this]() {
-            this->add_plot("CASH");
-            });
-
-        if (this->selectedGraphs().size() > 0)
-            menu->addAction("Remove selected graph", this, SLOT(removeSelectedGraph()));
-        if (this->graphCount() > 0)
-            menu->addAction("Remove all graphs", this, SLOT(removeAllGraphs()));
-    }
-
-    menu->popup(this->mapToGlobal(pos));
-}
-
 
 //============================================================================
 void NexusPortfolioPlot::removeAllGraphs()
@@ -226,6 +189,116 @@ void NexusPortfolioPlot::removeSelectedGraph()
     NexusPlot::removeSelectedGraph();
 }
 
+
+//============================================================================
+void NexusPortfolioPlot::contextMenuRequest(QPoint pos)
+{
+    QMenu* menu = new QMenu(this);
+    menu->setAttribute(Qt::WA_DeleteOnClose);
+
+    if (this->legend->selectTest(pos, false) >= 0) // context menu on legend requested
+    {
+        menu->addAction("Move to top left", this, SLOT(moveLegend()))->setData((int)(Qt::AlignTop | Qt::AlignLeft));
+        menu->addAction("Move to top center", this, SLOT(moveLegend()))->setData((int)(Qt::AlignTop | Qt::AlignHCenter));
+        menu->addAction("Move to top right", this, SLOT(moveLegend()))->setData((int)(Qt::AlignTop | Qt::AlignRight));
+        menu->addAction("Move to bottom right", this, SLOT(moveLegend()))->setData((int)(Qt::AlignBottom | Qt::AlignRight));
+        menu->addAction("Move to bottom left", this, SLOT(moveLegend()))->setData((int)(Qt::AlignBottom | Qt::AlignLeft));
+    }
+    else  // general context menu on graphs requested
+    {
+        QMenu* moveSubMenu = menu->addMenu("Plot");
+
+        QAction* action = moveSubMenu->addAction("CASH");
+        connect(action, &QAction::triggered, this, [this]() {
+            this->add_plot("CASH");
+            });
+
+        action = moveSubMenu->addAction("NET BETA DOLLARS / NLV");
+        connect(action, &QAction::triggered, this, [this]() {
+            this->add_plot("NET BETA DOLLARS / NLV");
+            });
+
+        action = moveSubMenu->addAction("NET BETA DOLLARS");
+        connect(action, &QAction::triggered, this, [this]() {
+            this->add_plot("NET BETA DOLLARS");
+            });
+
+        action = moveSubMenu->addAction("NLV");
+        connect(action, &QAction::triggered, this, [this]() {
+            this->add_plot("NLV");
+            });
+
+        action = moveSubMenu->addAction("UNDERWATER");
+        connect(action, &QAction::triggered, this, [this]() {
+            this->add_plot("UNDERWATER");
+            });
+
+
+        if (this->selectedGraphs().size() > 0)
+            menu->addAction("Remove selected graph", this, SLOT(removeSelectedGraph()));
+        if (this->graphCount() > 0)
+            menu->addAction("Remove all graphs", this, SLOT(removeAllGraphs()));
+    }
+
+    menu->popup(this->mapToGlobal(pos));
+}
+
+
+//============================================================================
+std::vector<double> NexusPortfolioPlot::get_data(
+    const std::variant<AgisStrategyRef, PortfolioPtr>& entity,
+    const std::string& name)
+{
+    if (name == "CASH") {
+        if (std::holds_alternative<AgisStrategyRef>(entity)) {
+            return std::get<AgisStrategyRef>(entity).get()->get_cash_history();
+        }
+        else {
+            return std::get<PortfolioPtr>(entity).get()->get_cash_history();
+        }
+    }
+    else if (name == "NLV") {
+        if (std::holds_alternative<AgisStrategyRef>(entity)) {
+            return std::get<AgisStrategyRef>(entity).get()->get_nlv_history();
+        }
+        else {
+            return std::get<PortfolioPtr>(entity).get()->get_nlv_history();
+        }
+    }
+    else if (name == "NET BETA DOLLARS / NLV") {
+        if (std::holds_alternative<AgisStrategyRef>(entity)) {
+            AgisStrategyRef entity_ptr = std::get<AgisStrategyRef>(entity);
+            return entity_ptr.get()->get_beta_history() / entity_ptr.get()->get_nlv_history();
+        }
+        else {
+            PortfolioPtr entity_ptr = std::get<PortfolioPtr>(entity);
+            return entity_ptr->get_beta_history() / entity_ptr->get_nlv_history();
+        }
+    }
+    else if (name == "NET BETA DOLLARS") {
+        if (std::holds_alternative<AgisStrategyRef>(entity)) {
+            return std::get<AgisStrategyRef>(entity).get()->get_beta_history();
+        }
+        else {
+            return std::get<PortfolioPtr>(entity).get()->get_beta_history();
+        }
+    }
+    else if (name == "UNDERWATER") {
+        std::span<double const> y_span;
+        if (std::holds_alternative<AgisStrategyRef>(entity)) {
+            y_span = std::get<AgisStrategyRef>(entity).get()->get_nlv_history();
+        }
+        else {
+            y_span = std::get<PortfolioPtr>(entity).get()->get_nlv_history();
+        }
+        return get_stats_underwater_plot(y_span);
+
+    }
+    // Return an empty span if the name doesn't match any condition
+    return std::vector<double>();
+}
+
+
 //============================================================================
 void NexusPortfolioPlot::add_plot(QString const& name)
 {
@@ -237,9 +310,7 @@ void NexusPortfolioPlot::add_plot(QString const& name)
     auto selected_strategies = this->nexus_portfolio->get_selected_strategies();
     for (auto& strategy_id : selected_strategies)
     {
-        std::span<double const> y_span;
         std::variant<AgisStrategyRef, PortfolioPtr> entity = nullptr;
-
         if (this->hydra->strategy_exists(strategy_id)) {
             entity = portfolio->__get_strategy(strategy_id);
         }
@@ -247,38 +318,20 @@ void NexusPortfolioPlot::add_plot(QString const& name)
             entity = portfolio;
         }
 
-        // extract the span of data to plot
-        if (name == "CASH") {
-            if (std::holds_alternative<AgisStrategyRef>(entity)) {
-                y_span = std::get<AgisStrategyRef>(entity).get()->get_cash_history();
-            }
-			else {
-				y_span = std::get<PortfolioPtr>(entity).get()->get_cash_history();
-			}
-        }
-        else if (name == "NLV") {
-            if (std::holds_alternative<AgisStrategyRef>(entity)) {
-                y_span = std::get<AgisStrategyRef>(entity).get()->get_nlv_history();
-            }
-            else {
-                y_span = std::get<PortfolioPtr>(entity).get()->get_nlv_history();
-            }
-        }
-        else
-        {
-            QMessageBox::critical(nullptr, "Error", "Failed to add plot");
-            return;
-        }
+        // extract the data column from the entity
+        auto y = get_data(entity, name.toStdString());
 
-        if (x.size() != y_span.size())
+        if (x.size() != y.size())
         {
-            QMessageBox::critical(nullptr, "Error", "Failed find complete history");
+            QMessageBox::critical(nullptr, "Error", 
+                "Failed find " + name + " history for " + QString::fromStdString(strategy_id)
+            );
             return;
         }
 
         this->plot(
             x,
-            y_span,
+            y,
             strategy_id + " " + name.toStdString()
         );
         this->plotted_graphs.push_back(strategy_id + " " + name.toStdString());

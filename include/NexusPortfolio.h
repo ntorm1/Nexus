@@ -51,6 +51,11 @@ private:
     HydraPtr hydra = nullptr;
     NexusPortfolio* nexus_portfolio = nullptr;
     std::string portfolio_id;
+
+    std::vector<double> get_data(
+        const std::variant<AgisStrategyRef, PortfolioPtr>& entity,
+        const std::string& name
+    );
 };
 
 

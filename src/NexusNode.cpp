@@ -109,6 +109,19 @@ void NexusNodeEditor::on_alloc_change(double allocation)
 }
 
 
+
+//============================================================================
+void NexusNodeEditor::handleCheckBoxStateChange(QCheckBox* checkBox, std::function<AgisResult<bool>(bool)> setFunction) {
+	int state = checkBox->isChecked() ? Qt::Checked : Qt::Unchecked;
+	AgisResult<bool> res = setFunction(state == Qt::Checked);
+
+	if (res.is_exception()) {
+		QMessageBox::critical(this, "Error", QString::fromStdString(res.get_exception()));
+		checkBox->setChecked(!checkBox->isChecked());
+	}
+}
+
+
 //============================================================================
 void NexusNodeEditor::create_strategy_tab(QVBoxLayout* l)
 {
@@ -149,39 +162,32 @@ void NexusNodeEditor::create_strategy_tab(QVBoxLayout* l)
 	// strategy beta settings
 	this->beta_scale = new QCheckBox("Beta Scale Positions");
 	this->beta_hedge = new QCheckBox("Beta Hedge Positions");
+	this->beta_trace = new QCheckBox("Beta Trace Positions");
 	beta_hedge->setChecked(this->strategy.get()->__is_beta_hedged());
 	beta_scale->setChecked(this->strategy.get()->__is_beta_scaling());
+	beta_scale->setChecked(this->strategy.get()->__is_beta_trace());
+
 	l->addWidget(beta_hedge);
 	l->addWidget(beta_scale);
+	l->addWidget(beta_trace);
 	
+	// Connect stateChanged signal to the common function
 	connect(beta_scale, &QCheckBox::stateChanged, [this](int state) {
-		AgisResult<bool> res;
-		if (state == Qt::Checked) {
-			res = this->strategy.get()->set_beta_scale_positions(true);
-		}
-		else {
-			res = this->strategy.get()->set_beta_scale_positions(false);
-		}
-		if (res.is_exception())
-		{
-			QMessageBox::critical(this, "Error", QString::fromStdString(res.get_exception()));
-			beta_scale->setChecked(false);
-		}
-	});
+		handleCheckBoxStateChange(beta_scale, [this](bool state) {
+			return this->strategy.get()->set_beta_scale_positions(state);
+			});
+		});
 	connect(beta_hedge, &QCheckBox::stateChanged, [this](int state) {
-		AgisResult<bool> res;
-		if (state == Qt::Checked) {
-			res = this->strategy.get()->set_beta_hedge_positions(true);
-		}
-		else {
-			res = this->strategy.get()->set_beta_hedge_positions(false);
-		}
-		if (res.is_exception())
-		{
-			QMessageBox::critical(this, "Error", QString::fromStdString(res.get_exception()));
-			beta_hedge->setChecked(false);
-		}
-	});
+		handleCheckBoxStateChange(beta_hedge, [this](bool state) {
+			return this->strategy.get()->set_beta_hedge_positions(state);
+			});
+		});
+	connect(beta_trace, &QCheckBox::stateChanged, [this](int state) {
+		handleCheckBoxStateChange(beta_trace, [this](bool state) {
+			return this->strategy.get()->set_beta_trace(state);
+			});
+		});
+
 
 	// listen to changes in strategy settings widgets
 	connect(

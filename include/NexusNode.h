@@ -67,6 +67,7 @@ public:
 
 private:
     QMenuBar* createSaveRestoreMenu(BasicGraphicsScene* scene);
+    void handleCheckBoxStateChange(QCheckBox* checkBox, std::function<AgisResult<bool>(bool)> setFunction);
     void create_strategy_tab(QVBoxLayout* l);
     void on_tw_change(int index);
     void on_alloc_change(double allocation);
@@ -85,8 +86,10 @@ private:
 
     QLineEdit* allocation;
     QComboBox* trading_window;
-    QCheckBox* beta_scale;
-    QCheckBox* beta_hedge;
+
+    QCheckBox* beta_trace; ///< Wether or not to store the net beta of the strategy every t
+    QCheckBox* beta_scale; ///< Wether or not to scale the strategy allocation by the beta
+    QCheckBox* beta_hedge; ///< Wether or not to hedge the beta of the strategy
 
     QMenuBar* menuBar;
     QMenu* fileMenu;

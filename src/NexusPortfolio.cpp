@@ -208,31 +208,16 @@ void NexusPortfolioPlot::contextMenuRequest(QPoint pos)
     {
         QMenu* moveSubMenu = menu->addMenu("Plot");
 
-        QAction* action = moveSubMenu->addAction("CASH");
-        connect(action, &QAction::triggered, this, [this]() {
-            this->add_plot("CASH");
-            });
-
-        action = moveSubMenu->addAction("NET BETA DOLLARS / NLV");
-        connect(action, &QAction::triggered, this, [this]() {
-            this->add_plot("NET BETA DOLLARS / NLV");
-            });
-
-        action = moveSubMenu->addAction("NET BETA DOLLARS");
-        connect(action, &QAction::triggered, this, [this]() {
-            this->add_plot("NET BETA DOLLARS");
-            });
-
-        action = moveSubMenu->addAction("NLV");
-        connect(action, &QAction::triggered, this, [this]() {
-            this->add_plot("NLV");
-            });
-
-        action = moveSubMenu->addAction("UNDERWATER");
-        connect(action, &QAction::triggered, this, [this]() {
-            this->add_plot("UNDERWATER");
-            });
-
+        std::vector<std::string> menu_cols = { 
+            "CASH", "NET BETA DOLLARS / NLV", "NET BETA DOLLARS", "NLV", "UNDERWATER" 
+        };
+        for (auto& col : menu_cols)
+		{
+			QAction* action = moveSubMenu->addAction(QString::fromStdString(col));
+			connect(action, &QAction::triggered, this, [this, col]() {
+				this->add_plot(QString::fromStdString(col));
+				});
+		}
 
         if (this->selectedGraphs().size() > 0)
             menu->addAction("Remove selected graph", this, SLOT(removeSelectedGraph()));

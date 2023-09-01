@@ -21,6 +21,7 @@ class NexusAsset;
 class NexusAssetPlot : public NexusPlot
 {
      Q_OBJECT
+         friend class NexusAsset;
 public:
     explicit NexusAssetPlot(QWidget* parent);
     ~NexusAssetPlot() = default;
@@ -67,7 +68,7 @@ public:
         AssetPtr asset,
         QWidget* parent = nullptr
     );
-
+    void init_asset_selection();
     void load_asset_data();
     void load_asset_order_data();
     void load_asset_trade_data();
@@ -79,6 +80,7 @@ public:
     Ui::NexusAsset* ui;
     ads::CDockWidget* DockWidget;
     NexusAssetPlot* nexus_plot;
+    QComboBox* asset_selection;
     QTabWidget* table_container;
     QTableView* table_view;
     QTableView* orders_table_view;
@@ -86,6 +88,7 @@ public:
     QTableView* positions_table_view;
 
     NexusEnv const* nexus_env;
+    std::vector<std::string> asset_ids;
     AssetPtr asset;
 
     std::vector<SharedTradePtr> trades;

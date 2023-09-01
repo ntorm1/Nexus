@@ -631,8 +631,14 @@ void MainWindow::setup_command_bar()
     spacerWidget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
     ui->toolBar->addWidget(spacerWidget);
 
+    QAction* a = new QAction("Settings", ui->toolBar);
+    a->setProperty("Floating", true);
+    a->setToolTip("Open Settings Window");
+    a->setIcon(svgIcon("./images/settings.png"));
+    connect(a, &QAction::triggered, this, &MainWindow::on_settings_window_request);
+    ui->toolBar->addAction(a);
 
-    QAction* a = new QAction("Compile", ui->toolBar);
+    a = new QAction("Compile", ui->toolBar);
     a->setProperty("Floating", true);
     a->setToolTip("Compile Agis strategies");
     a->setIcon(svgIcon("./images/console.png"));
@@ -873,6 +879,7 @@ void MainWindow::restore_state()
     NEXUS_DO_OR_INTERUPT(this->restore_portfolios(j));
     ProgressBar->setValue(6);
     NEXUS_DO_OR_INTERUPT(this->nexus_env.restore_strategies(j));
+    NEXUS_DO_OR_INTERUPT(this->nexus_env.restore_settings(j));
     ProgressBar->setValue(7);
   
     // Restore widgets
@@ -1202,6 +1209,30 @@ void MainWindow::on_strategy_toggle(const QString& name, bool toggle)
 
     strategy.value()->set_is_live(toggle);
     qDebug() << "Strategy" << name << "toggled " << toggle;
+}
+
+
+//============================================================================
+void MainWindow::on_settings_change(NexusSettings* settings)
+{
+    this->nexus_env.set_settings(settings);
+}
+
+
+//============================================================================
+void MainWindow::on_settings_window_request()
+{
+    NexusSettings* popup = new NexusSettings(&this->nexus_env);
+
+    // Listen to the finished signal of the popup dialog
+    connect(popup, &QDialog::finished, popup, &QDialog::deleteLater);
+    
+    // listen to the settings window for changes
+    connect(popup, &NexusSettings::settings_changed, this, [popup, this]() {
+        this->on_settings_change(popup);
+        });
+
+    popup->exec();
 }
 
 

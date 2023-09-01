@@ -55,7 +55,6 @@ void NexusDockManager::restore_widgets(json const& j)
 	int max_widget_id = -1;
 	for (const auto& widget_pair : widgets.items())
 	{
-		std::string widget_name = widget_pair.key();
 		auto widget_json = widget_pair.value();
 		int widget_id = widget_json["widget_id"];
 		WidgetType widget_type = widget_json["widget_type"];

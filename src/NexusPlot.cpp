@@ -15,7 +15,9 @@ NexusPlot::NexusPlot(QWidget* parent) :
 	this->yAxis->setRange(-5, 5);
 	this->axisRect()->setupFullAxesBox();
 
-
+	this->plotLayout()->insertRow(0);
+	QCPTextElement* title = new QCPTextElement(this,"NexusPlot", QFont("sans", 17, QFont::Bold));
+	this->plotLayout()->addElement(0, 0, title);
 
 	this->xAxis->setLabel("Time");
 	this->yAxis->setLabel("y Axis");
@@ -226,6 +228,16 @@ void NexusPlot::graphClicked(QCPAbstractPlottable* plottable, int dataIndex)
 	double dataValue = plottable->interface1D()->dataMainValue(dataIndex);
 	QString message = QString("Clicked on graph '%1' at data point #%2 with value %3.").arg(plottable->name()).arg(dataIndex).arg(dataValue);
 	//this->ui->statusbar->showMessage(message, 2500);
+}
+
+
+//============================================================================
+void NexusPlot::set_title(std::string title)
+{
+	if(!this->plotLayout()->hasElement(0, 0)) throw std::runtime_error("No title element");
+	auto element = this->plotLayout()->element(0, 0);
+	auto title_ptr = static_cast<QCPTextElement*>(element);
+	title_ptr->setText(QString::fromStdString(title));
 }
 
 

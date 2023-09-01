@@ -5,6 +5,43 @@
 #include "Utils.h"
 #include <QThread>
 
+
+//============================================================================
+void NexusAsset::init_asset_selection()
+{
+    this->asset_selection = new QComboBox(this);
+    for (auto& asset_id : this->asset_ids)
+    {
+        this->asset_selection->addItem(QString::fromStdString(asset_id));
+    }
+    // Find the maximum width among the items
+    int maxWidth = 0;
+    for (int i = 0; i < this->asset_selection->count(); ++i) {
+        QRect textRect = this->asset_selection->fontMetrics().boundingRect(this->asset_selection->itemText(i));
+        maxWidth = std::max(maxWidth, textRect.width());
+    }
+    // Set the width of the dropdown to accommodate the maximum width
+    this->asset_selection->setFixedWidth(maxWidth + 20); // Add some extra space for padding
+
+    connect(this->asset_selection, QOverload<int>::of(&QComboBox::currentIndexChanged), this, [this](int index) {
+        // Your slot code here
+        QString selectedText = this->asset_selection->currentText();
+        // set the asset pointer to the selected asset
+        this->asset = this->nexus_env->get_hydra()->get_asset(selectedText.toStdString()).unwrap();
+        // load in the actual data of the asset
+        this->load_asset_data();
+        // load in the new data to the plot
+        this->nexus_plot->load_asset(this);
+        // load in any event data from the hydra instance
+        this->on_new_hydra_run();
+        // replot any selected graphs
+        auto seleced_graphs = this->nexus_plot->plotted_graphs;
+        this->nexus_plot->removeAllGraphs();
+        this->set_plotted_graphs(seleced_graphs);
+        });
+}
+
+
 //============================================================================
 NexusAsset::NexusAsset(
         NexusEnv const* nexus_env_,
@@ -23,9 +60,14 @@ NexusAsset::NexusAsset(
     QWidget* centralWidget = ui->centralwidget;
 
     // Create a layout for the central widget
-    QHBoxLayout* layout = new QHBoxLayout(centralWidget);
+    QVBoxLayout* layout = new QVBoxLayout(centralWidget);
     layout->setSpacing(10); // Set spacing between widgets
     layout->setContentsMargins(10, 10, 10, 10); // Set margins around the layout
+
+    // init asset selection dropdown
+    this->asset_ids = this->nexus_env->get_hydra()->get_asset_ids("");
+    this->init_asset_selection();
+    layout->addWidget(this->asset_selection);
 
     // Create a QTableWidget
     this->table_container = new QTabWidget(this);
@@ -66,11 +108,7 @@ NexusAsset::NexusAsset(
 
     // Set the sizes for the widgets in the splitter
     splitter->setSizes({ initialNexusPlotWidth, centralWidget->width() - initialNexusPlotWidth });
-
-    this->nexus_plot->plotLayout()->insertRow(0);
-    QCPTextElement* title = new QCPTextElement(this->nexus_plot, this->asset->get_asset_id().c_str(), QFont("sans", 17, QFont::Bold));
-    this->nexus_plot->plotLayout()->addElement(0, 0, title);
-
+    
     // Set the layout for the central widget
     centralWidget->setLayout(layout);
 
@@ -91,22 +129,13 @@ void NexusAsset::load_asset_data()
     // Create the model
     QStandardItemModel* model = new QStandardItemModel(this);
 
-    QStringList q_column_names, q_row_names;
-    for (const std::string& str : this->column_names) {
-        q_column_names.append(QString::fromStdString(str));
-    }
-    for (const std::string& str : this->dt_index_str) {
-        q_row_names.append(QString::fromStdString(str));
-    }
-
     // Set the number of rows and columns
     int rows = data.rows();
     int columns = data.columns();
     model->setRowCount(rows);
     model->setColumnCount(columns);
-    model->setHorizontalHeaderLabels(q_column_names);
-    model->setVerticalHeaderLabels(q_row_names);
-
+    model->setHorizontalHeaderLabels(str_vec_to_qlist(this->column_names));
+    model->setVerticalHeaderLabels(str_vec_to_qlist(this->dt_index_str));
 
     // Set the data in the model
     int q_index = 0;
@@ -253,6 +282,7 @@ void NexusAsset::on_new_hydra_run() {
 
     load_asset_order_data();
     load_asset_trade_data();
+
 }
 
 //============================================================================
@@ -265,6 +295,8 @@ NexusAssetPlot::NexusAssetPlot(QWidget* parent) : NexusPlot(parent)
 void NexusAssetPlot::load_asset(NexusAsset* asset_)
 {
     this->nexus_asset = asset_;
+    this->set_title(asset_->get_asset_id().c_str());
+    this->replot();
 }
 
 

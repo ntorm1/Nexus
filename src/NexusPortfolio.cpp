@@ -54,9 +54,7 @@ NexusPortfolio::NexusPortfolio(
     // Set the sizes for the widgets in the splitter
     splitter->setSizes({ initialNexusPlotWidth, centralWidget->width() - initialNexusPlotWidth });
 
-    this->nexus_plot->plotLayout()->insertRow(0);
-    QCPTextElement* title = new QCPTextElement(this->nexus_plot, portfolio_id.c_str(), QFont("sans", 17, QFont::Bold));
-    this->nexus_plot->plotLayout()->addElement(0, 0, title);
+    this->nexus_plot->set_title(portfolio_id.c_str());
 
     // Set the layout for the central widget
     centralWidget->setLayout(layout);

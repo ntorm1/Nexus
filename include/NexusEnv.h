@@ -23,6 +23,8 @@ constexpr auto NEXUS_DATETIME_FORMAT = "%F %T";
 /// </summary>
 extern const std::vector<std::string> nexus_datetime_columns;
 
+class NexusSettings;
+
 class NexusEnv
 {
 private:
@@ -49,6 +51,9 @@ private:
 	/// </summary>
 	Hydra hydra;
 
+	std::string agis_pyd_path = "";
+	std::string agis_lib_path = "";
+	std::string agis_include_path = "";
 	std::string env_name;
 	fs::path env_path;
 
@@ -75,8 +80,16 @@ public:
 	void clear();
 
 	AgisResult<bool> restore_strategies(json const& j);
+	AgisResult<bool> restore_settings(json const& j);
 	inline AgisResult<bool> restore_portfolios(json const& j) { return this->hydra.restore_portfolios(j); }
 	inline AgisResult<bool> restore_exchanges(json const& j) { return this->hydra.restore_exchanges(j); }
+
+	/// <summary>
+	/// Take a Nexus settings popup window and load in the settings passes and validate them
+	/// </summary>
+	/// <param name="nexus_settings">Pointer to a nexus settings window</param>
+	/// <returns></returns>
+	AgisResult<bool> set_settings(NexusSettings* nexus_settings);
 
 	//============================================================================
 	fs::path const& get_env_path() const { return this->env_path; }
@@ -96,8 +109,24 @@ public:
 	void new_tree(NexusTree* new_tree);
 	void reset_trees();
 
+	/// <summary>
+	/// Return a pointer to the hydra instance
+	/// </summary>
+	/// <returns></returns>
 	HydraPtr  get_hydra() const;
+
+	/// <summary>
+	/// Get an asset pointer by id
+	/// </summary>
+	/// <param name="asset_id">the asset pointer if it exsists, otherwise Agis Result exception</param>
+	/// <returns></returns>
 	AgisResult<AssetPtr> const get_asset(std::string const& asset_id);
+
+	/// <summary>
+	/// Get a pointer to a strategy by id
+	/// </summary>
+	/// <param name="strategy_id">pointer to the strategy if it was found</param>
+	/// <returns></returns>
 	std::optional<AgisStrategy *> __get_strategy(std::string const& strategy_id); 
 	
 	std::vector<std::string> get_portfolio_ids();
@@ -128,6 +157,10 @@ public:
 	auto const& get_order_history() const { return this->order_history; }
 	auto const& get_trade_history() const { return this->trade_history; }
 	auto const& get_position_history() const { return this->position_history; }
+
+	std::string get_agis_include_path() const { return this->agis_include_path; }
+	std::string get_agis_pyd_path() const { return this->agis_pyd_path; }
+	std::string get_agis_dll_path() const { return this->agis_lib_path; }
 
 	[[nodiscard]] AgisResult<bool> set_market_asset(
 		std::string const& exchange_id,

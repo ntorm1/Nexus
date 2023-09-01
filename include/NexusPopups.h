@@ -10,6 +10,7 @@
 #include <QtWidgets/QComboBox>
 
 class Exchange;
+class NexusEnv;
 typedef std::shared_ptr<Exchange> ExchangePtr;
 
 QT_BEGIN_NAMESPACE
@@ -17,9 +18,14 @@ namespace Ui {
     class NewExchangePopup;
     class NewPortfolioPopup;
     class NewStrategyPopup;
+    class NexusSettings;
 }
 QT_END_NAMESPACE
 
+
+/// <summary>
+/// Poppup window when a new portfolio is requested.
+/// </summary>
 class NewPortfolioPopup : public QDialog
 {
     Q_OBJECT
@@ -36,6 +42,10 @@ private:
 
 };
 
+
+/// <summary>
+/// Popup window when a new strategy is requested.
+/// </summary>
 class NewStrategyPopup : public QDialog
 {
     Q_OBJECT
@@ -52,6 +62,9 @@ private:
 
 };
 
+/// <summary>
+/// Pop up window presented when a new exchange is requested.
+/// </summary>
 class NewExchangePopup : public QDialog
 {
     Q_OBJECT
@@ -78,4 +91,35 @@ private slots:
 private:
     void on_submit();
     
+};
+
+
+/// <summary>
+/// Popup window when Nexus settings ar
+/// </summary>
+class NexusSettings : public QDialog
+{
+    Q_OBJECT
+
+signals:
+    void settings_changed();
+
+public:
+    explicit NexusSettings(
+        NexusEnv const * nexs_env,
+        QWidget* parent = nullptr
+    );
+    ~NexusSettings();
+
+    QString get_agis_include_path() const;
+    QString get_agis_lib_path() const;
+    QString get_agis_pyd_path() const;
+
+private slots:
+    void select_folder(std::string dest);
+
+private:
+    void on_submit();
+    Ui::NexusSettings* ui;
+    NexusEnv const * nexs_env;
 };

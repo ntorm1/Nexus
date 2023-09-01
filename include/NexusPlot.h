@@ -27,7 +27,7 @@ public:
 	explicit NexusPlot(QWidget* parent = 0);
 	~NexusPlot() = default;
 
-	void set_title(std::string title) {};
+	void set_title(std::string title);
 	void plot(
 		std::span<long long> x,
 		std::span<double const> y,

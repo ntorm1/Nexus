@@ -23,8 +23,7 @@
 
 
 class NexusDockManager;
-
-
+class NexusSettings;
 
 QT_BEGIN_NAMESPACE
 namespace Ui {
@@ -95,7 +94,7 @@ private slots:
     void on_new_portfolio_window_request(const QString& name);
     void on_new_node_editor_request(const QString& name);
     void on_strategy_toggle(const QString& name, bool toggle);
-
+    void on_settings_change(NexusSettings* settings);
 
 protected:
     virtual void closeEvent(QCloseEvent* event) override;
@@ -115,6 +114,7 @@ private:
 
     void place_widget(ads::CDockWidget* docket_widget, QObject* Sender);
     void place_widget(ads::CDockWidget* docket_widget, ads::CDockAreaWidget* dock_area);
+    void on_settings_window_request();
 
     void onViewVisibilityChanged(bool open);
     void onViewToggled(bool open);

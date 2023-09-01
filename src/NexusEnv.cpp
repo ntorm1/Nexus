@@ -326,7 +326,7 @@ void NexusEnv::__save_history()
 	this->position_history.clear();
 
 	// load in the orders, trades, positions
-	auto order_history = this->hydra.get_order_history();
+	auto& order_history = this->hydra.get_order_history();
 	for (auto& order : order_history)
 	{
 		this->order_history.push_back(order);
@@ -471,12 +471,6 @@ BOOL APIENTRY DllMain(HMODULE hModule, DWORD ul_reason_for_call, LPVOID lpReserv
 		fs::create_directories(build_folder);
 	}
 
-	// AgisCore dll file
-	fs::path output_dir = this->env_path.parent_path().parent_path();
-	fs::path agis_dll = output_dir / "AgisCore.lib";
-	std::string agis_dll_str = agis_dll.string();
-	std::replace(agis_dll_str.begin(), agis_dll_str.end(), '\\', '/');
-
 	// CMake file contents
 	// cmake -G "Visual Studio 17 2022" ..
 	std::string cmake_content = R"(
@@ -514,10 +508,10 @@ target_compile_definitions(AgisStrategy PRIVATE AGISSTRATEGY_EXPORTS)
 
 # Include AgisCore header files 
 target_include_directories(AgisStrategy PUBLIC
-    "C:/Users/natha/OneDrive/Desktop/C++/Nexus/AgisCore"
+    "{AGIS_CORE_INCLUDE}"
 )
 target_include_directories(AgisStrategy PUBLIC
-    "C:/Users/natha/OneDrive/Desktop/C++/Nexus/AgisCore/external/include"
+    "{AGIS_CORE_INCLUDE}/external/include"
 )
 
 # Windows-specific configurations
@@ -548,7 +542,11 @@ install(TARGETS AgisStrategy
 
 	// Replace the placeholder with the BUILD_METHOD
 	pos = cmake_content.find("{AGIS_CORE_PATH}");
-	cmake_content.replace(pos, 16, agis_dll_str);
+	cmake_content.replace(pos, 16, this->agis_lib_path);
+
+	// Replace the adis include path
+	str_replace_all(cmake_content, "{AGIS_CORE_INCLUDE}", this->agis_include_path);
+
 
 	// create cmake file
 	auto cmake_file = this->env_path / "CmakeLists.txt";
@@ -799,6 +797,55 @@ AgisResult<bool> NexusEnv::restore_strategies(json const& j)
 
 
 //============================================================================
+AgisResult<bool> NexusEnv::restore_settings(json const& j)
+{
+	this->agis_include_path = j.value("agis_include_path","");
+	this->agis_lib_path = j.value("agis_dll_path", "");
+	this->agis_pyd_path = j.value("agis_pyd_path", "");
+	return AgisResult<bool>(true);
+}
+
+
+//============================================================================
+AgisResult<bool> NexusEnv::set_settings(NexusSettings* nexus_settings)
+{
+	// ===== agis core include =====
+	auto q_string = nexus_settings->get_agis_include_path();
+	if (q_string.isEmpty() || !fs::exists(q_string.toStdString()))
+	{
+		return AgisResult<bool>(AGIS_EXCEP("Invalid AGIS include path: " + q_string.toStdString()));
+	}
+	else this->agis_include_path = q_string.toStdString();
+
+	// ===== agis dll file =====
+	q_string = nexus_settings->get_agis_lib_path();
+	if (q_string.isEmpty() || !fs::exists(q_string.toStdString()))
+	{
+		return AgisResult<bool>(AGIS_EXCEP("Invalid AGIS DLL path: " + q_string.toStdString()));
+	}
+	else if (q_string.right(4) != ".dll")
+	{
+		return AgisResult<bool>(AGIS_EXCEP("Invalid AGIS DLL path: " + q_string.toStdString()));
+	}
+	else this->agis_lib_path = q_string.toStdString();
+
+	// ===== agis pyd file =====
+	q_string = nexus_settings->get_agis_pyd_path();
+	if (q_string.isEmpty() || !fs::exists(q_string.toStdString()))
+	{
+		return AgisResult<bool>(AGIS_EXCEP("Invalid AGIS PYD path: " + q_string.toStdString()));
+	}
+	else if (q_string.right(4) != ".pyd")
+	{
+		return AgisResult<bool>(AGIS_EXCEP("Invalid AGIS PYD path: " + q_string.toStdString()));
+	}
+	else this->agis_pyd_path = q_string.toStdString();
+
+	return AgisResult<bool>(true);
+}
+
+
+//============================================================================
 bool NexusEnv::save_env(json& j)
 {
 	qDebug() << "Saving environemnt...";
@@ -832,6 +879,12 @@ bool NexusEnv::save_env(json& j)
 		trees[tree->objectName().toStdString()] = tree->to_json();
 	}
 	j["trees"] = trees;
+
+	// save the nexus settings
+	j["agis_include_path"] = this->agis_include_path;
+	j["agis_dll_path"] = this->agis_lib_path;
+	j["agis_pyd_path"] = this->agis_pyd_path;
+
 
 	// Dump ths json output to a file
 	std::string jsonString = j.dump(4);

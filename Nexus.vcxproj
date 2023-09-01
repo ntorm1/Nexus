@@ -167,6 +167,7 @@
     <QtUic Include="ui\NexusAsset.ui" />
     <QtUic Include="ui\NexusNodeEditor.ui" />
     <QtUic Include="ui\NexusPortfolio.ui" />
+    <QtUic Include="ui\NexusSettings.ui" />
   </ItemGroup>
   <ItemGroup>
     <QtMoc Include="include\CodeEditor.h" />

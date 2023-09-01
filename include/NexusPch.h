@@ -24,7 +24,7 @@ typedef const Hydra* HydraPtr;
         return; \
     } while (false)
 
-#define NEXUS_TRY_OR_INTERUPT(function) \
+#define NEXUS_DO_OR_INTERUPT(function) \
     do { \
         auto res = function; \
         if (res.is_exception()) { \

@@ -770,65 +770,38 @@ std::optional<fs::path> get_editor_by_id(nlohmann::json const& open_editors, int
 
 
 //============================================================================
-void MainWindow::restore_state()
+AgisResult<bool> MainWindow::restore_exchanges(json const& j)
 {
-    //this->center_progress_bar();
-    ProgressBar->setMinimum(0);
-    ProgressBar->setMaximum(8);
-    ProgressBar->setValue(0);
-    qDebug() << "==== Restoring state ====";
-    // Load in env settings
-    auto env_settings = this->nexus_env.get_env_settings_path();
-    std::ifstream env_settings_file(env_settings.string());
-
-    if (!env_settings_file.is_open()) {
-        QMessageBox::critical(nullptr, "Error", "Failed to find env state");
-        return;
-    }
-    ProgressBar->setValue(1);
-    std::string jsonString((std::istreambuf_iterator<char>(env_settings_file)), std::istreambuf_iterator<char>());
-    json j = nlohmann::json::parse(jsonString);
-    auto& editors = j["open_editors"];
-    ProgressBar->setValue(2);
-
-    // Reset window geometry
-    auto gui_settings_path = this->nexus_env.get_env_path() / "Settings.ini";
-    QSettings Settings(QString::fromStdString(gui_settings_path.string()), QSettings::IniFormat);
-
-    qDebug() << "==== Restoring geometry ====";
-    this->restoreGeometry(Settings.value("mainWindow/Geometry").toByteArray());
-    ProgressBar->setValue(3);
-    qDebug() << "==== Restoring state ====";
-    this->restoreState(Settings.value("mainWindow/State").toByteArray());
-    ProgressBar->setValue(4);
-    
-    // Clear existing Nexus env
-    this->nexus_env.clear();
-
     // Restore Nexus env from the given json
-    auto res = this->nexus_env.restore(j);
-    if (res.is_exception())
-    {
-        NEXUS_INTERUPT(res.get_exception());
-    }
-    ProgressBar->setValue(5);
-  
-    // Restore widgets
-    this->DockManager->restore_widgets(j);
-    ProgressBar->setValue(6);
+    auto startTime = std::chrono::high_resolution_clock::now();
+    AGIS_DO_OR_RETURN(this->nexus_env.restore_exchanges(j), bool);
+    auto endTime = std::chrono::high_resolution_clock::now();
+    auto durationMs = std::chrono::duration_cast<std::chrono::milliseconds>(endTime - startTime).count();
+    qDebug() << "EXCHANGES RESTORE COMPLETE IN " << QString::number(durationMs) << " Ms";
+    return AgisResult<bool>(true);
+}
 
-    // Restore dock manager state
-    qDebug() << "==== Restoring docking manager ====";
-    bool dock_res = DockManager->restoreState(Settings.value("mainWindow/DockingState").toByteArray());
-    if (!dock_res)
-    {
-        QMessageBox::critical(nullptr, "Error", "Failed to restore state");
-        return;
-    }
-    ProgressBar->setValue(7);
-    
+
+//============================================================================
+AgisResult<bool> MainWindow::restore_portfolios(json const& j)
+{
+    // Restore Nexus env from the given json
+    auto startTime = std::chrono::high_resolution_clock::now();
+    AGIS_DO_OR_RETURN(this->nexus_env.restore_portfolios(j), bool);
+    auto endTime = std::chrono::high_resolution_clock::now();
+    auto durationMs = std::chrono::duration_cast<std::chrono::milliseconds>(endTime - startTime).count();
+    qDebug() << "PORTFOLIO RESTORE COMPLETE IN " << QString::number(durationMs) << " Ms";
+    return AgisResult<bool>(true);
+}
+
+
+//============================================================================
+AgisResult<bool> MainWindow::restore_editors(json const & j)
+{
+    auto& editors = j["open_editors"];
+
     // Open files for the text edit widgets
-    for (auto DockWidget : DockManager->get_widgets().values())
+    for (auto DockWidget : this->DockManager->get_widgets().values())
     {
         if (DockWidget->get_widget_type() != WidgetType::Editor)
         {
@@ -848,10 +821,81 @@ void MainWindow::restore_state()
             editor->load(q_open_file);
         }
     }
+    return AgisResult<bool>(true);
+}
+
+
+//============================================================================
+void MainWindow::restore_state()
+{
+    auto startTime = std::chrono::high_resolution_clock::now();
+    //this->center_progress_bar();
+    ProgressBar->setMinimum(0);
+    ProgressBar->setMaximum(9);
+    ProgressBar->setValue(0);
+    qDebug() << "==== Restoring state ====";
+    // Load in env settings
+    auto env_settings = this->nexus_env.get_env_settings_path();
+    std::ifstream env_settings_file(env_settings.string());
+
+    if (!env_settings_file.is_open()) {
+        QMessageBox::critical(nullptr, "Error", "Failed to find env state");
+        return;
+    }
+    ProgressBar->setValue(1);
+    std::string jsonString((std::istreambuf_iterator<char>(env_settings_file)), std::istreambuf_iterator<char>());
+    json j;
+    try {
+         j = nlohmann::json::parse(jsonString);
+    }
+    catch (std::exception& e) {
+		QMessageBox::critical(nullptr, "Error", "Failed to parse env state");
+		return;
+	}
+    ProgressBar->setValue(2);
+
+    // Reset window geometry
+    auto gui_settings_path = this->nexus_env.get_env_path() / "Settings.ini";
+    QSettings Settings(QString::fromStdString(gui_settings_path.string()), QSettings::IniFormat);
+
+    qDebug() << "==== Restoring geometry ====";
+    this->restoreGeometry(Settings.value("mainWindow/Geometry").toByteArray());
+    ProgressBar->setValue(3);
+    qDebug() << "==== Restoring state ====";
+    this->restoreState(Settings.value("mainWindow/State").toByteArray());
+    ProgressBar->setValue(4);
+    
+
+    // restore the Nexus hydra env
+    this->nexus_env.clear();
+    NEXUS_DO_OR_INTERUPT(this->restore_exchanges(j));
+    ProgressBar->setValue(5);
+    NEXUS_DO_OR_INTERUPT(this->restore_portfolios(j));
+    ProgressBar->setValue(6);
+    NEXUS_DO_OR_INTERUPT(this->nexus_env.restore_strategies(j));
+    ProgressBar->setValue(7);
+  
+    // Restore widgets
+    NEXUS_DO_OR_INTERUPT(this->restore_editors(j));
     ProgressBar->setValue(8);
-    ProgressBar->setVisible(false);
+    this->DockManager->restore_widgets(j);
+    ProgressBar->setValue(9);
+
+
+    // Restore dock manager state
+    qDebug() << "==== Restoring docking manager ====";
+    bool dock_res = DockManager->restoreState(Settings.value("mainWindow/DockingState").toByteArray());
+    if (!dock_res)
+    {
+        QMessageBox::critical(nullptr, "Error", "Failed to restore state");
+        return;
+    }
+    auto endTime = std::chrono::high_resolution_clock::now();
+    auto durationMs = std::chrono::duration_cast<std::chrono::milliseconds>(endTime - startTime).count();
+    qDebug() << "STATE RESTORE COMPLETE IN " << QString::number(durationMs) << " Ms";
     qDebug() << "==== State Restored ====";
 }
+
 
 //============================================================================
 void MainWindow::onViewVisibilityChanged(bool visible)
@@ -861,7 +905,6 @@ void MainWindow::onViewVisibilityChanged(bool visible)
     {
         return;
     }
-    //qDebug() << DockWidget->objectName() << " visibilityChanged(" << Visible << ")";
 }
 
 

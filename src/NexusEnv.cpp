@@ -391,7 +391,7 @@ void NexusEnv::__compile()
 		}
 		std::string strat_include_mid = "#include \"strategies/" + strategy_id + "/"
 			+ strategy_pair.second->get_strategy_id();
-		if (is_abstract) strat_include_mid += +"Class.h\"\n";
+		if (is_abstract) strat_include_mid += +"_CPP.h\"\n";
 		else strat_include_mid += +".h\"\n";
 		
 		// register the strategy to the registry
@@ -399,7 +399,7 @@ void NexusEnv::__compile()
 			strategy_create + ", \"{PORTFOLIO}\");\n";
 		std::string place_holder = "{STRAT}";
 		std::string strategy_class = strategy_pair.second->get_strategy_id();
-		if (is_abstract) strategy_class += "Class";
+		if (is_abstract) strategy_class += "_CPP";
 		str_replace_all(strat_include_mid, place_holder, strategy_class);
 
 		// Set the static portfolio id
@@ -702,11 +702,8 @@ void NexusEnv::clear()
 
 
 //============================================================================
-AgisResult<bool> NexusEnv::restore(json const& j)
+AgisResult<bool> NexusEnv::restore_strategies(json const& j)
 {
-	this->hydra.clear();
-	AGIS_DO_OR_RETURN(this->hydra.restore(j), bool);
-
 	// restore cpp strategy tree by linking to all strats if the AgisStrategy library
 	fs::path output_dir = this->env_path / "build" / build_method;
 	fs::path agis_strategy_dll = output_dir / "AgisStrategy.dll";

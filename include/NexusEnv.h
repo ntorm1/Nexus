@@ -73,7 +73,10 @@ public:
 	void __link(bool assume_live = true);
 	void __reset();
 	void clear();
-	AgisResult<bool> restore(json const& j);
+
+	AgisResult<bool> restore_strategies(json const& j);
+	inline AgisResult<bool> restore_portfolios(json const& j) { return this->hydra.restore_portfolios(j); }
+	inline AgisResult<bool> restore_exchanges(json const& j) { return this->hydra.restore_exchanges(j); }
 
 	//============================================================================
 	fs::path const& get_env_path() const { return this->env_path; }

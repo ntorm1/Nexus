@@ -102,6 +102,10 @@ protected:
 
 private:
     void restore_state();
+    AgisResult<bool> restore_editors(json const& j);
+    AgisResult<bool> restore_exchanges(json const& j);
+    AgisResult<bool> restore_portfolios(json const& j);
+
     AgisResult<bool> save_state();
 
     void setup_toolbar();

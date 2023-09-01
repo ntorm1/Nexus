@@ -291,7 +291,7 @@ void PortfolioTree::create_new_strategy(const QModelIndex& parentIndex)
         auto allocation = popup->get_allocation();
 
         // Send signal to main window asking to create the new item
-        emit new_strategy_requested(parentIndex, portfolio_id, strategy_id, allocation);
+        emit new_strategy_requested(parentIndex, portfolio_id, strategy_id, allocation, AgisStrategyType::FLOW);
     }
 }
 
@@ -310,7 +310,9 @@ void PortfolioTree::set_benchmark_strategy(const QModelIndex& parentIndex)
 		QMessageBox::warning(this, "Warning", "No market asset found for portfolio frequency");
 		return;
 	}
-    // TODO
+
+    auto benchmark_strategy_id = portfolio_id + " Benchmark";
+    emit new_strategy_requested(parentIndex, portfolio_id, benchmark_strategy_id, "0.0", AgisStrategyType::BENCHMARK);
 }
 
 //============================================================================
@@ -347,7 +349,7 @@ void PortfolioTree::contextMenuEvent(QContextMenuEvent* event)
                 connect(addAction, &QAction::triggered, [this, index]() { create_new_strategy(index); });
                 menu.addAction(addAction);
                 
-                addAction = new QAction("Set Benchmark Strategy", this);
+                addAction = new QAction("Add Benchmark Strategy", this);
                 connect(addAction, &QAction::triggered, [this, index]() { set_benchmark_strategy(index); });
                 menu.addAction(addAction);
             }

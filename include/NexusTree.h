@@ -155,7 +155,8 @@ signals:
     void new_strategy_requested(const QModelIndex& parentIndex,
         const QString& portfolio_id,
         const QString& strategy_id,
-        const QString& starting_cash
+        const QString& starting_cash,
+        AgisStrategyType strategy_type = AgisStrategyType::FLOW
     );
     void strategy_remove_requested(const QModelIndex& parentIndex,
         const QString& strategy_id);

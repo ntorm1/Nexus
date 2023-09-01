@@ -167,7 +167,7 @@ void NexusNodeEditor::create_strategy_tab(QVBoxLayout* l)
 
 	beta_hedge->setChecked(this->strategy->__is_beta_hedged());
 	beta_scale->setChecked(this->strategy->__is_beta_scaling());
-	beta_scale->setChecked(this->strategy->__is_beta_trace());
+	beta_trace->setChecked(this->strategy->__is_beta_trace());
 	net_leverage_trace->setChecked(this->strategy->__is_net_lev_trace());
 
 	l->addWidget(beta_hedge);

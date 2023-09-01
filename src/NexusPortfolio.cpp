@@ -112,6 +112,34 @@ void NexusPortfolio::set_up_strategies_menu()
 }
 
 
+void populate_stats_model(std::vector<double> const& nlv, QStandardItemModel* model, size_t i)
+{
+    // calculate total returns 
+    QString formattedPct = "$" + QString::number(get_stats_total_pl(nlv), 'f', 2);
+    QStandardItem* item = new QStandardItem(formattedPct);
+    model->setItem(0, i, item);
+
+    // calculate pct returns
+    formattedPct = QString::number(get_stats_pct_returns(nlv)) + "%";
+    item = new QStandardItem(formattedPct);
+    model->setItem(1, i, item);
+
+    // calculate annualized returns
+    formattedPct = QString::number(get_stats_annualized_pct_returns(nlv), 'f', 2) + "%";
+    item = new QStandardItem(formattedPct);
+    model->setItem(2, i, item);
+
+    // calculate annualized volatility
+    formattedPct = QString::number(get_stats_annualized_volatility(nlv), 'f', 2) + "%";
+    item = new QStandardItem(formattedPct);
+    model->setItem(3, i, item);
+
+    // calculate annualized sharpe
+    formattedPct = QString::number(get_stats_sharpe_ratio(nlv), 'f', 2);
+    item = new QStandardItem(formattedPct);
+    model->setItem(4, i, item);
+}
+
 //============================================================================
 void NexusPortfolio::on_new_hydra_run()
 {
@@ -126,35 +154,32 @@ void NexusPortfolio::on_new_hydra_run()
     model->setVerticalHeaderLabels(q_columns);
     model->setHorizontalHeaderLabels(str_vec_to_qlist(selected_strategies));
 
+    size_t i = 0;
+    for (const auto& id : selected_strategies)
+    {
+        // stats for the overall portfolio
+        if (id == "AGGREGATE") {
+            auto& nlv = this->nexus_env->get_hydra()->get_portfolio(this->portfolio_id)->get_nlv_history_vec();
+            populate_stats_model(nlv, model, i);
+        }
+        // check if bench mark strategy by looking for a space in the id (only allowed for benchmark
+        else if (id.find(" ") != std::string::npos) {
+            auto portfolio = this->nexus_env->get_hydra()->get_portfolio(this->portfolio_id);
+            auto nlv = portfolio->__get_benchmark_strategy()->get_nlv_history();
+            populate_stats_model(nlv, model, i);
+		}
+        // stats for a specific strategy
+		else {
+			auto nlv = this->nexus_env->get_hydra()->get_strategy(id)->get_nlv_history();
+            populate_stats_model(nlv, model, i);
+        }
+        i++;
+    }
+
     // get the absolute and pct returns for the portfolio
     auto hydra = this->nexus_env->get_hydra();
     auto& nlv = hydra->get_portfolio(this->portfolio_id)->get_nlv_history_vec();
     auto dt_index = hydra->__get_dt_index();
-
-    // calculate total returns 
-    QString formattedPct = "$" + QString::number(get_stats_total_pl(nlv), 'f', 2);
-    QStandardItem* item = new QStandardItem(formattedPct);
-    model->setItem(0, 0, item);
-
-    // calculate pct returns
-    formattedPct = QString::number(get_stats_pct_returns(nlv)) + "%";
-    item = new QStandardItem(formattedPct);
-    model->setItem(1, 0, item);
-
-    // calculate annualized returns
-    formattedPct = QString::number(get_stats_annualized_pct_returns(nlv), 'f', 2) + "%";
-    item = new QStandardItem(formattedPct);
-    model->setItem(2, 0, item);
-
-    // calculate annualized volatility
-    formattedPct = QString::number(get_stats_annualized_volatility(nlv), 'f', 2) + "%";
-    item = new QStandardItem(formattedPct);
-    model->setItem(3, 0, item);
-
-    // calculate annualized sharpe
-    formattedPct = QString::number(get_stats_sharpe_ratio(nlv), 'f', 2);
-    item = new QStandardItem(formattedPct);
-    model->setItem(4, 0, item);
 
     this->stats_table_view->reset();
     this->stats_table_view->setModel(model);

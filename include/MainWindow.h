@@ -75,7 +75,8 @@ private slots:
     void on_new_strategy_requested(const QModelIndex& parentIndex,
         const QString& portfolio_id,
         const QString& strategy_id,
-        const QString& allocation
+        const QString& allocation,
+        AgisStrategyType type
     );
     void on_strategy_remove_requested(const QModelIndex& parentIndex,
         const QString& strategy_id

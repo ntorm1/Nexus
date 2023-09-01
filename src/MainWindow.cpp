@@ -202,9 +202,9 @@ ads::CDockWidget* MainWindow::create_portfolios_widget()
     // Signal that requests new strategy
     QObject::connect(
         w,
-        SIGNAL(new_strategy_requested(QModelIndex, QString, QString, QString)),
+        SIGNAL(new_strategy_requested(QModelIndex, QString, QString, QString, AgisStrategyType)),
         this,
-        SLOT(on_new_strategy_requested(QModelIndex, QString, QString, QString))
+        SLOT(on_new_strategy_requested(QModelIndex, QString, QString, QString, AgisStrategyType))
     );
     // Signal that requests to remove a strategy
     QObject::connect(
@@ -990,13 +990,16 @@ void MainWindow::on_new_strategy_requested(
     const QModelIndex & parentIndex,
     const QString& portfolio_id,
     const QString& strategy_id,
-    const QString& allocation)
+    const QString& allocation,
+    AgisStrategyType strategy_type
+)
 {
     qDebug() << "NEW STRATEGY REQUESTED";
     auto res = this->nexus_env.new_strategy(
         portfolio_id.toStdString(),
         strategy_id.toStdString(),
-        allocation.toStdString()
+        allocation.toStdString(),
+        strategy_type
     );
     if (res != NexusStatusCode::Ok) {
         QMessageBox::critical(this, "Error", "Failed to create strategy");
@@ -1116,6 +1119,14 @@ void MainWindow::on_new_node_editor_request(const QString& name)
     auto _sender = sender();
     _sender->setProperty("Floating", false);
     _sender->setProperty("Tabbed", false);
+
+    // verify double clicked on a flow strategy
+    auto strategy = this->nexus_env.__get_strategy(name.toStdString());
+    if(!strategy.has_value()) NEXUS_INTERUPT("failed to find strategy being toggled");
+    if (strategy.value()->get_strategy_type() != AgisStrategyType::FLOW) {
+        QMessageBox::critical(this, "Error", "Only flow strategies can be edited");
+		return;
+    }
 
     auto DockWidget = this->create_node_editor_widget(name);
     if (!DockWidget) { return; }

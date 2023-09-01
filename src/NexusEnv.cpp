@@ -247,6 +247,7 @@ NexusStatusCode NexusEnv::new_strategy(
 	}
 	
 	auto& portfolio = this->hydra.get_portfolio(portfolio_id);
+	// if new flow strategy was requested create a new abstract agis strategy
 	if (strategy_type == AgisStrategyType::FLOW) {
 
 		auto strategy = std::make_unique<AbstractAgisStrategy>(
@@ -256,6 +257,8 @@ NexusStatusCode NexusEnv::new_strategy(
 		);
 		this->hydra.register_strategy(std::move(strategy));
 	}
+	// if benchmark strategy was request create a new agis benchmark strategy for the portfolio.
+	// note that this strategy won't affect the portfolio's values or holdings
 	else if (strategy_type == AgisStrategyType::BENCHMARK) {
 
 		auto strategy = std::make_unique<BenchMarkStrategy>(

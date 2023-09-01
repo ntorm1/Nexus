@@ -1038,12 +1038,20 @@ void MainWindow::on_new_strategy_requested(
 )
 {
     qDebug() << "NEW STRATEGY REQUESTED";
-    auto res = this->nexus_env.new_strategy(
-        portfolio_id.toStdString(),
-        strategy_id.toStdString(),
-        allocation.toStdString(),
-        strategy_type
-    );
+    NexusStatusCode res;
+    try {
+        res = this->nexus_env.new_strategy(
+            portfolio_id.toStdString(),
+            strategy_id.toStdString(),
+            allocation.toStdString(),
+            strategy_type
+        );
+    }
+    catch (std::exception& e)
+	    {
+		QMessageBox::critical(this, "Error", e.what());
+		return;
+	}
     if (res != NexusStatusCode::Ok) {
         QMessageBox::critical(this, "Error", "Failed to create strategy");
     }

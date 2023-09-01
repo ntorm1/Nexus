@@ -255,7 +255,7 @@ NexusStatusCode NexusEnv::new_strategy(
 			strategy_id,
 			allocation_double
 		);
-		this->hydra.register_strategy(std::move(strategy));
+		AGIS_TRY(this->hydra.register_strategy(std::move(strategy)));
 	}
 	// if benchmark strategy was request create a new agis benchmark strategy for the portfolio.
 	// note that this strategy won't affect the portfolio's values or holdings
@@ -265,7 +265,7 @@ NexusStatusCode NexusEnv::new_strategy(
 			portfolio,
 			strategy_id
 		);
-		this->hydra.register_strategy(std::move(strategy));
+		AGIS_TRY(this->hydra.register_strategy(std::move(strategy)));
 	}
 
 	return NexusStatusCode::Ok;
@@ -661,7 +661,7 @@ void NexusEnv::__link(bool assume_live)
 			strategy->set_is_live(false);
 		}
 
-		this->hydra.register_strategy(std::move(strategy));
+		AGIS_TRY(this->hydra.register_strategy(std::move(strategy)));
 
 		// check if the linked strategy is replacing abstract strategy
 		std::string sub_string = "_CPP";

@@ -380,6 +380,7 @@ void NexusEnv::__compile()
 	{
 		// skip non-live strategies
 		if (!strategy_pair.second->__is_live()) continue;
+		if (strategy_pair.second->get_strategy_type() == AgisStrategyType::BENCHMARK) continue;
 		bool is_abstract = strategy_pair.second->__is_abstract_class();
 
 		auto strategy_id = strategy_pair.second->get_strategy_id();
@@ -408,7 +409,13 @@ void NexusEnv::__compile()
 		strategy_include += strat_include_mid;
 	}
 
-	std::string pch_header = R"(#ifndef PCH_H
+	std::string pch_header = R"(// the following code is generated in order build the static strategy register from realized abstract strategies.
+// the register exposes strategies to Nexus and they can be incorperated by clicking on the Link button in the top right. 
+// Doing so will load in the AgisStrategy.dll that was generated from the compiling of the abstract strategies.
+// EDIT IT AT YOUR OWN RISK ANY
+// ANY CHANGES WILL BE OVERWRITEN ON THE NEXT COMPILE
+
+#ifndef PCH_H
 #define PCH_H
 #define NOMINMAX 
 #ifdef AGISSTRATEGY_EXPORTS // This should be defined when building the DLL
@@ -418,6 +425,9 @@ void NexusEnv::__compile()
 #endif
 
 #include "framework.h"
+#include "json.hpp"
+using json = nlohmann::json;
+
 #include "AgisStrategyRegistry.h"
 
 {STRATEGY}
@@ -505,6 +515,9 @@ target_compile_definitions(AgisStrategy PRIVATE AGISSTRATEGY_EXPORTS)
 # Include AgisCore header files 
 target_include_directories(AgisStrategy PUBLIC
     "C:/Users/natha/OneDrive/Desktop/C++/Nexus/AgisCore"
+)
+target_include_directories(AgisStrategy PUBLIC
+    "C:/Users/natha/OneDrive/Desktop/C++/Nexus/AgisCore/external/include"
 )
 
 # Windows-specific configurations
@@ -713,6 +726,7 @@ AgisResult<bool> NexusEnv::restore(json const& j)
 		{
 			bool is_live = strategy_json["is_live"];
 			std::string strategy_id = strategy_json["strategy_id"];
+			if(!this->hydra.strategy_exists(strategy_id)) continue;
 			auto strategy = this->hydra.get_strategy(strategy_id);
 
 			// if strategy was linked but it is not live, remove it and force it to be re linked

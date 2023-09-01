@@ -312,7 +312,7 @@ std::shared_ptr<NodeData> AssetLambdaModel::outData(PortIndex const port)
 			return asset->get_asset_feature(column_name, row);
 		});
 		AgisAssetLambdaChain new_chain = this->lambda_chain;
-		new_chain.push_back({ l, column_name, row });
+		new_chain.push_back({ l, op, column_name, row });
 		return std::make_shared<AssetLambdaData>(new_chain, this->warmup);
 	}
 	NEXUS_THROW("unexpected out port");
@@ -415,10 +415,13 @@ void ExchangeViewModel::setInData(std::shared_ptr<NodeData> data, PortIndex cons
 				return; 
 			}
 
+			// take in the asset lambda chain and convert the string columns to size_t indexes
+			// to prevent map lookups at runtime 
 			std::shared_ptr<AssetLambdaData> assetData = std::dynamic_pointer_cast<AssetLambdaData>(data);
 			this->lambda_chain.clear();
 			for(AssetLambdaScruct& l : assetData->lambda_chain)
 			{
+				// parse column name, if it is invalid return. Needs to be improved
 				auto& column_name = l.column;
 				auto column_index_res = this->exchange->get_column_index(column_name);
 				if (column_index_res.is_exception())
@@ -428,11 +431,13 @@ void ExchangeViewModel::setInData(std::shared_ptr<NodeData> data, PortIndex cons
 					return;
 				}
 				auto column_index = column_index_res.unwrap();
-				AssetLambda lambda_op = AssetLambda(agis_init, [=](const AssetPtr& asset) -> AgisResult<double>{
+				AssetLambda lambda_op = AssetLambda(l.opp, [=](const AssetPtr& asset) -> AgisResult<double>{
 					return asset->get_asset_feature(column_index, l.row);
 					});
-				this->lambda_chain.emplace_back(lambda_op, column_name, l.row);
+				this->lambda_chain.emplace_back(lambda_op, l.opp, column_name, l.row);
 			}
+
+			// find the warmup needed by looking for the min row in the asset chain
 			auto smallestRowIt = std::min_element(lambda_chain.begin(), lambda_chain.end(),
 				[](const AssetLambdaScruct& lhs, const AssetLambdaScruct& rhs) {
 					return lhs.row < rhs.row;

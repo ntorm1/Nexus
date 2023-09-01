@@ -664,7 +664,7 @@ void NexusEnv::__link(bool assume_live)
 		this->hydra.register_strategy(std::move(strategy));
 
 		// check if the linked strategy is replacing abstract strategy
-		std::string sub_string = "Class";
+		std::string sub_string = "_CPP";
 		if (strategy_id.length() >= sub_string.length() &&
 			strategy_id.compare(strategy_id.length() - sub_string.length(), sub_string.length(), sub_string) == 0) {
 			// Extract the "test" part

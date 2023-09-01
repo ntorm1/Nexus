@@ -891,8 +891,8 @@ void MainWindow::restore_state()
         return;
     }
     auto endTime = std::chrono::high_resolution_clock::now();
-    auto durationMs = std::chrono::duration_cast<std::chrono::milliseconds>(endTime - startTime).count();
-    qDebug() << "STATE RESTORE COMPLETE IN " << QString::number(durationMs) << " Ms";
+    auto durationMs = std::chrono::duration_cast<std::chrono::seconds>(endTime - startTime).count();
+    qDebug() << "STATE RESTORE COMPLETE IN " << QString::number(durationMs) << " Second";
     qDebug() << "==== State Restored ====";
 }
 

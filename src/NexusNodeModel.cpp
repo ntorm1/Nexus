@@ -265,6 +265,7 @@ void AssetLambdaModel::load(QJsonObject const& p)
 	QJsonValue opp = p["opperation"];
 	QJsonValue column = p["column"];
 	QJsonValue row = p["row"];
+	QJsonValue filter = p["filter"];
 
 	if (!opp.isUndefined()) {
 		QString str_opp = opp.toString();
@@ -281,6 +282,11 @@ void AssetLambdaModel::load(QJsonObject const& p)
 		QString str_column = column.toString();
 		if (asset_lambda_node)
 			asset_lambda_node->column->setText(str_column);
+	}
+	if (!filter.isUndefined()) {
+		QString str_filter = filter.toString();
+		if (asset_lambda_node)
+			asset_lambda_node->filter->setText(str_filter);
 	}
 }
 
@@ -348,11 +354,9 @@ std::shared_ptr<NodeData> AssetLambdaModel::outData(PortIndex const port)
 		auto filter_str = this->asset_lambda_node->filter->text();
 		if (!filter_str.isEmpty() && filter_str != "")
 		{
-			AssetLambda l = AssetLambda(op, [=](double x) {
-				return AgisResult<double>(AGIS_NAN);
-				});
-			//auto filter = AssetFilter(filter_str.toStdString());
-			//new_chain.push_back(AssetLambdaScruct(filter));
+			auto filter = AssetFilterStruct(filter_str.toStdString());
+			auto filter_lambda = filter.get_filter();
+			new_chain.push_back(AssetLambdaScruct(filter_lambda));
 		}
 
 		return std::make_shared<AssetLambdaData>(new_chain, this->warmup);

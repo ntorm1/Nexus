@@ -51,6 +51,7 @@ public:
     QComboBox* opperation;
     QSpinBox* row;
     QLineEdit* column;
+    QLineEdit* filter;
 };
 
 class ExchangeViewNode : public QWidget

@@ -68,6 +68,14 @@ AssetLambdaNode::AssetLambdaNode(
     rowLayout->addWidget(this->opperation);
     layout->addLayout(rowLayout);
 
+    // optional filter 
+    QHBoxLayout* filter_layout = new QHBoxLayout(this);
+    QLabel* filter_label = new QLabel("Filter Range: ");
+    this->filter = new QLineEdit(this);
+    filter_layout->addWidget(filter_label);
+    filter_layout->addWidget(this->filter);
+    layout->addLayout(filter_layout);
+
 
     this->setFixedSize(layout->sizeHint());
 }

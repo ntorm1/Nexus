@@ -130,6 +130,7 @@ public:
     QJsonObject save() const override;
     void load(QJsonObject const &p) override;
 
+    void on_filter_change();
     void on_lambda_change();
 
 private:

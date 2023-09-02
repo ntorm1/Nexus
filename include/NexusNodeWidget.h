@@ -68,6 +68,20 @@ public:
     QSpinBox* N;
 };
 
+class TradeExitNode : public QWidget
+{
+    Q_OBJECT
+public:
+    TradeExitNode(
+        QWidget* parent = nullptr);
+
+    ~TradeExitNode() { delete layout; };
+
+    QVBoxLayout* layout;
+    QComboBox* exit_type;
+    QLineEdit* extra_param;
+};
+
 class StrategyAllocationNode : public QWidget
 {
     Q_OBJECT

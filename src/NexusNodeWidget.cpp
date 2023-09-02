@@ -4,6 +4,7 @@
 #include "NexusNodeWidget.h"
 
 
+//============================================================================
 ExchangeNode::ExchangeNode(
     HydraPtr hydra_,
     QWidget* parent_)
@@ -30,6 +31,39 @@ ExchangeNode::ExchangeNode(
 }
 
 
+//============================================================================
+TradeExitNode::TradeExitNode(
+    QWidget* parent_)
+    : QWidget(parent_)
+    , layout(nullptr)
+{
+    setSizePolicy(QSizePolicy::Policy::Minimum, QSizePolicy::Policy::Minimum);
+
+    this->layout = new QVBoxLayout(this);
+
+    QHBoxLayout* row_layout = new QHBoxLayout(this);
+    this->exit_type = new QComboBox();
+    for (const auto& item : agis_trade_exit_strings) {
+        // Convert each std::string to QString before adding to the QComboBox
+        this->exit_type->addItem(QString::fromStdString(item));
+    }
+    QLabel* label = new QLabel("Exit Type: ");
+    row_layout->addWidget(label);
+    row_layout->addWidget(this->exit_type);
+    this->layout->addLayout(row_layout);
+
+    row_layout = new QHBoxLayout(this);
+    this->extra_param = new QLineEdit(this);
+    label = new QLabel("Extra Param: ");
+    row_layout->addWidget(label);
+    row_layout->addWidget(this->extra_param);
+    this->layout->addLayout(row_layout);
+
+    this->setFixedSize(layout->sizeHint());
+}
+
+
+//============================================================================
 AssetLambdaNode::AssetLambdaNode(
     QWidget* parent_)
     : QWidget(parent_)
@@ -81,6 +115,7 @@ AssetLambdaNode::AssetLambdaNode(
 }
 
 
+//============================================================================
 ExchangeViewNode::ExchangeViewNode(
     QWidget* parent_)
     : QWidget(parent_)
@@ -115,6 +150,7 @@ ExchangeViewNode::ExchangeViewNode(
 }
 
 
+//============================================================================
 void StrategyAllocationNode::update_ev_opp_param_state() {
     auto val = this->ev_opp_type->currentText().toStdString();
     bool isEnabled = (val == "CONDITIONAL_SPLIT");
@@ -122,6 +158,7 @@ void StrategyAllocationNode::update_ev_opp_param_state() {
 }
 
 
+//============================================================================
 StrategyAllocationNode::StrategyAllocationNode(
     QWidget* parent_)
     : QWidget(parent_)

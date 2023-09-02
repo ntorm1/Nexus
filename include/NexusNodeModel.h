@@ -22,9 +22,11 @@ using QtNodes::PortType;
 
 
 class ExchangeNode;
+class TradeExitNode;
 
-
-/// Class to encapsulate exchange so it can be send through nodes
+/**
+ * @brief Node data class for an exchange data class
+*/
 class ExchangeData : public NodeData
 {
 public:
@@ -37,7 +39,9 @@ public:
 };
 
 
-/// Class to encapsulate asset lambda chain so it can be send through nodes
+/**
+ * @brief Node data class for an asset lambda function
+*/
 class AssetLambdaData : public NodeData
 {
 public:
@@ -51,6 +55,9 @@ public:
 };
 
 
+/**
+ * @brief Node data class for an exchange view
+*/
 class ExchangeViewData : public NodeData
 {
 public:
@@ -62,7 +69,24 @@ public:
     ExchangeViewLambdaStruct exchange_view_lambda;
 };
 
-/// Asset Lambda data mdoel
+
+/**
+ * @brief Node data class for a trade exit 
+*/
+class TradeExitData : public NodeData
+{
+public:
+    TradeExitData() = default;
+	TradeExitData(TradeExitPtr trade_exit_) { trade_exit = trade_exit_; };
+
+	NodeDataType type() const override { return NodeDataType{ "Trade Exit", "Trade Exit" }; }
+
+    TradeExitPtr trade_exit;
+};
+
+/**
+ * @brief Node data model for an asset lambda function
+*/
 class AssetLambdaModel : public NodeDelegateModel
 {
     Q_OBJECT
@@ -295,6 +319,75 @@ private:
 };
 
 
+/// Exchange model
+class TradeExitModel : public NodeDelegateModel
+{
+    Q_OBJECT
+
+public:
+    TradeExitModel() = default;
+    virtual ~TradeExitModel() { delete this->trade_exit_node; }
+
+public:
+    QString caption() const override { return QString("Trade Exit"); }
+
+    QString name() const override { return QString("Trade Exit"); }
+
+    QWidget* embeddedWidget() override;
+
+public:
+    unsigned int nPorts(PortType const portType) const override
+    {
+        unsigned int result = 1;
+
+        switch (portType) {
+        case PortType::In:
+            result = 0;
+            break;
+
+        case PortType::Out:
+            result = 1;
+            break;
+        case PortType::None:
+            break;
+        }
+
+        return result;
+    }
+
+    NodeDataType dataType(PortType const portType, PortIndex const portIndex) const override
+    {
+        switch (portType) {
+        case PortType::Out:
+            switch (portIndex) {
+            case 0:
+                return TradeExitData().type();
+            }
+            break;
+
+        case PortType::None:
+            break;
+        }
+        return NodeDataType();
+    }
+
+    std::shared_ptr<NodeData> outData(PortIndex const port) override;
+
+    void setInData(std::shared_ptr<NodeData>, PortIndex const) override
+    {
+    }
+
+    void on_exit_change();
+
+    QJsonObject save() const override;
+    void load(QJsonObject const& p) override;
+
+
+private:
+
+    TradeExitNode* trade_exit_node = nullptr;
+};
+
 
 /// Strategy Allocation Model
 class StrategyAllocationModel : public NodeDelegateModel
@@ -319,7 +412,7 @@ public:
 
         switch (portType) {
         case PortType::In:
-            result = 1;
+            result = 2;
             break;
 
         case PortType::Out:
@@ -343,6 +436,10 @@ public:
             {
             case 0:
                 return ExchangeViewData().type();
+                break;
+            case 1:
+                return TradeExitData().type();
+				break;
             }
             break;
 

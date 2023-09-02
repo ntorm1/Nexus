@@ -93,6 +93,32 @@ QWidget* ExchangeViewModel::embeddedWidget()
 
 
 //============================================================================
+QWidget* TradeExitModel::embeddedWidget()
+{
+	if (!this->trade_exit_node) {
+		this->trade_exit_node = new TradeExitNode(
+			nullptr
+		);
+
+		connect(
+			trade_exit_node->exit_type,
+			QOverload<int>::of(&QComboBox::currentIndexChanged),
+			this,
+			&TradeExitModel::on_exit_change
+		);
+		connect(
+			trade_exit_node->extra_param,
+			&QLineEdit::textChanged,
+			this,
+			&TradeExitModel::on_exit_change
+		);
+	}
+
+	return this->trade_exit_node;
+}
+
+
+//============================================================================
 QWidget* StrategyAllocationModel::embeddedWidget()
 {
 	if (!this->strategy_allocation_node) {
@@ -108,7 +134,10 @@ QWidget* StrategyAllocationModel::embeddedWidget()
 void AssetLambdaModel::on_filter_change()
 {
 	auto filter_text = this->asset_lambda_node->filter->text();
-	if (filter_text.isEmpty()) return;
+	if (filter_text.isEmpty()) {
+		this->on_lambda_change();
+		return;
+	};
 
 	// check to see if last char is ) or ], if it is then call on_lambda_change
 	auto& last_char = filter_text[filter_text.size() - 1];
@@ -149,6 +178,12 @@ void ExchangeViewModel::on_exchange_view_change()
 
 
 //============================================================================
+void TradeExitModel::on_exit_change()
+{
+	Q_EMIT dataUpdated(0);
+}
+
+//============================================================================
 QJsonObject AssetLambdaModel::save() const
 {
 	QJsonObject modelJson = NodeDelegateModel::save();
@@ -159,6 +194,18 @@ QJsonObject AssetLambdaModel::save() const
 	modelJson["filter"] = this->asset_lambda_node->filter->text();
 	return modelJson;
 }
+
+
+
+//============================================================================
+QJsonObject TradeExitModel::save() const
+{
+	QJsonObject modelJson = NodeDelegateModel::save();
+	modelJson["exit_type"] = this->trade_exit_node->exit_type->currentText();
+	modelJson["extra_param"] = this->trade_exit_node->extra_param->text();
+	return modelJson;
+}
+
 
 
 //============================================================================
@@ -330,6 +377,31 @@ void ExchangeModel::load(QJsonObject const& p)
 	}
 }
 
+
+//============================================================================
+void TradeExitModel::load(QJsonObject const& p)
+{
+	QJsonValue exit_type = p["exit_type"];
+	QJsonValue extra_param = p["extra_param"];
+
+
+	if (!exit_type.isUndefined()) {
+		QString str_exit_type = exit_type.toString();
+		if (!trade_exit_node) { this->embeddedWidget(); }
+		if (trade_exit_node)
+		{
+			trade_exit_node->exit_type->setCurrentText(str_exit_type);
+		}
+	}
+	if (!extra_param.isUndefined()) {
+		QString str_extra_param = extra_param.toString();
+		if (trade_exit_node)
+		{
+			trade_exit_node->extra_param->setText(str_extra_param);
+		}
+	}
+}
+
 //============================================================================
 std::shared_ptr<NodeData> AssetLambdaModel::outData(PortIndex const port)
 {
@@ -376,6 +448,14 @@ std::shared_ptr<NodeData> ExchangeModel::outData(PortIndex const port)
 	}
 	return nullptr;
 }
+
+
+//============================================================================
+std::shared_ptr<NodeData> TradeExitModel::outData(PortIndex const port)
+{
+	return nullptr;
+}
+
 
 //============================================================================
 std::shared_ptr<NodeData> ExchangeViewModel::outData(PortIndex const port)
@@ -536,6 +616,10 @@ void StrategyAllocationModel::setInData(std::shared_ptr<NodeData> data, PortInde
 			}
 			std::shared_ptr<ExchangeViewData> ev_ptr = std::dynamic_pointer_cast<ExchangeViewData>(data);
 			this->ev_lambda_struct = ev_ptr->exchange_view_lambda;
+			return;
+		}
+		case 1: {
+			qDebug() << "hello from case 1";
 			return;
 		}
 	}

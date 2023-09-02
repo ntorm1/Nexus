@@ -35,6 +35,7 @@ std::shared_ptr<NodeDelegateModelRegistry> registerDataModels()
 	ret->registerModel<ExchangeModel>();
 	ret->registerModel<ExchangeViewModel>();
 	ret->registerModel<AssetLambdaModel>();
+	ret->registerModel<TradeExitModel>();
 	ret->registerModel<StrategyAllocationModel>();
 
 	return ret;
@@ -229,6 +230,7 @@ NexusNodeEditor::NexusNodeEditor(
 		}
 	  }
 	 )");
+
 	ui->setupUi(this);
 	QWidget* centralWidget = ui->centralwidget;
 	QHBoxLayout* h = new QHBoxLayout(centralWidget);

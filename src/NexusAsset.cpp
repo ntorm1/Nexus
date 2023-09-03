@@ -1,6 +1,5 @@
 
 #include "NexusAsset.h"
-#include "NexusHelpers.h""
 #include "ui_NexusAsset.h"
 #include "Utils.h"
 #include <QThread>
@@ -156,53 +155,6 @@ void NexusAsset::load_asset_data()
     // Resize the columns to fit the content
     this->table_view->resizeColumnsToContents();
    
-}
-
-//============================================================================
-template <typename T>
-void event_data_loader(
-    std::vector<T> events,
-    QStringList const& q_columns,
-    QStandardItemModel* model,
-    HydraPtr hydra
-    )
-{
-    model->setRowCount(events.size());
-    model->setColumnCount(q_columns.size());
-    model->setHorizontalHeaderLabels(q_columns);
-
-    // Set the data in the model
-    int row = 0;
-    json object_json;
-    auto column_names = qlist_to_str_vec(q_columns);
-    for (auto& new_event : events) {
-        int col = 0;
-        for (auto& column_name : column_names) {
-            AGIS_TRY(new_event->serialize(object_json, hydra));
-            const json& value = object_json[column_name];
-            std::string str_value;
-
-            // test if column_name is in nexus_datetime_columns
-            if (std::find(nexus_datetime_columns.begin(), nexus_datetime_columns.end(), column_name) != nexus_datetime_columns.end()) {
-                auto& value = object_json[column_name];
-                long long epoch_time = value.get<long long>();
-                auto res = epoch_to_str(epoch_time, NEXUS_DATETIME_FORMAT);
-                if (res.is_exception())
-                {
-                    AGIS_THROW(res.get_exception());
-                }
-                str_value = res.unwrap();
-            }
-            // parse any other value
-            else {
-                str_value = json_val_to_string(value);
-            }
-            QStandardItem* item = new QStandardItem(QString::fromStdString(str_value));
-            model->setItem(row, col, item);
-            col++;
-        }
-        row++;
-    }
 }
 
 //============================================================================

@@ -39,7 +39,10 @@ json NexusDockManager::save_widgets()
 			auto child = dock_widget->widget();
 			NexusPortfolio* p = static_cast<NexusPortfolio*>(child);
 			widget["portfolio_id"] = p->get_portfolio_id();
-			widget["plotted_graphs"] = p->get_plotted_graphs();
+			auto graphs = p->get_plotted_graphs();
+			if (graphs.size() > 0) {
+				widget["plotted_graphs"] = graphs;
+			}
 		}
 
 		widgets[dock_widget->objectName().toStdString()] = widget;

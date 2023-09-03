@@ -2,6 +2,8 @@
 #include <unordered_map>
 #include <QMainWindow>
 #include <QWidget>
+#include <qtreeview.h>
+#include <QStandardItemModel>
 #include <qaction.h>
 
 #include "DockWidget.h"
@@ -76,7 +78,7 @@ public:
     QMenuBar* menu_bar;
     QTabWidget* table_container;
     QTableView* stats_table_view;
-    QTableView* trades_table_view;
+    QTreeView* portfolio_treeview;
 
     NexusPortfolioPlot* nexus_plot;
 
@@ -91,6 +93,7 @@ private:
     std::unordered_map<std::string, QAction*> strategies_checkboxes;
 
     void set_up_strategies_menu();
+    void set_up_portfolio_table();
     NexusEnv const* nexus_env;
     std::string portfolio_id;
 };

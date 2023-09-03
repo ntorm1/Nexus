@@ -1,7 +1,10 @@
+
 #include "AgisOverloads.h"
+#include "NexusAsset.h"
 #include "NexusPortfolio.h"
 #include "NexusHelpers.h"
 #include "ui_NexusPortfolio.h"
+
 
 
 //============================================================================
@@ -36,13 +39,12 @@ NexusPortfolio::NexusPortfolio(
     layout->addWidget(splitter);
 
     this->table_container = new QTabWidget(this);
-    this->stats_table_view = new QTableView();
+    this->stats_table_view = new QTableView(this);
     this->stats_table_view->setEditTriggers(QAbstractItemView::NoEditTriggers);
     this->table_container->addTab(this->stats_table_view, QString("Results"));
-
-    this->trades_table_view = new QTableView();
-    this->trades_table_view->setEditTriggers(QAbstractItemView::NoEditTriggers);
-    this->table_container->addTab(this->trades_table_view, QString("Open Trades"));
+    
+    this->portfolio_treeview = new QTreeView(this);
+    this->table_container->addTab(this->portfolio_treeview, QString("Portfolio"));
 
     // Add the NexusPlot widget and table widget to the splitter
     splitter->addWidget(this->nexus_plot);
@@ -59,8 +61,9 @@ NexusPortfolio::NexusPortfolio(
     // Set the layout for the central widget
     centralWidget->setLayout(layout);
 
-    // load in the NexusPortfolio to the plot
+    // load in the NexusPortfolio to the plot 
     this->set_up_strategies_menu();
+    this->set_up_portfolio_table();
     this->nexus_plot->load_portfolio(this);
 }
 
@@ -110,6 +113,54 @@ void NexusPortfolio::set_up_strategies_menu()
 }
 
 
+//============================================================================
+void NexusPortfolio::set_up_portfolio_table()
+{
+    auto portfolio_model = new QStandardItemModel(this);
+
+    // Set the headers for the columns (optional)
+    portfolio_model->setHorizontalHeaderLabels(q_trade_column_names);
+    auto portfolio = this->nexus_env->get_hydra()->get_portfolio(this->portfolio_id);
+    auto& positions = portfolio->__get_positions();
+
+    for (auto& [id, postion] : positions) {
+        // load in the trade data for the positions
+        auto& trades = postion->__get_trades();
+        std::vector<SharedTradePtr> trade_ptrs;
+        for (auto& [id, trade] : trades) trade_ptrs.push_back(trade);
+
+        // parse the trades in to a standard item model
+        auto position_model = new QStandardItemModel(this);
+        event_data_loader(trade_ptrs, q_trade_column_names, position_model, this->nexus_env->get_hydra());
+        
+        // add a new run for the position
+        auto position_id = this->nexus_env->get_hydra()->asset_index_to_id(id).unwrap();
+        QStandardItem* position_item = new QStandardItem(QString::fromStdString(position_id));
+
+        // Iterate through the rows in position_model and add them to portfolio_model
+        for (int row = 0; row < position_model->rowCount(); ++row) {
+            QList<QStandardItem*> items;
+            for (int col = 0; col < position_model->columnCount(); ++col) {
+                auto item = position_model->takeItem(row, col);
+                item->setFlags(item->flags() & ~Qt::ItemIsEditable);
+                items.append(item);
+            }
+            position_item->appendRow(items);
+        }
+        portfolio_model->appendRow(position_item);
+    }
+    this->portfolio_treeview->reset();
+    this->portfolio_treeview->setModel(portfolio_model);
+    this->portfolio_treeview->expandAll();
+    for (int column = 0; column < portfolio_model->columnCount(); ++column) {
+        this->portfolio_treeview->resizeColumnToContents(column);
+    }
+    // Show the treeView
+    this->show();
+}
+
+
+//============================================================================
 void populate_stats_model(std::vector<double> const& nlv, QStandardItemModel* model, size_t i)
 {
     // calculate total returns 
@@ -179,10 +230,16 @@ void NexusPortfolio::on_new_hydra_run()
     auto& nlv = hydra->get_portfolio(this->portfolio_id)->get_nlv_history_vec();
     auto dt_index = hydra->__get_dt_index();
 
+    // reload stats table
     this->stats_table_view->reset();
     this->stats_table_view->setModel(model);
     this->stats_table_view->resizeColumnsToContents();
+
+    // remove any plotted graphs from previous run 
     this->nexus_plot->clearGraphs();
+
+    // replot the portfolio table
+    this->set_up_portfolio_table();
 }
 
 

@@ -384,10 +384,11 @@ void NexusEnv::__compile()
 		bool is_abstract = strategy_pair.second->__is_abstract_class();
 
 		auto strategy_id = strategy_pair.second->get_strategy_id();
-		// if strategy_id ends in the characters "Class", remove them
-		if (strategy_id.size() >= 5 && strategy_id.substr(strategy_id.size() - 5) == "Class")
+		// if strategy_id ends in the characters "_CPP", remove them
+
+		if (strategy_id.size() >= 4 && strategy_id.substr(strategy_id.size() - 4) == "_CPP")
 		{
-			strategy_id = strategy_id.substr(0, strategy_id.size() - 5);
+			strategy_id = strategy_id.substr(0, strategy_id.size() - 4);
 		}
 		std::string strat_include_mid = "#include \"strategies/" + strategy_id + "/"
 			+ strategy_pair.second->get_strategy_id();

@@ -143,7 +143,7 @@ void AssetLambdaModel::on_filter_change()
 	auto& last_char = filter_text[filter_text.size() - 1];
 	if (last_char == ')' || last_char == ']') {
 		try {
-			auto filter = AssetFilterStruct(filter_text.toStdString());
+			auto filter = AssetFilterRange(filter_text.toStdString());
 			// reset the style sheet background 
 			this->asset_lambda_node->filter->setStyleSheet("QLineEdit { background: white; }");
 			this->on_lambda_change();
@@ -426,12 +426,10 @@ std::shared_ptr<NodeData> AssetLambdaModel::outData(PortIndex const port)
 		auto filter_str = this->asset_lambda_node->filter->text();
 		if (!filter_str.isEmpty() && filter_str != "")
 		{
-			auto filter = AssetFilterStruct(filter_str.toStdString());
-			auto filter_lambda = filter.get_filter();
-			new_chain.push_back(AssetLambdaScruct(filter_lambda));
+			new_chain.push_back(AssetLambdaScruct(AssetFilterRange(filter_str.toStdString())));
 		}
 
-		return std::make_shared<AssetLambdaData>(new_chain, this->warmup);
+		return std::make_shared<AssetLambdaData>(std::move(new_chain), this->warmup);
 	}
 	NEXUS_THROW("unexpected out port");
 }
@@ -554,7 +552,8 @@ void ExchangeViewModel::setInData(std::shared_ptr<NodeData> data, PortIndex cons
 				}
 
 				// parse column name, if it is invalid return. Needs to be improved
-				auto& column_name = lambda_struct.column;
+				auto& operation = lambda_struct.get_asset_operation_struct();
+				auto& column_name = operation.column;
 				auto column_index_res = this->exchange->get_column_index(column_name);
 				if (column_index_res.is_exception())
 				{
@@ -564,20 +563,21 @@ void ExchangeViewModel::setInData(std::shared_ptr<NodeData> data, PortIndex cons
 				}
 				// with the new column index create a new asset lambda struct and push to the chain
 				auto column_index = column_index_res.unwrap();
-				auto row = lambda_struct.row;
-				AssetLambda lambda_op = AssetLambda(lambda_struct.opp.value(), [=](const AssetPtr& asset) -> AgisResult<double> {
+				auto row = operation.row;
+				AssetLambda lambda_op = AssetLambda(operation.asset_lambda.first, [=](const AssetPtr& asset) -> AgisResult<double> {
 					return asset->get_asset_feature(column_index, row);
 					});
-				AssetLambdaScruct asset_lambda_struct{ lambda_op, lambda_struct.opp.value(), column_name, row};
+				AssetLambdaScruct asset_lambda_struct{ lambda_op, operation.asset_lambda.first, column_name, row};
 				this->lambda_chain.emplace_back(asset_lambda_struct);
 			}
 
 			// extract the warmup needed for the lambda chain
 			int min_row = 0;
-			for (auto& asset_lambda : this->lambda_chain)
+			for (auto& asset_lambda_struct : this->lambda_chain)
 			{
-				if (asset_lambda.is_filter()) continue;
-				if (asset_lambda.row < min_row) { min_row = asset_lambda.row; }
+				if (asset_lambda_struct.is_filter()) continue;
+				auto& operation = asset_lambda_struct.get_asset_operation_struct();
+				if (operation.row < min_row) { min_row = operation.row; }
 			}
 			this->warmup = abs(min_row);
 

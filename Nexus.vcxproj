@@ -74,7 +74,7 @@
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
-      <AdditionalIncludeDirectories>C:\Users\natha\OneDrive\Desktop\C++\external\nodeeditor\include;$(SolutionDir)AgisCore;$(SolutionDir)include;$(SolutionDir)Qt-Advanced-Docking-System\src;C:\Users\natha\OneDrive\Desktop\C++\external\qcustomplot;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Users\natha\OneDrive\Desktop\C++\external\nodeeditor\include;$(SolutionDir)AgisCore;$(SolutionDir)include;$(SolutionDir)Qt-Advanced-Docking-System\src;$(SolutionDir)QCustomPlot;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>$(Qt_DEFINES_);%(PreprocessorDefinitions);NODE_EDITOR_SHARED;ADS_STATIC</PreprocessorDefinitions>
       <LanguageStandard>stdcpp20</LanguageStandard>
     </ClCompile>
@@ -85,7 +85,7 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
-      <AdditionalIncludeDirectories>$(SolutionDir)AgisCore;C:\Users\natha\OneDrive\Desktop\C++\external\nodeeditor\include;C:\Users\natha\OneDrive\Desktop\C++\AgisCore;C:\Users\natha\OneDrive\Desktop\C++\Nexus\include;C:\Users\natha\OneDrive\Desktop\C++\Nexus\ads;C:\Users\natha\OneDrive\Desktop\C++\external\qcustomplot;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)AgisCore;C:\Users\natha\OneDrive\Desktop\C++\external\nodeeditor\include;%(AdditionalIncludeDirectories);$(SolutionDir)include;$(SolutionDir)QCustomPlot</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <PreprocessorDefinitions>$(Qt_DEFINES_);%(PreprocessorDefinitions);NODE_EDITOR_SHARED;</PreprocessorDefinitions>
     </ClCompile>

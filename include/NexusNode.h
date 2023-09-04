@@ -6,6 +6,7 @@
 #include <QApplication>
 #include <QMessageBox>
 #include <QString>
+#include <qspinbox.h>
 #include <stdexcept>
 
 #include "DockWidget.h"
@@ -70,7 +71,6 @@ private:
     void handleCheckBoxStateChange(QCheckBox* checkBox, std::function<AgisResult<bool>(bool)> setFunction);
     void create_strategy_tab(QVBoxLayout* l);
     void on_tw_change(int index);
-    void on_alloc_change(double allocation);
 
     static size_t counter;
     size_t id;
@@ -85,6 +85,8 @@ private:
     ads::CDockWidget* DockWidget;
 
     QLineEdit* allocation;
+    QLineEdit* max_leverage;
+    QSpinBox* step_frequency;
     QComboBox* trading_window;
 
     QCheckBox* beta_trace;          ///< Wether or not to store the net beta of the strategy every t

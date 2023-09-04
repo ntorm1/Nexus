@@ -104,14 +104,6 @@ void NexusNodeEditor::on_tw_change(int index)
 
 
 //============================================================================
-void NexusNodeEditor::on_alloc_change(double allocation)
-{
-	this->strategy->__set_allocation(allocation);
-}
-
-
-
-//============================================================================
 void NexusNodeEditor::handleCheckBoxStateChange(QCheckBox* checkBox, std::function<AgisResult<bool>(bool)> setFunction) {
 	int state = checkBox->isChecked() ? Qt::Checked : Qt::Unchecked;
 	AgisResult<bool> res = setFunction(state == Qt::Checked);
@@ -135,17 +127,53 @@ void NexusNodeEditor::create_strategy_tab(QVBoxLayout* l)
 	row_layout->addWidget(row_label);
 	row_layout->addWidget(this->allocation);
 	l->addLayout(row_layout);
-
-	// listen to allocation change
 	connect(
 		allocation,
 		&QLineEdit::textChanged,
 		[this](const QString& newText) {
 			bool ok;
-			double allocationValue = newText.toDouble(&ok);
+			double allocation_value = newText.toDouble(&ok);
 			if (ok) {
-				on_alloc_change(allocationValue);
+				this->strategy->__set_allocation(allocation_value);
 			}
+		}
+	);
+
+	// strat max leverage
+	row_layout = new QHBoxLayout(this);
+	row_label = new QLabel("Max Leverage: ");
+	this->max_leverage = new QLineEdit(this);
+	validator = new QDoubleValidator(0.0, 20.0, 3, this->max_leverage); // 2 decimal places
+	allocation->setValidator(validator);
+	row_layout->addWidget(row_label);
+	row_layout->addWidget(this->max_leverage);
+	l->addLayout(row_layout);
+	connect(
+		this->max_leverage,
+		&QLineEdit::textChanged,
+		[this](const QString& newText) {
+			bool ok;
+			double max_leverage = newText.toDouble(&ok);
+			if (ok) {
+				this->strategy->set_max_leverage(max_leverage);
+			}
+		}
+	);
+
+	// step frequency 
+	row_layout = new QHBoxLayout(this);
+	row_label = new QLabel("Step Frequency: ");
+	this->step_frequency = new QSpinBox(this);
+	this->step_frequency->setMinimum(0); // Set the minimum value to the minimum possible integer value (most negative value)
+	row_layout->addWidget(row_label);
+	row_layout->addWidget(this->step_frequency);
+	l->addLayout(row_layout);
+	connect(
+		this->step_frequency,
+		QOverload<int>::of(&QSpinBox::valueChanged),
+		[this](int step) {
+			if (step <= 1) return;
+			this->strategy->set_step_frequency(static_cast<size_t>(step));
 		}
 	);
 
@@ -268,9 +296,17 @@ NexusNodeEditor::NexusNodeEditor(
 		return this->__extract_abstract_strategy(this->dataFlowGraphModel);
 	});
 
-	// set widget values to class values
+	// set strategy allocation size
 	auto double_allocation = this->strategy->get_allocation();
 	this->allocation->setText(QString::fromStdString(std::to_string(double_allocation)));
+	
+	// set max leverage of the strategy
+	auto double_max_leverage = this->strategy->get_max_leverage();
+	if (double_max_leverage.has_value()) {
+		this->max_leverage->setText(QString::fromStdString(std::to_string(double_max_leverage.value())));
+	}
+	
+	// set trading window
 	auto w = this->strategy->get_trading_window();
 	auto w_str = trading_window_to_key_str(w);
 	int index = this->trading_window->findText(QString::fromStdString(w_str));

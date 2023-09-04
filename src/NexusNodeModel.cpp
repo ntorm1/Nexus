@@ -451,7 +451,28 @@ std::shared_ptr<NodeData> ExchangeModel::outData(PortIndex const port)
 //============================================================================
 std::shared_ptr<NodeData> TradeExitModel::outData(PortIndex const port)
 {
-	return nullptr;
+	if (port == 0)
+	{
+
+		auto exit_type = this->trade_exit_node->exit_type->currentText();
+		auto extra_param = this->trade_exit_node->extra_param->text().toStdString();
+		AgisResult<TradeExitPtr> trade_exit;
+		try {
+ 			trade_exit = parse_trade_exit(
+				trade_exit_type_map.at(exit_type.toStdString()),
+				extra_param
+			);
+			this->trade_exit_node->extra_param->setStyleSheet("QLineEdit { background: white; }");
+			return std::make_shared<TradeExitData>(trade_exit.unwrap());
+		}
+		catch (std::exception& e) {
+			this->trade_exit_node->extra_param->setStyleSheet("QLineEdit { background: red; }");
+			return nullptr;
+		}
+	}
+	else {
+		return nullptr;
+	}
 }
 
 
@@ -507,6 +528,7 @@ std::shared_ptr<NodeData> ExchangeViewModel::outData(PortIndex const port)
 	}
 	NEXUS_THROW("unexpected out port");
 }
+
 
 //============================================================================
 void AssetLambdaModel::setInData(std::shared_ptr<NodeData> data, PortIndex const port)
@@ -619,7 +641,14 @@ void StrategyAllocationModel::setInData(std::shared_ptr<NodeData> data, PortInde
 			return;
 		}
 		case 1: {
-			qDebug() << "hello from case 1";
+			if (!data)
+			{
+				this->trade_exit = std::nullopt;
+				Q_EMIT dataInvalidated(1);
+				return;
+			}
+			std::shared_ptr<TradeExitData> trade_exit_data = std::dynamic_pointer_cast<TradeExitData>(data);
+			this->trade_exit = trade_exit_data->trade_exit;
 			return;
 		}
 	}

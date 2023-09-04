@@ -457,6 +457,7 @@ public:
     void load(QJsonObject const& p) override;
 
     std::optional<ExchangeViewLambdaStruct> ev_lambda_struct;
+    std::optional<TradeExitPtr> trade_exit;
     StrategyAllocationNode* strategy_allocation_node = nullptr;
     
 };

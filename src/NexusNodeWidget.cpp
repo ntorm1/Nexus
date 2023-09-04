@@ -153,7 +153,7 @@ ExchangeViewNode::ExchangeViewNode(
 //============================================================================
 void StrategyAllocationNode::update_ev_opp_param_state() {
     auto val = this->ev_opp_type->currentText().toStdString();
-    bool isEnabled = (val == "CONDITIONAL_SPLIT");
+    bool isEnabled = (val == "CONDITIONAL_SPLIT" || val == "CONSTANT");
     this->ev_opp_param->setEnabled(isEnabled);
 }
 

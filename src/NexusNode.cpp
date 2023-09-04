@@ -399,6 +399,7 @@ std::optional<ExchangeViewLambdaStruct> NexusNodeEditor::__extract_abstract_stra
 		epsilon,
 		target_leverage,
 		ev_opp_param,
+		node->trade_exit,
 		clear_missing,
 		ev_opp_type,
 		agis_strat_alloc_map.at(str_alloc_type)

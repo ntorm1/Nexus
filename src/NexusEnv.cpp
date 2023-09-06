@@ -210,6 +210,7 @@ AgisResult<bool> NexusEnv::new_exchange(
 		source,
 		string_to_freq(freq),
 		dt_format,
+		std::nullopt,
 		market_asset
 		);
 }

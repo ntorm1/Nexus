@@ -161,32 +161,48 @@ void NexusPortfolio::set_up_portfolio_table()
 
 
 //============================================================================
-void populate_stats_model(std::vector<double> const& nlv, QStandardItemModel* model, size_t i)
+void populate_stats_model(
+    std::vector<double> const& nlv, 
+    QStandardItemModel* model, 
+    size_t i,
+    std::optional<std::vector<double>> benchmark_nlv = std::nullopt
+)
 {
     // calculate total returns 
-    QString formattedPct = "$" + QString::number(get_stats_total_pl(nlv), 'f', 2);
-    QStandardItem* item = new QStandardItem(formattedPct);
+    QString x = "$" + QString::number(get_stats_total_pl(nlv), 'f', 2);
+    QStandardItem* item = new QStandardItem(x);
     model->setItem(0, i, item);
 
     // calculate pct returns
-    formattedPct = QString::number(get_stats_pct_returns(nlv)) + "%";
-    item = new QStandardItem(formattedPct);
+    x = QString::number(get_stats_pct_returns(nlv)) + "%";
+    item = new QStandardItem(x);
     model->setItem(1, i, item);
 
     // calculate annualized returns
-    formattedPct = QString::number(get_stats_annualized_pct_returns(nlv), 'f', 2) + "%";
-    item = new QStandardItem(formattedPct);
+    x = QString::number(get_stats_annualized_pct_returns(nlv), 'f', 2) + "%";
+    item = new QStandardItem(x);
     model->setItem(2, i, item);
 
     // calculate annualized volatility
-    formattedPct = QString::number(get_stats_annualized_volatility(nlv), 'f', 2) + "%";
-    item = new QStandardItem(formattedPct);
+    x = QString::number(get_stats_annualized_volatility(nlv), 'f', 2) + "%";
+    item = new QStandardItem(x);
     model->setItem(3, i, item);
 
     // calculate annualized sharpe
-    formattedPct = QString::number(get_stats_sharpe_ratio(nlv), 'f', 2);
-    item = new QStandardItem(formattedPct);
+    x = QString::number(get_stats_sharpe_ratio(nlv), 'f', 2);
+    item = new QStandardItem(x);
     model->setItem(4, i, item);
+
+    // calculate beta
+    if(benchmark_nlv.has_value()){
+        auto beta = get_stats_beta(nlv, benchmark_nlv.value()).unwrap_or(AGIS_NAN);
+        x = QString::number(beta, 'f', 2);
+    }
+	else{
+        x = QString::number(AGIS_NAN, 'f', 2);
+    }
+    item = new QStandardItem(x);
+    model->setItem(5, i, item);
 }
 
 //============================================================================
@@ -195,7 +211,7 @@ void NexusPortfolio::on_new_hydra_run()
     // set up the table view
     QStandardItemModel* model = new QStandardItemModel(this);
     static QStringList q_columns = { "Total P/L", "Pct Return", 
-        "Annualized Return", "Annualized Volatility", "Sharpe Ratio"};
+        "Annualized Return", "Annualized Volatility", "Sharpe Ratio","Beta"};
 
     auto selected_strategies = this->get_selected_strategies();
     model->setRowCount(q_columns.size());
@@ -203,24 +219,30 @@ void NexusPortfolio::on_new_hydra_run()
     model->setVerticalHeaderLabels(q_columns);
     model->setHorizontalHeaderLabels(str_vec_to_qlist(selected_strategies));
 
+    // get the benchmark nlv history if it exists
+    std::optional<std::vector<double>> benchmark_nlv = std::nullopt;
+    auto portfolio = this->nexus_env->get_hydra()->get_portfolio(this->portfolio_id);
+    auto benchmark = portfolio->__get_benchmark_strategy();
+    if(benchmark) benchmark_nlv = benchmark->get_nlv_history();
+
     size_t i = 0;
     for (const auto& id : selected_strategies)
     {
         // stats for the overall portfolio
         if (id == "AGGREGATE") {
             auto& nlv = this->nexus_env->get_hydra()->get_portfolio(this->portfolio_id)->get_nlv_history_vec();
-            populate_stats_model(nlv, model, i);
+            populate_stats_model(nlv, model, i, benchmark_nlv);
         }
         // check if bench mark strategy by looking for a space in the id (only allowed for benchmark
         else if (id.find(" ") != std::string::npos) {
             auto portfolio = this->nexus_env->get_hydra()->get_portfolio(this->portfolio_id);
             auto nlv = portfolio->__get_benchmark_strategy()->get_nlv_history();
-            populate_stats_model(nlv, model, i);
+            populate_stats_model(nlv, model, i, benchmark_nlv);
 		}
         // stats for a specific strategy
 		else {
 			auto nlv = this->nexus_env->get_hydra()->get_strategy(id)->get_nlv_history();
-            populate_stats_model(nlv, model, i);
+            populate_stats_model(nlv, model, i, benchmark_nlv);
         }
         i++;
     }

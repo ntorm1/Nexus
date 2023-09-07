@@ -2,10 +2,28 @@
 #include <Windows.h>
 
 #include <QtWidgets/QApplication>
+#include <QtNodes/ConnectionStyle>
+
 #include <QPalette>
 #include <QFile>
 
 #include "MainWindow.h"
+
+using QtNodes::ConnectionStyle;
+
+
+//============================================================================
+static void setStyle()
+{
+    ConnectionStyle::setConnectionStyle(
+        R"(
+  {
+    "ConnectionStyle": {
+      "UseDataDefinedColors": true
+    }
+  }
+  )");
+}
 
 int main(int argc, char *argv[])
 {
@@ -44,6 +62,7 @@ int main(int argc, char *argv[])
         std::cerr << "Failed to load 'arrow.dll'." << std::endl;
     }
 
+    setStyle();
 
 	QCoreApplication::setApplicationName("Nexus");
 	QCoreApplication::setOrganizationName("Agis Systems");

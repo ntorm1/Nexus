@@ -43,20 +43,6 @@ std::shared_ptr<NodeDelegateModelRegistry> registerDataModels()
 
 
 //============================================================================
-static void setStyle()
-{
-	ConnectionStyle::setConnectionStyle(
-		R"(
-  {
-    "ConnectionStyle": {
-      "UseDataDefinedColors": true
-    }
-  }
-  )");
-}
-
-
-//============================================================================
 QMenuBar* NexusNodeEditor::createSaveRestoreMenu(BasicGraphicsScene* scene)
 {
 	auto menuBar = new QMenuBar();
@@ -250,14 +236,14 @@ NexusNodeEditor::NexusNodeEditor(
 {
 	this->strategy_id = this->strategy->get_strategy_id();
 
-	ConnectionStyle::setConnectionStyle(
-	R"(f
-	  {
-		"ConnectionStyle": {
-		  "UseDataDefinedColors": true
-		}
-	  }
-	 )");
+	//ConnectionStyle::setConnectionStyle(
+	//R"(f
+	//  {
+	//	"ConnectionStyle": {
+	//	  "UseDataDefinedColors": true
+	//	}
+	// }
+	// )");
 
 	ui->setupUi(this);
 	QWidget* centralWidget = ui->centralwidget;

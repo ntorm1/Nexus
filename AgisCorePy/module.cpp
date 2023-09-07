@@ -150,8 +150,8 @@ void init_portfolio(py::module& m)
         .def("build", &TradeExit::build)
         .def("exit", &TradeExit::exit);
 
-    py::class_<Portfolio, std::shared_ptr<Portfolio>>(m, "Portfolio")
-        .def(py::init<const std::string&, double>());
+    //py::class_<Portfolio, std::shared_ptr<Portfolio>>(m, "Portfolio")
+    //    .def(py::init<const std::string&, double>());
 }
 
 PYBIND11_MODULE(AgisCorePy, m) {

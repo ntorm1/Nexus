@@ -382,7 +382,7 @@ std::vector<double> NexusPortfolioPlot::get_data(
         }
     }
     else if (name == "UNDERWATER") {
-        std::span<double const> y_span;
+        std::vector<double> y_span;
         if (std::holds_alternative<AgisStrategy *>(entity)) {
             y_span = std::get<AgisStrategy *>(entity)->get_nlv_history();
         }

@@ -158,7 +158,7 @@ void NexusNodeEditor::create_strategy_tab(QVBoxLayout* l)
 		this->step_frequency,
 		QOverload<int>::of(&QSpinBox::valueChanged),
 		[this](int step) {
-			if (step <= 1) return;
+			if (step <= 1) this->strategy->set_step_frequency(std::nullopt);
 			this->strategy->set_step_frequency(static_cast<size_t>(step));
 		}
 	);

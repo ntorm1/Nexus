@@ -76,6 +76,7 @@ public:
     );
     ~NewExchangePopup();
 
+    QString get_vol_lookback() const;
     QString get_source() const;
     QString get_exchange_id() const;
     QString get_freq() const;

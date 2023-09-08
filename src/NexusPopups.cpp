@@ -150,6 +150,9 @@ NewExchangePopup::NewExchangePopup(
 			exchange.value()->get_dt_format())
         		);
 
+        auto vol_lookback = std::to_string(exchange.value()->__get_vol_lookback());
+        this->ui->vol_lookback->setText(QString::fromStdString(vol_lookback));
+
         auto market_asset = exchange.value()->__get_market_asset_struct();
         if (market_asset.has_value())
         {
@@ -182,24 +185,45 @@ NewExchangePopup::~NewExchangePopup()
 //============================================================================
 void NewExchangePopup::on_submit()
 {
+    // validate id
     if (this->get_exchange_id().isEmpty())
     {
         QMessageBox::critical(this, "Error", "Missing exchange ID");
         return;
     }
+    // validate source 
     if (this->get_source().isEmpty())
     {
         QMessageBox::critical(this, "Error", "Missing source");
         return;
     }
+    // validate beta lookback
     if (this->get_beta_lookback().isEmpty() || this->get_market_asset_id().isEmpty())
     {
         QMessageBox::critical(this, "Error", "Missing beta");
         return;
     }
+    // validate vol lookback
+    try {
+        if (!this->get_vol_lookback().isEmpty()) {
+            size_t vol_lookback = std::stoul(this->get_vol_lookback().toStdString());
+        }
+    }
+    catch (const std::exception& e)
+    {
+		QMessageBox::critical(this, "Error", "Invalid vol lookback");
+		return;
+	}
+
     QDialog::accept();
 }
 
+
+//============================================================================
+QString NewExchangePopup::get_vol_lookback() const
+{
+    return ui->vol_lookback->text();
+}
 
 //============================================================================
 QString NewExchangePopup::get_source() const

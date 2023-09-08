@@ -523,6 +523,15 @@ AgisResult<bool> ExchangeTree::edit_exchange_instance(QString const& exchange_id
             );
             return res;
         }
+
+        // update vol lookback if needed
+        auto vol_lookback = popup->get_vol_lookback();
+        size_t vol_lookback_size_t = std::stoul(vol_lookback.toStdString());
+        auto exchange = this->hydra->get_exchanges().get_exchange(popup->get_exchange_id().toStdString());
+        if (exchange->__get_vol_lookback() != vol_lookback_size_t) {
+            exchange->__set_volatility(vol_lookback_size_t);
+        }
+
     }
 
     return AgisResult<bool>(true);
@@ -535,11 +544,6 @@ void ExchangeTree::create_new_item(const QModelIndex& parentIndex)
     NewExchangePopup* popup = new NewExchangePopup();
     if (popup->exec() == QDialog::Accepted)
     {
-        auto exchange_id = popup->get_exchange_id();
-        auto source = popup->get_source();
-        auto freq = popup->get_freq();
-        auto dt_format = popup->get_dt_format();
-
         auto market_asset_id = popup->get_market_asset_id();
         auto beta_lookback = popup->get_beta_lookback();
         std::optional<MarketAsset> market_asset = std::nullopt;
@@ -552,7 +556,7 @@ void ExchangeTree::create_new_item(const QModelIndex& parentIndex)
         }
 
         // Send signal to main window asking to create the new item
-        emit new_item_requested(parentIndex, exchange_id, source, freq, dt_format, market_asset);
+        emit new_item_requested(parentIndex, popup, market_asset);
     }
 }
 

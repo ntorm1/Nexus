@@ -24,6 +24,7 @@
 
 class NexusDockManager;
 class NexusSettings;
+class NewExchangePopup;
 
 QT_BEGIN_NAMESPACE
 namespace Ui {
@@ -81,10 +82,7 @@ private slots:
         const QString& strategy_id
     );
     void on_new_exchange_request(const QModelIndex& parentIndex,
-        const QString& exchange_id,
-        const QString& source,
-        const QString& freq,
-        const QString& dt_format,
+        NewExchangePopup* popup,
         std::optional<MarketAsset> market_asset
     );
 

@@ -217,10 +217,7 @@ private:
 signals:
     void asset_double_click(const QString& asset_id);
     void new_item_requested(const QModelIndex& parentIndex, 
-        const QString& exchange_id,
-        const QString& source,
-        const QString& freq,
-        const QString& dt_format,
+        NewExchangePopup* popup,
         std::optional<MarketAsset> market_asset
     );
 

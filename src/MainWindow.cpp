@@ -36,7 +36,6 @@
 #include "MainWindow.h"
 #include "ui_MainWindow.h"
 
-// Adavance Docking System
 #include "AutoHideDockContainer.h"
 #include "DockAreaWidget.h"
 #include "DockAreaTitleBar.h"
@@ -44,6 +43,7 @@
 #include "FloatingDockContainer.h"
 #include "DockComponentsFactory.h"
 #include "NexusDockManager.h"
+#include "NexusPopups.h"
 #include "NexusTree.h"
 #include "NexusNode.h"
 #include "NexusErrors.h"
@@ -302,7 +302,7 @@ ads::CDockWidget* MainWindow::create_exchanges_widget()
         w, 
         SIGNAL(new_item_requested(QModelIndex, QString, QString, QString, QString, std::optional<MarketAsset>)),
         this, 
-        SLOT(on_new_exchange_request(QModelIndex, QString, QString, QString, QString, std::optional<MarketAsset>))
+        SLOT(on_new_exchange_request(QModelIndex, NewExchangePopup*, std::optional<MarketAsset>))
     );
     // Signal to accept  new exchanges
     QObject::connect(
@@ -1108,26 +1108,28 @@ void MainWindow::on_strategy_remove_requested(const QModelIndex& parentIndex, co
 
 //============================================================================
 void MainWindow::on_new_exchange_request(const QModelIndex& parentIndex, 
-    const QString& exchange_id,
-    const QString& source,
-    const QString& freq,
-    const QString& dt_format,
+    NewExchangePopup* popup,
     std::optional<MarketAsset> market_asset)
 {
     auto res = this->nexus_env.new_exchange(
-        exchange_id.toStdString(),
-        source.toStdString(),
-        freq.toStdString(),
-        dt_format.toStdString(),
+        popup->get_exchange_id().toStdString(),
+        popup->get_source().toStdString(),
+        popup->get_freq().toStdString(),
+        popup->get_dt_format().toStdString(),
         market_asset);
-    if (res.is_exception())
+    if (res.is_exception()) QMessageBox::critical(this, "Error", QString::fromStdString(res.get_exception()));
+    
+    // set the volatiltiy lookback if specified
+    auto vol_lookback = popup->get_vol_lookback();
+    if (!vol_lookback.isEmpty())
     {
-        QMessageBox::critical(this, "Error", QString::fromStdString(res.get_exception()));
+        size_t vol_lookback_size_t = std::stoul(vol_lookback.toStdString());
+        auto& exchanges = this->nexus_env.get_hydra()->get_exchanges();
+        exchanges.get_exchange(popup->get_exchange_id().toStdString())->__set_volatility(vol_lookback_size_t);
     }
-    else
-    {
-        emit new_exchange_accepted(parentIndex, exchange_id);
-    }
+
+    emit new_exchange_accepted(parentIndex, popup->get_exchange_id());
+
 }
 
 

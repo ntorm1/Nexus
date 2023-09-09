@@ -75,7 +75,6 @@ public:
     Ui::NexusPortfolio* ui;
     ads::CDockWidget* DockWidget;
 
-    QMenuBar* menu_bar;
     QTabWidget* table_container;
     QTableView* stats_table_view;
     QTreeView* portfolio_treeview;
@@ -88,12 +87,14 @@ public:
 
 public slots:
     void on_new_hydra_run();
+    void on_portfolio_download();
 
 private:
     std::unordered_map<std::string, QAction*> strategies_checkboxes;
 
     void set_up_strategies_menu();
     void set_up_portfolio_table();
+    void set_up_toolbar();
     NexusEnv const* nexus_env;
     std::string portfolio_id;
 };

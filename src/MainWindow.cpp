@@ -47,6 +47,7 @@
 #include "NexusTree.h"
 #include "NexusNode.h"
 #include "NexusErrors.h"
+#include "NexusHelpers.h"
 #include "NexusPortfolio.h"
 
 // Octave Win32 Terminal 
@@ -61,16 +62,6 @@ MainWindow::~MainWindow()
     delete ui;
 }
 
-//============================================================================
-
-static QIcon svgIcon(const QString& File)
-{
-    // This is a workaround, because in item views SVG icons are not
-    // properly scaled and look blurry or pixelate
-    QIcon SvgIcon(File);
-    SvgIcon.addPixmap(SvgIcon.pixmap(92));
-    return SvgIcon;
-}
 
 //============================================================================
 class CCustomComponentsFactory : public ads::CDockComponentsFactory

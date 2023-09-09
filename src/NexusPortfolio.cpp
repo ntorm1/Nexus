@@ -1,4 +1,4 @@
-
+#include <fstream>
 #include "AgisOverloads.h"
 #include "NexusAsset.h"
 #include "NexusPortfolio.h"
@@ -19,7 +19,6 @@ NexusPortfolio::NexusPortfolio(
 	DockWidget(DockWidget_)
 {
 	ui->setupUi(this);
-    this->menu_bar = new QMenuBar(this);
 	this->portfolio_id = portfolio_id_;
 
 	// Retrieve the central widget from the UI as well as the stats widget
@@ -44,6 +43,7 @@ NexusPortfolio::NexusPortfolio(
     this->table_container->addTab(this->stats_table_view, QString("Results"));
     
     this->portfolio_treeview = new QTreeView(this);
+    //QPushButton download_portfolio("Click Me");
     this->table_container->addTab(this->portfolio_treeview, QString("Portfolio"));
 
     // Add the NexusPlot widget and table widget to the splitter
@@ -64,9 +64,21 @@ NexusPortfolio::NexusPortfolio(
     // load in the NexusPortfolio to the plot 
     this->set_up_strategies_menu();
     this->set_up_portfolio_table();
+    this->set_up_toolbar();
     this->nexus_plot->load_portfolio(this);
 }
 
+
+void NexusPortfolio::set_up_toolbar()
+{
+    ui->toolBar->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
+
+    ui->toolBar->addAction(ui->actionSaveState);
+    ui->toolBar->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
+    ui->actionSaveState->setIcon(svgIcon("./images/json.png"));
+    auto a = ui->actionSaveState;
+    connect(a, &QAction::triggered, this, &NexusPortfolio::on_portfolio_download);
+}
 
 //============================================================================
 std::vector<std::string> NexusPortfolio::get_selected_strategies() const
@@ -90,7 +102,6 @@ void NexusPortfolio::set_up_strategies_menu()
     QAction* settingsAction = new QAction("Strategies", this);
     QMenu* settingsMenu = new QMenu(this);
     settingsAction->setMenu(settingsMenu);
-    this->menu_bar->addAction(settingsAction);
 
     PortfolioPtr portfolio = this->nexus_env->get_hydra()->get_portfolio(this->portfolio_id);
     auto strategy_ids = portfolio->get_strategy_ids();
@@ -110,6 +121,8 @@ void NexusPortfolio::set_up_strategies_menu()
         this->strategies_checkboxes.insert({ id, new_action });
         settingsMenu->addAction(new_action);
     }
+    settingsAction->setIcon(svgIcon("./images/flow.png"));
+    ui->toolBar->addAction(settingsAction);
 }
 
 
@@ -204,6 +217,34 @@ void populate_stats_model(
     item = new QStandardItem(x);
     model->setItem(5, i, item);
 }
+
+
+//============================================================================
+void NexusPortfolio::on_portfolio_download()
+{
+    auto hydra = this->nexus_env->get_hydra();
+    auto portfolio = hydra->get_portfolio(this->portfolio_id);
+    auto& positions = portfolio->__get_positions();
+    json j;
+    for (auto& [asset_index, position] : positions)
+    {
+        auto& trades = position->__get_trades();
+        json position_j;
+        for (auto& [strategy_index, trade] : trades)
+        {
+            json trade_json;
+            trade->serialize(trade_json, this->nexus_env->get_hydra());
+            position_j.push_back(trade_json);
+        }
+        auto asset_id = hydra->asset_index_to_id(asset_index).unwrap();
+        j[asset_id] = position_j;
+    }
+    auto ext = this->portfolio_id + ".json";
+    auto json_path = this->nexus_env->get_env_path() / ext;
+    std::ofstream file(json_path);
+    file << std::setw(4) << j;
+}
+
 
 //============================================================================
 void NexusPortfolio::on_new_hydra_run()

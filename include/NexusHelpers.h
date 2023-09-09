@@ -17,6 +17,7 @@ const QStringList q_trade_column_names = {
     "Realized PL","Portfolio Identifier","Trade Identifier","Last Price","NLV",
 };
 
+
 //============================================================================
 inline std::vector<std::string> qlist_to_str_vec(QStringList const& list) {
     std::vector<std::string> order_columns_names;
@@ -24,6 +25,17 @@ inline std::vector<std::string> qlist_to_str_vec(QStringList const& list) {
         order_columns_names.push_back(str.toStdString());
     }
     return order_columns_names;
+}
+
+
+//============================================================================
+static QIcon svgIcon(const QString& File)
+{
+    // This is a workaround, because in item views SVG icons are not
+    // properly scaled and look blurry or pixelate
+    QIcon SvgIcon(File);
+    SvgIcon.addPixmap(SvgIcon.pixmap(92));
+    return SvgIcon;
 }
 
 

@@ -7,3 +7,6 @@
 [submodule "Qt-Advanced-Docking-System"]
 	path = Qt-Advanced-Docking-System
 	url = https://github.com/ntorm1/Qt-Advanced-Docking-System.git
+[submodule "nodeeditor"]
+	path = nodeeditor
+	url = https://github.com/paceholder/nodeeditor.git

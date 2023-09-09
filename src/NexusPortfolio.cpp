@@ -62,9 +62,9 @@ NexusPortfolio::NexusPortfolio(
     centralWidget->setLayout(layout);
 
     // load in the NexusPortfolio to the plot 
+    this->set_up_toolbar();
     this->set_up_strategies_menu();
     this->set_up_portfolio_table();
-    this->set_up_toolbar();
     this->nexus_plot->load_portfolio(this);
 }
 
@@ -72,7 +72,6 @@ NexusPortfolio::NexusPortfolio(
 void NexusPortfolio::set_up_toolbar()
 {
     ui->toolBar->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
-
     ui->toolBar->addAction(ui->actionSaveState);
     ui->toolBar->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
     ui->actionSaveState->setIcon(svgIcon("./images/json.png"));

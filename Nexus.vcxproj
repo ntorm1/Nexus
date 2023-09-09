@@ -58,13 +58,13 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'">
-    <LibraryPath>C:\Users\natha\OneDrive\Desktop\C++\external\nodeeditor\out\build\x64-Debug\lib;C:\Users\natha\OneDrive\Desktop\C++\external\nodeeditor\out\build\x64-Debug\bin;C:\dev\vcpkg\installed\x64-windows\bin;$(LibraryPath)</LibraryPath>
+    <LibraryPath>$(SolutionDir)nodeeditor\out\build\lib;$(SolutionDir)nodeeditor\out\build\bin;C:\dev\vcpkg\installed\x64-windows\bin;$(LibraryPath)</LibraryPath>
     <IncludePath>$(SolutionDir)AgisCore\external\include;$(VC_IncludePath);$(WindowsSDK_IncludePath);$(SolutionDir)Qt-Advanced-Docking-System\src</IncludePath>
     <EnableClangTidyCodeAnalysis>false</EnableClangTidyCodeAnalysis>
     <SourcePath>$(VC_SourcePath);$(SolutionDir)Qt-Advanced-Docking-System\src</SourcePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'">
-    <LibraryPath>C:\Users\natha\OneDrive\Desktop\C++\external\nodeeditor\out\build\x64-Release\bin;C:\Users\natha\OneDrive\Desktop\C++\external\nodeeditor\out\build\x64-Release\lib;C:\dev\vcpkg\installed\x64-windows\bin;$(LibraryPath)</LibraryPath>
+    <LibraryPath>$(SolutionDir)nodeeditor\out\build\bin;$(SolutionDir)nodeeditor\out\build\lib;C:\dev\vcpkg\installed\x64-windows\bin;$(LibraryPath)</LibraryPath>
     <ExecutablePath>$(VC_ExecutablePath_x64);$(CommonExecutablePath);C:\dev\vcpkg\installed\x64-windows\bin</ExecutablePath>
     <IncludePath>$(SolutionDir)AgisCore\external\include;$(VC_IncludePath);$(WindowsSDK_IncludePath);C:\Program Files (x86)\Intel\oneAPI\tbb\2021.9.0\include;$(SolutionDir)Qt-Advanced-Docking-System\src</IncludePath>
     <EnableClangTidyCodeAnalysis>true</EnableClangTidyCodeAnalysis>
@@ -74,7 +74,7 @@
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
-      <AdditionalIncludeDirectories>C:\Users\natha\OneDrive\Desktop\C++\external\nodeeditor\include;$(SolutionDir)AgisCore;$(SolutionDir)include;$(SolutionDir)Qt-Advanced-Docking-System\src;$(SolutionDir)QCustomPlot;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)nodeeditor\include;$(SolutionDir)AgisCore;$(SolutionDir)include;$(SolutionDir)Qt-Advanced-Docking-System\src;$(SolutionDir)QCustomPlot;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>$(Qt_DEFINES_);%(PreprocessorDefinitions);NODE_EDITOR_SHARED;ADS_STATIC</PreprocessorDefinitions>
       <LanguageStandard>stdcpp20</LanguageStandard>
     </ClCompile>
@@ -85,7 +85,7 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
-      <AdditionalIncludeDirectories>$(SolutionDir)AgisCore;C:\Users\natha\OneDrive\Desktop\C++\external\nodeeditor\include;%(AdditionalIncludeDirectories);$(SolutionDir)include;$(SolutionDir)QCustomPlot</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)AgisCore;$(SolutionDir)nodeeditor\include;%(AdditionalIncludeDirectories);$(SolutionDir)include;$(SolutionDir)QCustomPlot</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <PreprocessorDefinitions>$(Qt_DEFINES_);%(PreprocessorDefinitions);NODE_EDITOR_SHARED;</PreprocessorDefinitions>
     </ClCompile>

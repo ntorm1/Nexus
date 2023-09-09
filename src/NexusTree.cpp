@@ -529,7 +529,7 @@ AgisResult<bool> ExchangeTree::edit_exchange_instance(QString const& exchange_id
         size_t vol_lookback_size_t = std::stoul(vol_lookback.toStdString());
         auto exchange = this->hydra->get_exchanges().get_exchange(popup->get_exchange_id().toStdString());
         if (exchange->__get_vol_lookback() != vol_lookback_size_t) {
-            exchange->__set_volatility(vol_lookback_size_t);
+            exchange->__set_volatility_lookback(vol_lookback_size_t);
         }
 
     }

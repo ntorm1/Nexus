@@ -16,7 +16,8 @@ Ex:
 - run: cd Nexus
 - run: git submodule update --init --recursive
 - Open nodeeditor/CMakeLists.txt in Visual Studio, build and copy QtNodes.dll to x64/debug and release folders of the Nexus Solution.
-- Open Nexus.sln and build
+- Open Nexus.sln and build.
+  
 To get AgisCoreTest running you will need [Google Test](https://learn.microsoft.com/en-us/visualstudio/test/how-to-use-google-test-for-cpp?view=vs-2022)
 
 

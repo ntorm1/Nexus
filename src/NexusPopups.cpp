@@ -3,6 +3,7 @@
 #include <filesystem>
 
 #include "Exchange.h"
+#include "Hydra.h"
 #include "NexusEnv.h"
 #include "NexusPopups.h"
 
@@ -10,6 +11,7 @@
 #include "ui_NewPortfolioPopup.h"
 #include "ui_NewStrategyPopup.h"
 #include "ui_NexusSettings.h"
+#include "ui_ExchangesPopup.h"
 
 
 //============================================================================
@@ -380,4 +382,68 @@ QString NexusSettings::get_agis_pyd_path() const
 void NexusSettings::on_submit()
 {
     emit this->settings_changed();
+}
+
+
+//============================================================================
+ExchangesPopup::ExchangesPopup(QWidget* parent, std::optional<HydraPtr> hydra_) : 
+    QDialog(parent),
+    hydra(hydra_),
+    ui(new Ui::ExchangesPopup)
+{
+    ui->setupUi(this);
+
+    if (this->hydra.has_value()) {
+        auto& exchanges = this->hydra.value()->get_exchanges();
+        auto cov_matrix = exchanges.get_covariance_matrix();
+        if (cov_matrix) {
+            auto lookback = cov_matrix->lookback;
+            this->ui->cov_lookback->setText(QString::fromStdString(std::to_string(lookback)));
+        }
+    }
+
+    connect(ui->save_button, &QPushButton::clicked, this, &ExchangesPopup::on_submit);
+}
+
+
+//============================================================================
+ExchangesPopup::~ExchangesPopup()
+{
+    delete ui;
+}
+
+
+//============================================================================
+QString ExchangesPopup::get_cov_lookback() const
+{
+    return this->ui->cov_lookback->text();
+}
+
+
+//============================================================================
+QString ExchangesPopup::get_cov_step() const
+{
+    return this->ui->cov_step->text();
+}
+
+
+//============================================================================
+void ExchangesPopup::on_submit()
+{
+    // validate vol lookback
+    try {
+        if (!this->get_cov_lookback().isEmpty()) {
+            this->cov_lookback = std::stoul(this->get_cov_lookback().toStdString());
+        }
+        if (!this->get_cov_lookback().isEmpty()) {
+            this->cov_step_size = std::stoul(this->get_cov_step().toStdString());
+        }
+    }
+    catch (const std::exception& e)
+    {
+        QMessageBox::critical(this, "Error", "Invalid cov lookback");
+        return;
+    }
+
+    QDialog::accept();
 }

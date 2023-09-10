@@ -84,6 +84,8 @@ public:
 	inline AgisResult<bool> restore_portfolios(json const& j) { return this->hydra.restore_portfolios(j); }
 	inline AgisResult<bool> restore_exchanges(json const& j) { return this->hydra.restore_exchanges(j); }
 
+	AgisResult<bool> init_covariance_matrix(size_t lookback, size_t step) { return this->hydra.init_covariance_matrix(lookback, step); }
+
 	/// <summary>
 	/// Take a Nexus settings popup window and load in the settings passes and validate them
 	/// </summary>

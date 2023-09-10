@@ -412,5 +412,8 @@
     <QtUic Include="ui\NexusSettings.ui">
       <Filter>Form Files</Filter>
     </QtUic>
+    <QtUic Include="ui\ExchangesPopup.ui">
+      <Filter>Form Files</Filter>
+    </QtUic>
   </ItemGroup>
 </Project>

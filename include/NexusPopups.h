@@ -8,10 +8,13 @@
 #include <QtWidgets/QPushButton>
 #include <QtWidgets/QLineEdit>
 #include <QtWidgets/QComboBox>
+#include <optional>
 
 class Exchange;
 class NexusEnv;
+class Hydra;
 typedef std::shared_ptr<Exchange> ExchangePtr;
+typedef const Hydra * HydraPtr;
 
 QT_BEGIN_NAMESPACE
 namespace Ui {
@@ -19,6 +22,7 @@ namespace Ui {
     class NewPortfolioPopup;
     class NewStrategyPopup;
     class NexusSettings;
+    class ExchangesPopup;
 }
 QT_END_NAMESPACE
 
@@ -92,6 +96,34 @@ private slots:
 private:
     void on_submit();
     
+};
+
+
+/// <summary>
+/// Pop up window presented when exchanges are requested.
+/// </summary>
+class ExchangesPopup : public QDialog
+{
+    Q_OBJECT
+
+public:
+    explicit ExchangesPopup(
+        QWidget* parent = nullptr,
+        std::optional<HydraPtr> hydra = std::nullopt
+    );
+    ~ExchangesPopup();
+
+    QString get_cov_lookback() const;
+    QString get_cov_step() const;
+
+    Ui::ExchangesPopup* ui;
+
+    size_t cov_lookback = 0;
+    size_t cov_step_size = 1;
+
+private:
+    void on_submit();
+    std::optional<HydraPtr> hydra;
 };
 
 

@@ -205,6 +205,11 @@ private:
     AgisResult<bool> edit_exchange_instance(QString const& exchange_id);
 
     /// <summary>
+    /// On double click of exchanges allow for editing of params
+    /// </summary>
+    AgisResult<bool> edit_exchanges_instance();
+
+    /// <summary>
     /// Parent hydra instance
     /// </summary>
     HydraPtr hydra;

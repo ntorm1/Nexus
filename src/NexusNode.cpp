@@ -162,6 +162,8 @@ void NexusNodeEditor::create_strategy_tab(QVBoxLayout* l)
 			this->strategy->set_step_frequency(static_cast<size_t>(step));
 		}
 	);
+	// set the value of step frequency to 1
+	this->step_frequency->setValue(this->strategy->get_step_frequency());
 
 	// trading window
 	row_layout = new QHBoxLayout(this);
@@ -179,16 +181,19 @@ void NexusNodeEditor::create_strategy_tab(QVBoxLayout* l)
 	this->beta_hedge = new QCheckBox("Beta Hedge Positions");
 	this->beta_trace = new QCheckBox("Beta Trace Positions");
 	this->net_leverage_trace = new QCheckBox("Net Leverage Trace Positions");
+	this->vol_trace = new QCheckBox("Volatility Trace Positions");
 
 	beta_hedge->setChecked(this->strategy->__is_beta_hedged());
 	beta_scale->setChecked(this->strategy->__is_beta_scaling());
 	beta_trace->setChecked(this->strategy->__is_beta_trace());
 	net_leverage_trace->setChecked(this->strategy->__is_net_lev_trace());
+	vol_trace->setChecked(this->strategy->__is_vol_trace());
 
 	l->addWidget(beta_hedge);
 	l->addWidget(beta_scale);
 	l->addWidget(beta_trace);
 	l->addWidget(net_leverage_trace);
+	l->addWidget(vol_trace);
 	
 	// Connect stateChanged signal to the common function
 	connect(beta_scale, &QCheckBox::stateChanged, [this](int state) {
@@ -209,6 +214,11 @@ void NexusNodeEditor::create_strategy_tab(QVBoxLayout* l)
 	connect(net_leverage_trace, &QCheckBox::stateChanged, [this](int state) {
 		handleCheckBoxStateChange(net_leverage_trace, [this](bool state) {
 			return this->strategy->set_net_leverage_trace(state);
+			});
+		});
+	connect(vol_trace, &QCheckBox::stateChanged, [this](int state) {
+		handleCheckBoxStateChange(vol_trace, [this](bool state) {
+			return this->strategy->set_vol_trace(state);
 			});
 		});
 

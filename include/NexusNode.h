@@ -93,6 +93,7 @@ private:
     QCheckBox* beta_scale;          ///< Wether or not to scale the strategy allocation by the beta
     QCheckBox* beta_hedge;          ///< Wether or not to hedge the beta of the strategy
     QCheckBox* net_leverage_trace;  ///< Wether or not to store the net leverage of the strategy every t
+    QCheckBox* vol_trace; 		    ///< Wether or not to store the volatility of the strategy every t
 
     QMenuBar* menuBar;
     QMenu* fileMenu;

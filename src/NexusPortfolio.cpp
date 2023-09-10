@@ -352,7 +352,7 @@ void NexusPortfolioPlot::contextMenuRequest(QPoint pos)
 
         std::vector<std::string> menu_cols = { 
             "CASH", "NET BETA DOLLARS / NLV", "NET BETA DOLLARS","NET LEVERAGE",
-            "NLV","UNDERWATER" 
+            "NLV","UNDERWATER", "FORWARD VOLATILIY"
         };
         for (auto& col : menu_cols)
 		{
@@ -432,6 +432,14 @@ std::vector<double> NexusPortfolioPlot::get_data(
         return get_stats_underwater_plot(y_span);
 
     }
+    else if (name == "FORWARD VOLATILIY") {
+        if (std::holds_alternative<AgisStrategy*>(entity)) {
+			return std::get<AgisStrategy *>(entity)->get_portfolio_vol_vec();
+		}
+        else {
+			return std::vector<double>();
+		}
+	}
     // Return an empty span if the name doesn't match any condition
     return std::vector<double>();
 }

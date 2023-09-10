@@ -1287,9 +1287,6 @@ void MainWindow::__run_lambda()
     ProgressBar->setValue(1);
     QFuture<std::variant<long long, std::string>> future = QtConcurrent::run([this, &eventLoop]() -> std::variant<long long, std::string> {
         try {
-            // reset hydra to start of sim
-            this->nexus_env.__reset();
-
             qDebug() << "BEGINNING HYDRA RUN" << QDateTime::currentDateTimeUtc().toString("yyyy-MM-dd HH:mm:ss.zzzzzz");
             auto startTime = std::chrono::high_resolution_clock::now();
 

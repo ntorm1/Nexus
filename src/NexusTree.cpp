@@ -492,7 +492,7 @@ void ExchangeTree::new_item_accepted(const QModelIndex& parentIndex, const QStri
 AgisResult<bool> ExchangeTree::edit_exchange_instance(QString const& exchange_id)
 {
     auto exchange = this->hydra->get_exchanges().get_exchange(exchange_id.toStdString());
-    NewExchangePopup* popup = new NewExchangePopup(nullptr, exchange);
+    NewExchangePopup* popup = new NewExchangePopup(this, exchange);
     
     if (popup->exec() == QDialog::Accepted)
     {
@@ -539,6 +539,22 @@ AgisResult<bool> ExchangeTree::edit_exchange_instance(QString const& exchange_id
 
 
 //============================================================================
+AgisResult<bool> ExchangeTree::edit_exchanges_instance()
+{
+    auto* popup = new ExchangesPopup(this, this->hydra);
+    if (popup->exec() == QDialog::Accepted)
+    {
+        auto cov_lookback = popup->cov_lookback;
+        if (cov_lookback != 0) {
+            return this->nexus_env->init_covariance_matrix(cov_lookback, popup->cov_step_size);
+        }
+    }
+
+    return AgisResult<bool>(true);
+}
+
+
+//============================================================================
 void ExchangeTree::create_new_item(const QModelIndex& parentIndex)
 {
     NewExchangePopup* popup = new NewExchangePopup();
@@ -571,6 +587,7 @@ void ExchangeTree::mouseDoubleClickEvent(QMouseEvent* event)
         if (itemData.canConvert<QString>())
         {
             QString itemName = itemData.toString();
+            AgisResult<bool> res(true);
             // open asset view window
             if (this->hydra->asset_exists(itemName.toStdString()))
             {
@@ -579,12 +596,16 @@ void ExchangeTree::mouseDoubleClickEvent(QMouseEvent* event)
             // open exchange settings popup
             else if (this->hydra->get_exchanges().exchange_exists(itemName.toStdString()))
             {
-                auto res = this->edit_exchange_instance(itemName);
-                if (res.is_exception())
-                {
-                    QMessageBox::critical(this, "Error", QString::fromStdString(res.get_exception()));
-                    return;
-                }
+                res = this->edit_exchange_instance(itemName);
+
+            }
+            else {
+                res = this->edit_exchanges_instance();
+            }
+            if (res.is_exception())
+            {
+                QMessageBox::critical(this, "Error", QString::fromStdString(res.get_exception()));
+                return;
             }
         }
     }

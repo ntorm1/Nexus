@@ -1,0 +1,110 @@
+{
+    "DE": [
+        {
+            "Asset Identifier": "DE",
+            "Average Price": 385.2099914550781,
+            "Bars Held": 4,
+            "Close Price": 0.0,
+            "Last Price": 390.2099914550781,
+            "NLV": 128304.25538140349,
+            "Portfolio Identifier": "Portfolio1",
+            "Realized PL": 0.0,
+            "Strategy Identifier": "test1",
+            "Trade Close Time": 0,
+            "Trade Identifier": 2844,
+            "Trade Open Time": 1692662400000000000,
+            "Units": 328.8082268292563,
+            "Unrealized PL": 1644.0411341462814
+        }
+    ],
+    "FSLR": [
+        {
+            "Asset Identifier": "FSLR",
+            "Average Price": 176.5,
+            "Bars Held": 4,
+            "Close Price": 0.0,
+            "Last Price": 177.4499969482422,
+            "NLV": 127341.95258719259,
+            "Portfolio Identifier": "Portfolio1",
+            "Realized PL": 0.0,
+            "Strategy Identifier": "test1",
+            "Trade Close Time": 0,
+            "Trade Identifier": 2842,
+            "Trade Open Time": 1692662400000000000,
+            "Units": 717.6216104660465,
+            "Unrealized PL": 681.738339935388
+        }
+    ],
+    "KEYS": [
+        {
+            "Asset Identifier": "KEYS",
+            "Average Price": 128.6699981689453,
+            "Bars Held": 4,
+            "Close Price": 0.0,
+            "Last Price": 129.1999969482422,
+            "NLV": 127181.93461635508,
+            "Portfolio Identifier": "Portfolio1",
+            "Realized PL": 0.0,
+            "Strategy Identifier": "test1",
+            "Trade Close Time": 0,
+            "Trade Identifier": 2841,
+            "Trade Open Time": 1692662400000000000,
+            "Units": 984.3803221396704,
+            "Unrealized PL": 521.7203690978899
+        }
+    ],
+    "PODD": [
+        {
+            "Asset Identifier": "PODD",
+            "Average Price": 197.74000549316406,
+            "Bars Held": 4,
+            "Close Price": 0.0,
+            "Last Price": 183.0,
+            "NLV": 117218.66371673266,
+            "Portfolio Identifier": "Portfolio1",
+            "Realized PL": 0.0,
+            "Strategy Identifier": "test1",
+            "Trade Close Time": 0,
+            "Trade Identifier": 2845,
+            "Trade Open Time": 1692662400000000000,
+            "Units": 640.5391459930746,
+            "Unrealized PL": -9441.550530524537
+        }
+    ],
+    "RMD": [
+        {
+            "Asset Identifier": "RMD",
+            "Average Price": 162.5800018310547,
+            "Bars Held": 4,
+            "Close Price": 0.0,
+            "Last Price": 160.97999572753906,
+            "NLV": 125413.70721326911,
+            "Portfolio Identifier": "Portfolio1",
+            "Realized PL": 0.0,
+            "Strategy Identifier": "test1",
+            "Trade Close Time": 0,
+            "Trade Identifier": 2843,
+            "Trade Open Time": 1692662400000000000,
+            "Units": 779.0639243495422,
+            "Unrealized PL": -1246.5070339881026
+        }
+    ],
+    "SPY": [
+        {
+            "Asset Identifier": "SPY",
+            "Average Price": 443.04817881795066,
+            "Bars Held": 2979,
+            "Close Price": 0.0,
+            "Last Price": 439.9700012207031,
+            "NLV": -569719.2320453371,
+            "Portfolio Identifier": "Portfolio1",
+            "Realized PL": -808153.6821862999,
+            "Strategy Identifier": "test1",
+            "Trade Close Time": 0,
+            "Trade Identifier": 2,
+            "Trade Open Time": 1319414400000000000,
+            "Units": -1294.9047218324952,
+            "Unrealized PL": 3985.9467053148333
+        }
+    ]
+}

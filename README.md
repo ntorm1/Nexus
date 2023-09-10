@@ -11,6 +11,15 @@ Algoirthmic trading IDE and framework
 ### Build
 - Notes: only supported setup is Windows with MSVC compiler, supporting c++20, using Visual Studio build system. Dependancies are manged using vcpkg.
 - To build, build the nodeeditor dll by opening nodeeditor\CMakeLists.txt in visual studio and building. Then you can open the Nexus Visual Studio solution. You may have to update the solution properties for include or lib directories, the default vcpkg dir is at C:\dev\vcpkg\installed\x64-windows\bin
+Ex:
+- run: git clone https://github.com/ntorm1/Nexus
+- run: cd Nexus
+- run: git submodule update --init --recursive
+- Open nodeeditor/CMakeLists.txt in Visual Studio, build and copy QtNodes.dll to x64/debug and release folders of the Nexus Solution.
+- Open Nexus.sln and build
+To get AgisCoreTest running you will need [Google Test](https://learn.microsoft.com/en-us/visualstudio/test/how-to-use-google-test-for-cpp?view=vs-2022)
+
+
 
 ### Dependencies 
 There are a lot, some are nessecary like Qt and AgisCore, others like One Intel TBB could be removed with some modifications to the code, some of which I have provided but working around this would not be recomended.

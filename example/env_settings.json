@@ -1,0 +1,83 @@
+{
+    "agis_dll_path": "C:/Users/natha/OneDrive/Desktop/C++/Nexus/x64/Debug/AgisCore.lib",
+    "agis_include_path": "C:/Users/natha/OneDrive/Desktop/C++/Nexus/AgisCore",
+    "agis_pyd_path": "",
+    "exchanges": {
+        "SPY_DAILY": {
+            "dt_format": "%Y-%m-%d",
+            "exchange_id": "SPY_DAILY",
+            "freq": "Day1",
+            "market_asset": "SPY",
+            "market_warmup": 252,
+            "source_dir": "C:/Users/natha/OneDrive/Desktop/C++/Nexus/AgisCoreTest/data/SPY_DAILY/data.h5",
+            "volatility_lookback": 0
+        }
+    },
+    "open_editors": null,
+    "portfolios": {
+        "Portfolio1": {
+            "starting_cash": 1000000.0,
+            "strategies": [
+                {
+                    "allocation": 1.0,
+                    "beta_hedge": false,
+                    "beta_scale": false,
+                    "beta_trace": true,
+                    "is_live": true,
+                    "net_leverage_trace": true,
+                    "step_frequency": 5,
+                    "strategy_id": "test1",
+                    "strategy_type": "FLOW",
+                    "trading_window": "",
+                    "vol_trace": false
+                },
+                {
+                    "allocation": 1.0,
+                    "beta_hedge": false,
+                    "beta_scale": false,
+                    "beta_trace": false,
+                    "is_live": true,
+                    "net_leverage_trace": true,
+                    "strategy_id": "Portfolio1 Benchmark",
+                    "strategy_type": "BENCHMARK",
+                    "trading_window": "",
+                    "vol_trace": false
+                }
+            ]
+        }
+    },
+    "trees": {
+        "Exchanges": {
+            "SPY_DAILY": true,
+            "root_expanded": false
+        },
+        "Portfolios": {
+            "Portfolio1": true,
+            "root_expanded": true
+        }
+    },
+    "widgets": {
+        "Exchanges": {
+            "widget_id": 1,
+            "widget_type": 3
+        },
+        "Files": {
+            "widget_id": 0,
+            "widget_type": 6
+        },
+        "Portfolio: Portfolio1": {
+            "portfolio_id": "Portfolio1",
+            "widget_id": 9,
+            "widget_type": 7
+        },
+        "Portfolios": {
+            "widget_id": 2,
+            "widget_type": 4
+        },
+        "Strategy: test1": {
+            "strategy_id": "test1",
+            "widget_id": 8,
+            "widget_type": 5
+        }
+    }
+}

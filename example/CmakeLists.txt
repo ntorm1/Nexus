@@ -1,0 +1,65 @@
+
+cmake_minimum_required(VERSION 3.26)
+
+# Enable C++20
+set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
+
+project(AgisStrategies)
+
+# Include the Vcpkg toolchain file
+set(VCPKG_TOOLCHAIN_FILE "C:/dev/vcpkg/scripts/buildsystems/vcpkg.cmake" CACHE STRING "")
+include_directories("C:/dev/vcpkg/installed/x64-windows/include")
+
+# Set the path to the AgisCore lib
+set(AGIS_CORE_PATH "C:/Users/natha/OneDrive/Desktop/C++/Nexus/x64/Debug/AgisCore.lib")
+
+# Set the path to the adjacent folder
+set(ADJACENT_FOLDER "${CMAKE_CURRENT_SOURCE_DIR}/strategies")
+
+# Gather source files from the 'adjacent_folder' and its subdirectories
+file(GLOB_RECURSE SOURCE_FILES "${ADJACENT_FOLDER}/*.cpp")
+list(APPEND SOURCE_FILES "${CMAKE_CURRENT_SOURCE_DIR}/dllmain.cpp")
+
+# Gather header files from the 'adjacent_folder' and its subdirectories
+file(GLOB_RECURSE HEADER_FILES "${ADJACENT_FOLDER}/*.h")
+list(APPEND HEADER_FILES "${CMAKE_CURRENT_SOURCE_DIR}/pch.h")
+
+# Create the shared library (DLL)
+add_library(AgisStrategy SHARED ${SOURCE_FILES} ${HEADER_FILES})
+
+target_compile_definitions(AgisStrategy PRIVATE AGISSTRATEGY_EXPORTS)
+
+# Include AgisCore header files 
+target_include_directories(AgisStrategy PUBLIC
+    "C:/Users/natha/OneDrive/Desktop/C++/Nexus/AgisCore"
+)
+target_include_directories(AgisStrategy PUBLIC
+    "C:/Users/natha/OneDrive/Desktop/C++/Nexus/AgisCore/external/include"
+)
+
+# Windows-specific configurations
+if (WIN32)
+    # Export symbols to create a .def file (needed for Windows)
+    target_compile_definitions(AgisStrategy PRIVATE MYDLL_EXPORTS)
+	
+	# Link the AgisCore DLL to the strategy DLL (use .lib for MSVC)
+	if (MSVC)
+		target_link_libraries(AgisStrategy PRIVATE "${AGIS_CORE_PATH}")
+	else ()
+		message(FATAL_ERROR "AgisStrategy can only be built with MSVC")
+	endif()
+
+else ()
+    # Throw an error if the target platform is not Windows (WIN32)
+    message(FATAL_ERROR "AgisStrategy requires a Windows (WIN32) platform.")
+endif()
+
+# Installation to the build directory
+install(TARGETS AgisStrategy
+    LIBRARY DESTINATION ${CMAKE_BINARY_DIR}/lib
+    ARCHIVE DESTINATION ${CMAKE_BINARY_DIR}/lib
+    RUNTIME DESTINATION ${CMAKE_BINARY_DIR}/bin
+)
+

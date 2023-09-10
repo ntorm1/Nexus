@@ -10,7 +10,7 @@ Algoirthmic trading IDE and framework
 
 ### Build
 - Notes: only supported setup is Windows with MSVC compiler, supporting c++20, using Visual Studio build system. Dependancies are manged using vcpkg.
-- To build, build the nodeeditor dll by opening nodeeditor\CMakeLists.txt in visual studio and building. Then you can open the Nexus Visual Studio solution. You may have to update the solution properties for include or lib directories, the default vcpkg dir is at C:\dev\vcpkg\installed\x64-windows\bin
+- To build you may have to update the solution properties for include or lib directories, the default vcpkg dir is at C:\dev\vcpkg\installed\x64-windows\bin
 Ex:
 - run: git clone https://github.com/ntorm1/Nexus
 - run: cd Nexus

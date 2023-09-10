@@ -352,7 +352,7 @@ void NexusPortfolioPlot::contextMenuRequest(QPoint pos)
 
         std::vector<std::string> menu_cols = { 
             "CASH", "NET BETA DOLLARS / NLV", "NET BETA DOLLARS","NET LEVERAGE",
-            "NLV","UNDERWATER", "FORWARD VOLATILIY"
+            "NLV","UNDERWATER", "FORWARD VOLATILIY", "REALIZED VOLATILITY"
         };
         for (auto& col : menu_cols)
 		{
@@ -439,6 +439,16 @@ std::vector<double> NexusPortfolioPlot::get_data(
         else {
 			return std::vector<double>();
 		}
+	}
+	else if (name == "REALIZED VOLATILITY") {
+        std::vector<double> y_span;
+        if (std::holds_alternative<AgisStrategy*>(entity)) {
+            y_span = std::get<AgisStrategy*>(entity)->get_nlv_history();
+        }
+        else {
+            y_span = std::get<PortfolioPtr>(entity)->get_nlv_history();
+        }
+        return rolling_volatility(y_span, 252);
 	}
     // Return an empty span if the name doesn't match any condition
     return std::vector<double>();

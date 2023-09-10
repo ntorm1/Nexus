@@ -281,6 +281,16 @@ void NexusPortfolio::on_new_hydra_run()
 		}
         // stats for a specific strategy
 		else {
+            // TODO listen for strategy delete event and remove from selected_strategies
+            if (!this->nexus_env->get_hydra()->strategy_exists(id)) {
+                // remove from selected strategies vector 
+                selected_strategies.erase(std::remove(
+					selected_strategies.begin(),
+					selected_strategies.end(), id),
+                    					selected_strategies.end());
+                this->set_up_strategies_menu();
+                continue;
+            }
 			auto nlv = this->nexus_env->get_hydra()->get_strategy(id)->get_nlv_history();
             populate_stats_model(nlv, model, i, benchmark_nlv);
         }

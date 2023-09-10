@@ -1088,7 +1088,11 @@ void MainWindow::on_strategy_remove_requested(const QModelIndex& parentIndex, co
         // check which strategy type being removed
         auto strategy = this->nexus_env.__get_strategy(strategy_id.toStdString());
 
-        if (strategy.value()->get_strategy_type() == AgisStrategyType::FLOW) {
+        if (!strategy.has_value()) {
+            qDebug() << "STRATEGY" << strategy_id << " NOT IN ENV. REMOVED FROM TREE";
+            emit remove_strategy_accepted(parentIndex);
+        }
+        else if (strategy.value()->get_strategy_type() == AgisStrategyType::FLOW) {
             this->nexus_env.remove_node_editor(strategy_id.toStdString());
             qDebug() << "STRATEGY" << strategy_id << " REMOVED";
             emit remove_strategy_accepted(parentIndex);

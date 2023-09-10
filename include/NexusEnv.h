@@ -54,6 +54,7 @@ private:
 	std::string agis_pyd_path = "";
 	std::string agis_lib_path = "";
 	std::string agis_include_path = "";
+	std::string agis_build_method = "\"Visual Studio 17 2022\"";
 	std::string env_name;
 	fs::path env_path;
 
@@ -163,6 +164,7 @@ public:
 	std::string get_agis_include_path() const { return this->agis_include_path; }
 	std::string get_agis_pyd_path() const { return this->agis_pyd_path; }
 	std::string get_agis_dll_path() const { return this->agis_lib_path; }
+	std::string get_agis_build_method() const { return this->agis_build_method; }
 
 	[[nodiscard]] AgisResult<bool> set_market_asset(
 		std::string const& exchange_id,

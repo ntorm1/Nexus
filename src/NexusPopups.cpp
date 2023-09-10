@@ -298,6 +298,12 @@ NexusSettings::NexusSettings(
     this->ui->agis_pyd_path->setText(QString::fromStdString(
         nexs_env->get_agis_pyd_path())
     );
+    auto agis_build_method = nexs_env->get_agis_build_method();
+    // remove first and last char, they are quatations used to pass arg to command line 
+    agis_build_method = agis_build_method.substr(1, agis_build_method.size() - 2);
+    this->ui->vs_version->setText(QString::fromStdString(
+        agis_build_method)
+    );
 
     connect(ui->select_agis_include_path, &QPushButton::clicked, this, [this]() {
         this->select_folder("include");
@@ -375,6 +381,13 @@ QString NexusSettings::get_agis_lib_path() const
 QString NexusSettings::get_agis_pyd_path() const
 {
     return ui->agis_pyd_path->text();
+}
+
+
+//============================================================================
+QString NexusSettings::get_vs_version() const
+{
+    return ui->vs_version->text();
 }
 
 

@@ -32,22 +32,15 @@
      </rect>
     </property>
     <layout class="QGridLayout" name="gridLayout">
-     <item row="0" column="2">
-      <widget class="QLineEdit" name="agis_include_path"/>
-     </item>
-     <item row="1" column="0">
-      <widget class="QLabel" name="label_2">
+     <item row="1" column="3">
+      <widget class="QPushButton" name="select_agis_lib_path">
        <property name="text">
-        <string>Agis DLL Path</string>
+        <string>select</string>
        </property>
       </widget>
      </item>
-     <item row="2" column="0">
-      <widget class="QLabel" name="label_3">
-       <property name="text">
-        <string>Agis PYD Path</string>
-       </property>
-      </widget>
+     <item row="1" column="2">
+      <widget class="QLineEdit" name="agis_lib_path"/>
      </item>
      <item row="0" column="0">
       <widget class="QLabel" name="label">
@@ -56,18 +49,22 @@
        </property>
       </widget>
      </item>
-     <item row="1" column="2">
-      <widget class="QLineEdit" name="agis_lib_path"/>
-     </item>
-     <item row="3" column="2">
-      <widget class="QPushButton" name="save_button">
+     <item row="1" column="0">
+      <widget class="QLabel" name="label_2">
        <property name="text">
-        <string>Save</string>
+        <string>Agis DLL Path</string>
        </property>
       </widget>
      </item>
-     <item row="2" column="2">
-      <widget class="QLineEdit" name="agis_pyd_path"/>
+     <item row="0" column="2">
+      <widget class="QLineEdit" name="agis_include_path"/>
+     </item>
+     <item row="2" column="0">
+      <widget class="QLabel" name="label_3">
+       <property name="text">
+        <string>Agis PYD Path</string>
+       </property>
+      </widget>
      </item>
      <item row="0" column="3">
       <widget class="QPushButton" name="select_agis_include_path">
@@ -76,10 +73,13 @@
        </property>
       </widget>
      </item>
-     <item row="1" column="3">
-      <widget class="QPushButton" name="select_agis_lib_path">
+     <item row="2" column="2">
+      <widget class="QLineEdit" name="agis_pyd_path"/>
+     </item>
+     <item row="5" column="2">
+      <widget class="QPushButton" name="save_button">
        <property name="text">
-        <string>select</string>
+        <string>Save</string>
        </property>
       </widget>
      </item>
@@ -87,6 +87,20 @@
       <widget class="QPushButton" name="select_agis_pyd_path">
        <property name="text">
         <string>select</string>
+       </property>
+      </widget>
+     </item>
+     <item row="3" column="0">
+      <widget class="QLabel" name="label_4">
+       <property name="text">
+        <string>Visual Studio</string>
+       </property>
+      </widget>
+     </item>
+     <item row="3" column="2">
+      <widget class="QLineEdit" name="vs_version">
+       <property name="text">
+        <string>Visual Studio 17 2022</string>
        </property>
       </widget>
      </item>

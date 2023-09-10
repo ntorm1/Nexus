@@ -147,6 +147,7 @@ public:
     QString get_agis_include_path() const;
     QString get_agis_lib_path() const;
     QString get_agis_pyd_path() const;
+    QString get_vs_version() const;
 
 private slots:
     void select_folder(std::string dest);

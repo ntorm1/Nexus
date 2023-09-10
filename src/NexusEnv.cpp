@@ -575,7 +575,7 @@ install(TARGETS AgisStrategy
 
 	// Concatenate the commands using the && operator
 	std::string full_command = cd_command + " && \
-		cmake -G \"Visual Studio 17 2022\" .. && \
+		cmake -G " + this->agis_build_method + " .. && \
 		cmake --build . --config " + build_method;
 
 	qDebug() << "==== Building AgisStrategy CMake ====";
@@ -612,6 +612,9 @@ LPCWSTR StringToLPCWSTR(const std::string& str) {
 //============================================================================
 void NexusEnv::__link(bool assume_live)
 {
+	// before attempting to link reset hydra to reset the cash levels of the portfolio 
+	this->__reset();
+
 	qDebug() << "============================================================================";
 	qDebug() << "Linking strategies...";
 	// AgisCore dll file
@@ -842,6 +845,14 @@ AgisResult<bool> NexusEnv::set_settings(NexusSettings* nexus_settings)
 		return AgisResult<bool>(AGIS_EXCEP("Invalid AGIS PYD path: " + q_string.toStdString()));
 	}
 	else this->agis_pyd_path = q_string.toStdString();
+
+	// ===== build method =====
+	q_string = nexus_settings->get_vs_version();
+	if (q_string.isEmpty())
+	{
+		return AgisResult<bool>(AGIS_EXCEP("Invalid VS version: " + q_string.toStdString()));
+	}
+	else this->agis_build_method = "\"" + q_string.toStdString() + "\"";
 
 	return AgisResult<bool>(true);
 }

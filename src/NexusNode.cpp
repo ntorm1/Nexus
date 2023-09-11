@@ -434,7 +434,8 @@ std::optional<ExchangeViewLambdaStruct> NexusNodeEditor::__extract_abstract_stra
 		node->trade_exit,
 		clear_missing,
 		ev_opp_type,
-		agis_strat_alloc_map.at(str_alloc_type)
+		agis_strat_alloc_map.at(str_alloc_type),
+		AllocTypeTarget::LEVERAGE
 	};
 	auto ev_lambda_struct = node->ev_lambda_struct;
 	ev_lambda_struct.value().strat_alloc_struct = _struct;

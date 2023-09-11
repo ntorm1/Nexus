@@ -1,5 +1,5 @@
 {
-    "agis_dll_path": "C:/Users/natha/OneDrive/Desktop/C++/Nexus/x64/Debug/AgisCore.lib",
+    "agis_lib_path": "C:/Users/natha/OneDrive/Desktop/C++/Nexus/x64/Debug/AgisCore.lib",
     "agis_include_path": "C:/Users/natha/OneDrive/Desktop/C++/Nexus/AgisCore",
     "agis_pyd_path": "",
     "exchanges": {

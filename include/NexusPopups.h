@@ -113,6 +113,7 @@ public:
     );
     ~ExchangesPopup();
 
+    bool get_cov_enabled() const;
     QString get_cov_lookback() const;
     QString get_cov_step() const;
 

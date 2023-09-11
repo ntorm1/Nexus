@@ -427,6 +427,12 @@ ExchangesPopup::~ExchangesPopup()
 
 
 //============================================================================
+bool ExchangesPopup::get_cov_enabled() const
+{
+    return this->ui->cov_enabled->isChecked();
+}
+
+//============================================================================
 QString ExchangesPopup::get_cov_lookback() const
 {
     return this->ui->cov_lookback->text();

@@ -544,8 +544,9 @@ AgisResult<bool> ExchangeTree::edit_exchanges_instance()
     auto* popup = new ExchangesPopup(this, this->hydra);
     if (popup->exec() == QDialog::Accepted)
     {
+        // covariance lookback set and matrix tracing enabled
         auto cov_lookback = popup->cov_lookback;
-        if (cov_lookback != 0) {
+        if (cov_lookback != 0 && popup->get_cov_enabled()) {
             return this->nexus_env->init_covariance_matrix(cov_lookback, popup->cov_step_size);
         }
     }

@@ -805,7 +805,7 @@ AgisResult<bool> NexusEnv::restore_strategies(json const& j)
 AgisResult<bool> NexusEnv::restore_settings(json const& j)
 {
 	this->agis_include_path = j.value("agis_include_path","");
-	this->agis_lib_path = j.value("agis_dll_path", "");
+	this->agis_lib_path = j.value("agis_lib_path", "");
 	this->agis_pyd_path = j.value("agis_pyd_path", "");
 	return AgisResult<bool>(true);
 }
@@ -895,7 +895,7 @@ bool NexusEnv::save_env(json& j)
 
 	// save the nexus settings
 	j["agis_include_path"] = this->agis_include_path;
-	j["agis_dll_path"] = this->agis_lib_path;
+	j["agis_lib_path"] = this->agis_lib_path;
 	j["agis_pyd_path"] = this->agis_pyd_path;
 
 

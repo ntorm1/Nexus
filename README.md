@@ -1,6 +1,6 @@
 # Nexus
 Algoirthmic trading IDE and framework
-![alt text](https://github.com/ntorm1/Nexus/blob/master/Nexus.png)
+![alt text](https://github.com/ntorm1/Nexus/blob/master/github/Nexus.png)
 
 ### Features
 - Multi window based UI that allows for the devolpment of Algorithmic trading strategies. 
@@ -33,3 +33,13 @@ There are a lot, some are nessecary like Qt and AgisCore, others like One Intel 
 - (git submodule) Qt advance docking system  (for main docking ui)
 - (git submodule) nodeeditor (strategy nodeeditor )
 - (git submodule) AgisCore (backtesting framework)
+
+#### Performance
+![alt text](https://github.com/ntorm1/Nexus/blob/master/github/perf.png)
+
+
+#### Codegen 
+![alt text](https://github.com/ntorm1/Nexus/blob/master/github/codegen.png)
+
+#### Python Support
+![alt text](https://github.com/ntorm1/Nexus/blob/master/github/pybind11.png)

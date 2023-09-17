@@ -43,9 +43,6 @@
     <ClCompile Include="src\main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\CodeEditor.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="src\NexusEnv.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -151,11 +148,14 @@
     <ClCompile Include="Qt-Advanced-Docking-System\src\ResizeHandle.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\QScintillaEditor.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="external\QCustomPlot\qcustomplot.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <QtMoc Include="include\CodeEditor.h">
-      <Filter>Header Files</Filter>
-    </QtMoc>
     <QtMoc Include="include\QTerminal.h">
       <Filter>Header Files</Filter>
     </QtMoc>
@@ -247,6 +247,12 @@
       <Filter>Header Files</Filter>
     </QtMoc>
     <QtMoc Include="Qt-Advanced-Docking-System\src\ResizeHandle.h">
+      <Filter>Header Files</Filter>
+    </QtMoc>
+    <QtMoc Include="include\QScintillaEditor.h">
+      <Filter>Header Files</Filter>
+    </QtMoc>
+    <QtMoc Include="external\QCustomPlot\qcustomplot.h">
       <Filter>Header Files</Filter>
     </QtMoc>
   </ItemGroup>

@@ -289,9 +289,30 @@ void PortfolioTree::create_new_strategy(const QModelIndex& parentIndex)
     {
         auto strategy_id = popup->get_strategy_id();
         auto allocation = popup->get_allocation();
+        auto strategy_type = popup->get_strategy_type();
+
+        AgisStrategyType type;
+        if (strategy_type.isEmpty()) {
+            QMessageBox::warning(this, "Warning", "Invalid strategy type");
+            return;
+		}
+        else if (strategy_type == "FLOW") {
+			type = AgisStrategyType::FLOW;
+		}
+        else if (strategy_type == "LUAJIT") {
+			type = AgisStrategyType::LUAJIT;
+		}
+        else if (strategy_type == "CPP") {
+            type = AgisStrategyType::CPP;
+            throw std::runtime_error("CPP strategy type not implemented");
+        }
+        else {
+			QMessageBox::warning(this, "Warning", "Invalid strategy type");
+			return;
+		}
 
         // Send signal to main window asking to create the new item
-        emit new_strategy_requested(parentIndex, portfolio_id, strategy_id, allocation, AgisStrategyType::FLOW);
+        emit new_strategy_requested(parentIndex, portfolio_id, strategy_id, allocation, type);
     }
 }
 

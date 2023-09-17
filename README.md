@@ -17,6 +17,9 @@ Ex:
 - run: git submodule update --init --recursive
 - Open nodeeditor/CMakeLists.txt in Visual Studio, build and copy QtNodes.dll to x64/debug and release folders of the Nexus Solution.
 - Open Nexus.sln and build.
+- cd to external/QScintilla/src. Open x64 Native Tools Command Prompt
+- run qmake
+- run nmake /f Makefile.Debug (and release), then copy dll files to x64/debug and release
   
 To get AgisCoreTest running you will need [Google Test](https://learn.microsoft.com/en-us/visualstudio/test/how-to-use-google-test-for-cpp?view=vs-2022)
 
@@ -33,6 +36,8 @@ There are a lot, some are nessecary like Qt and AgisCore, others like One Intel 
 - (git submodule) Qt advance docking system  (for main docking ui)
 - (git submodule) nodeeditor (strategy nodeeditor )
 - (git submodule) AgisCore (backtesting framework)
+- (git submdoule) QScintilla (text editor)
+- LuaJIT see: https://luajit.org/download.html (optional lua scripting)
 
 #### Performance
 ![alt text](https://github.com/ntorm1/Nexus/blob/master/github/perf.png)

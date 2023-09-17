@@ -1,9 +1,14 @@
+#include "NexusPch.h"
 #include <fstream>
 #include <cstdlib>
 #include "NexusEnv.h"
 #include "NexusNode.h"
 #include "NexusNodeModel.h"
 #include <AgisStrategyRegistry.h>
+
+#ifdef USE_LUAJIT
+#include "AgisLuaStrategy.h"
+#endif
 
 #ifdef _DEBUG
 std::string build_method = "debug";
@@ -78,7 +83,7 @@ AgisResult<bool> NexusEnv::new_node_editor(std::string strategy_id)
 }
 
 //============================================================================
-void NexusEnv::new_editor(TextEdit* new_editor)
+void NexusEnv::new_editor(QScintillaEditor* new_editor)
 {
 	this->open_editors.push_back(new_editor);
 }
@@ -116,9 +121,9 @@ bool NexusEnv::editor_open(QString const& file)
 
 
 //============================================================================
-std::optional<TextEdit*> NexusEnv::get_editor(QString const& file_name) const
+std::optional<QScintillaEditor*> NexusEnv::get_editor(QString const& file_name) const
 {
-	auto it = std::find_if(open_editors.begin(), open_editors.end(), [&](TextEdit* w) {
+	auto it = std::find_if(open_editors.begin(), open_editors.end(), [&](QScintillaEditor* w) {
 		return w->get_file_name() == file_name;
 		});
 	if (it != this->open_editors.end())
@@ -134,7 +139,7 @@ std::optional<TextEdit*> NexusEnv::get_editor(QString const& file_name) const
 //============================================================================
 void NexusEnv::remove_editor(QString const& file_name)
 {
-	auto it = std::find_if(open_editors.begin(), open_editors.end(), [&](TextEdit* w) {
+	auto it = std::find_if(open_editors.begin(), open_editors.end(), [&](QScintillaEditor* w) {
 		return w->get_file_name() == file_name;
 		});
 	if (it == this->open_editors.end())
@@ -255,6 +260,35 @@ NexusStatusCode NexusEnv::new_strategy(
 			portfolio,
 			strategy_id,
 			allocation_double
+		);
+		AGIS_TRY(this->hydra.register_strategy(std::move(strategy)));
+	}
+	else if (strategy_type == AgisStrategyType::LUAJIT) {
+		auto parent_dir = this->get_env_path() / "strategies" / strategy_id;
+		auto script_path = parent_dir / (strategy_id + ".lua");
+		if (!fs::exists(script_path)) {
+			if (!fs::exists(parent_dir))
+			{
+				fs::create_directory(parent_dir);
+			}
+			std::ofstream fileStream(script_path.string());
+			auto script = AgisLuaStrategy::get_script_template(strategy_id);
+			// Check if the file was opened successfully
+			if (fileStream.is_open()) {
+				// Write the script into the file
+				fileStream << script;
+				// Close the file after writing
+				fileStream.close();
+			}
+			else {
+				AGIS_THROW("Failed to open file: " + script_path.string());
+			}
+		}
+		auto strategy = std::make_unique<AgisLuaStrategy>(
+			portfolio,
+			strategy_id,
+			allocation_double,
+			script_path
 		);
 		AGIS_TRY(this->hydra.register_strategy(std::move(strategy)));
 	}
@@ -381,7 +415,9 @@ void NexusEnv::__compile()
 	{
 		// skip non-live strategies
 		if (!strategy_pair.second->__is_live()) continue;
-		if (strategy_pair.second->get_strategy_type() == AgisStrategyType::BENCHMARK) continue;
+		auto t = strategy_pair.second->get_strategy_type();
+		if (t == AgisStrategyType::BENCHMARK) continue;
+		if (t == AgisStrategyType::LUAJIT) continue;
 		bool is_abstract = strategy_pair.second->__is_abstract_class();
 
 		auto strategy_id = strategy_pair.second->get_strategy_id();
@@ -397,12 +433,11 @@ void NexusEnv::__compile()
 		else strat_include_mid += +".h\"\n";
 		
 		// register the strategy to the registry
-		strat_include_mid += "static bool registered = StrategyRegistry::registerStrategy(\"{STRAT}\"," + \
+		strat_include_mid += "static bool registered_{STRAT} = StrategyRegistry::registerStrategy(\"{STRAT}\"," + \
 			strategy_create + ", \"{PORTFOLIO}\");\n";
-		std::string place_holder = "{STRAT}";
 		std::string strategy_class = strategy_pair.second->get_strategy_id();
 		if (is_abstract) strategy_class += "_CPP";
-		str_replace_all(strat_include_mid, place_holder, strategy_class);
+		str_replace_all(strat_include_mid, "{STRAT}", strategy_class);
 
 		// Set the static portfolio id
 		auto pos = strat_include_mid.find("{PORTFOLIO}");

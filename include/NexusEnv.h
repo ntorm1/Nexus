@@ -4,7 +4,7 @@
 #include <filesystem>
 #include <unordered_map>
 
-#include "CodeEditor.h"
+#include "QScintillaEditor.h"
 #include "NexusTree.h"
 
 #include "AgisPointers.h"
@@ -34,7 +34,7 @@ private:
 	/// <summary>
 	/// Vector of pointers to text editors currently open.
 	/// </summary>
-	std::vector<TextEdit*> open_editors;
+	std::vector<QScintillaEditor*> open_editors;
 
 	/// <summary>
 	/// Vector of pointers to trees that are currently open
@@ -102,8 +102,8 @@ public:
 
 	//============================================================================
 	[[nodiscard]] AgisResult<bool> new_node_editor(std::string strategy_id);
-	void new_editor(TextEdit* new_editor);
-	std::optional<TextEdit*> get_editor(QString const & file_name) const;
+	void new_editor(QScintillaEditor* new_editor);
+	std::optional<QScintillaEditor*> get_editor(QString const & file_name) const;
 	void remove_editor(QString const& file_name);
 	void remove_node_editor(std::string const& id);
 	bool editor_open(QString const & file_name);

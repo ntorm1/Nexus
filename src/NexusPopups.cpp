@@ -2,7 +2,6 @@
 #include <qfiledialog.h>
 #include <filesystem>
 
-#include "Exchange.h"
 #include "Hydra.h"
 #include "NexusEnv.h"
 #include "NexusPopups.h"
@@ -50,6 +49,11 @@ NewStrategyPopup::NewStrategyPopup(QWidget* parent) :
 QString NewStrategyPopup::get_allocation() const
 {
     return ui->allocation->text();
+}
+
+QString NewStrategyPopup::get_strategy_type() const
+{
+    return ui->source_type->currentText();
 }
 
 
@@ -409,8 +413,8 @@ ExchangesPopup::ExchangesPopup(QWidget* parent, std::optional<HydraPtr> hydra_) 
     if (this->hydra.has_value()) {
         auto& exchanges = this->hydra.value()->get_exchanges();
         auto cov_matrix = exchanges.get_covariance_matrix();
-        if (cov_matrix) {
-            auto lookback = cov_matrix->lookback;
+        if (!cov_matrix.is_exception()) {
+            auto lookback = cov_matrix.unwrap()->get_lookback();
             this->ui->cov_lookback->setText(QString::fromStdString(std::to_string(lookback)));
         }
     }

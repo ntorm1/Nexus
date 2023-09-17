@@ -59,6 +59,7 @@ public:
 
     QString get_strategy_id() const;
     QString get_allocation() const;
+    QString get_strategy_type() const;
 
 private:
     void on_submit();

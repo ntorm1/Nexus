@@ -16,7 +16,7 @@
 #include "DockAreaWidget.h"
 #include "DockWidget.h"
 
-#include "CodeEditor.h"
+#include "QScintillaEditor.h"
 #include "NexusEnv.h"
 #include "NexusAsset.h"
 #include "NexusNode.h"

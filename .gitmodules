@@ -10,3 +10,6 @@
 [submodule "nodeeditor"]
 	path = nodeeditor
 	url = https://github.com/paceholder/nodeeditor.git
+[submodule "external/QScintilla"]
+	path = external/QScintilla
+	url = https://github.com/ntorm1/QScintilla.git

@@ -49,6 +49,7 @@
 #include "NexusErrors.h"
 #include "NexusHelpers.h"
 #include "NexusPortfolio.h"
+#include "AgisLuaStrategy.h"
 
 // Octave Win32 Terminal 
 #include "QTerminalImpl.h"
@@ -370,15 +371,14 @@ ads::CDockWidget* MainWindow::create_editor_widget()
 
     // Add the new TextEdit widget to a DockWidget
     ads::CDockWidget* DockWidget = new ads::CDockWidget(QString("Editor %1").arg(editor_count++));
-    
-    TextEdit* w = new TextEdit(&this->nexus_env, DockWidget, DockWidget);
+    QScintillaEditor::set_nexus_env(&this->nexus_env);
+    QScintillaEditor* w = new QScintillaEditor(DockWidget);
     this->nexus_env.new_editor(w);
 
     DockWidget->setWidget(w);
     DockWidget->set_widget_type(WidgetType::Editor);
     DockWidget->setIcon(svgIcon("./images/edit.svg"));
     DockWidget->setFeature(ads::CDockWidget::CustomCloseHandling, true);
-
 
     connect(DockWidget, SIGNAL(closeRequested()), SLOT(on_editor_close_requested()));
 
@@ -795,16 +795,20 @@ AgisResult<bool> MainWindow::restore_portfolios(json const& j)
 //============================================================================
 AgisResult<bool> MainWindow::restore_editors(json const & j)
 {
+    if (!j.contains("open_editors")) {
+		return AgisResult<bool>(true);
+	}
     auto& editors = j["open_editors"];
 
     // Open files for the text edit widgets
     for (auto DockWidget : this->DockManager->get_widgets().values())
     {
-        if (DockWidget->get_widget_type() != WidgetType::Editor)
+        auto t = DockWidget->get_widget_type();
+        if (t != WidgetType::Editor)
         {
             continue;
         }
-        auto editor = qobject_cast<TextEdit*>(DockWidget->widget());
+        auto editor = qobject_cast<QScintillaEditor*>(DockWidget->widget());
         auto editor_id = DockWidget->get_id();
         auto open_file = get_editor_by_id(editors, editor_id);
 
@@ -815,7 +819,7 @@ AgisResult<bool> MainWindow::restore_editors(json const & j)
             {
                 continue;
             }
-            editor->load(q_open_file);
+            editor->loadFile(q_open_file);
         }
     }
     return AgisResult<bool>(true);
@@ -951,8 +955,11 @@ void MainWindow::onFileDoubleClicked(const QModelIndex& index)
         a->trigger();
 
         // Get the editor that was just created and attempt to fload the file that was clicked
-        auto editor = dynamic_cast<TextEdit*>(LastDockedEditor->widget());
-        if (!editor->load(file_path))
+        auto editor = dynamic_cast<QScintillaEditor*>(LastDockedEditor->widget());
+        try {
+            editor->loadFile(file_path);
+        }
+        catch (std::exception& e)
         {
             LastDockedEditor->closeDockWidget();
             this->LastDockedEditor = last_editor;
@@ -965,7 +972,7 @@ void MainWindow::onFileDoubleClicked(const QModelIndex& index)
 void MainWindow::on_editor_close_requested()
 {
     auto DockWidget = qobject_cast<ads::CDockWidget*>(sender());
-    auto text_edit = qobject_cast<TextEdit*>(DockWidget->widget());
+    auto text_edit = qobject_cast<QScintillaEditor*>(DockWidget->widget());
 
     // Allow text edit to save if any changes made. If returned true close widget, save successful
     if (text_edit->maybeSave())
@@ -1181,16 +1188,51 @@ void MainWindow::on_new_node_editor_request(const QString& name)
     _sender->setProperty("Tabbed", false);
 
     // verify double clicked on a flow strategy
-    auto strategy = this->nexus_env.__get_strategy(name.toStdString());
+    auto strategy_id = name.toStdString();
+    auto strategy = this->nexus_env.__get_strategy(strategy_id);
     if(!strategy.has_value()) NEXUS_INTERUPT("failed to find strategy being toggled");
-    if (strategy.value()->get_strategy_type() != AgisStrategyType::FLOW) {
-        QMessageBox::critical(this, "Error", "Only flow strategies can be edited");
-		return;
+    if (strategy.value()->get_strategy_type() == AgisStrategyType::FLOW) {
+        auto DockWidget = this->create_node_editor_widget(name);
+        if (!DockWidget) { return; }
+        this->place_widget(DockWidget, sender());
     }
+    else if (strategy.value()->get_strategy_type() == AgisStrategyType::LUAJIT) {
+        auto DockWidget = this->create_editor_widget();
+        auto widget = static_cast<QScintillaEditor*>(DockWidget->widget());
+        widget->load_lua_strategy(static_cast<AgisLuaStrategy*>(strategy.value()));
+        
 
-    auto DockWidget = this->create_node_editor_widget(name);
-    if (!DockWidget) { return; }
-    this->place_widget(DockWidget, sender());
+        auto path = this->nexus_env.get_env_path() / "strategies" / strategy_id / (name.toStdString() + ".lua");
+        // if path exists , load it
+        if (fs::exists(path)) {
+			widget->loadFile(QString::fromStdString(path.string()));
+		}
+        else {
+            // Create a new empty Lua script file
+            std::ofstream fileStream(path.string());
+            auto script = AgisLuaStrategy::get_script_template(strategy_id);
+            // Check if the file was opened successfully
+            if (fileStream.is_open()) {
+                // Write the script into the file
+                fileStream << script;
+                // Close the file after writing
+                fileStream.close();
+                // Now you can load the empty Lua script file
+                widget->loadFile(QString::fromStdString(path.string()));
+            }
+            else {
+                // Handle the case where the file creation failed
+                // For example, display an error message
+                NEXUS_INTERUPT("Failed to create an empty file: " << path);
+            }
+        }
+        this->place_widget(DockWidget, sender());
+    }
+    else {
+		QMessageBox::critical(this, "Error", "Double click on a flow strategy to open a node editor");
+	}
+
+
 }
 
 

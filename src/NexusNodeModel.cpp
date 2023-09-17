@@ -517,7 +517,7 @@ std::shared_ptr<NodeData> ExchangeViewModel::outData(PortIndex const port)
 
 		ExchangeViewLambdaStruct my_struct = {
 			N,
-			this->warmup,
+			static_cast<size_t>(this->warmup),
 			this->lambda_chain,
 			ev_chain,
 			this->exchange,

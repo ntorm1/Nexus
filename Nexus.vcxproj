@@ -58,15 +58,15 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'">
-    <LibraryPath>$(SolutionDir)nodeeditor\out\build\lib;$(SolutionDir)nodeeditor\out\build\bin;C:\dev\vcpkg\installed\x64-windows\bin;$(LibraryPath)</LibraryPath>
-    <IncludePath>$(SolutionDir)AgisCore\external\include;$(VC_IncludePath);$(WindowsSDK_IncludePath);$(SolutionDir)Qt-Advanced-Docking-System\src</IncludePath>
+    <LibraryPath>$(SolutionDir)nodeeditor\out\build\lib;$(SolutionDir)nodeeditor\out\build\bin;C:\dev\vcpkg\installed\x64-windows\bin;$(LibraryPath);$(SolutionDir)external\QScintilla\src\debug</LibraryPath>
+    <IncludePath>$(SolutionDir)AgisCore\external\include;$(SolutionDir)AgisCore\external\sol2\include;$(SolutionDir)external\QScintilla\src;C:\Users\natha\luajit\src;$(VC_IncludePath);$(WindowsSDK_IncludePath);$(SolutionDir)Qt-Advanced-Docking-System\src</IncludePath>
     <EnableClangTidyCodeAnalysis>false</EnableClangTidyCodeAnalysis>
     <SourcePath>$(VC_SourcePath);$(SolutionDir)Qt-Advanced-Docking-System\src</SourcePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'">
-    <LibraryPath>$(SolutionDir)nodeeditor\out\build\bin;$(SolutionDir)nodeeditor\out\build\lib;C:\dev\vcpkg\installed\x64-windows\bin;$(LibraryPath)</LibraryPath>
+    <LibraryPath>$(SolutionDir)nodeeditor\out\build\bin;$(SolutionDir)nodeeditor\out\build\lib;C:\dev\vcpkg\installed\x64-windows\bin;$(LibraryPath);$(SolutionDir)external\QScintilla\src;\release</LibraryPath>
     <ExecutablePath>$(VC_ExecutablePath_x64);$(CommonExecutablePath);C:\dev\vcpkg\installed\x64-windows\bin</ExecutablePath>
-    <IncludePath>$(SolutionDir)AgisCore\external\include;$(VC_IncludePath);$(WindowsSDK_IncludePath);C:\Program Files (x86)\Intel\oneAPI\tbb\2021.9.0\include;$(SolutionDir)Qt-Advanced-Docking-System\src</IncludePath>
+    <IncludePath>$(SolutionDir)AgisCore\external\include;$(SolutionDir)AgisCore\external\sol2\include;$(SolutionDir)external\QScintilla\src;C:\Users\natha\luajit\src;$(VC_IncludePath);$(WindowsSDK_IncludePath);C:\Program Files (x86)\Intel\oneAPI\tbb\2021.9.0\include;$(SolutionDir)Qt-Advanced-Docking-System\src</IncludePath>
     <EnableClangTidyCodeAnalysis>true</EnableClangTidyCodeAnalysis>
   </PropertyGroup>
   <PropertyGroup Label="Vcpkg" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -74,23 +74,23 @@
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
-      <AdditionalIncludeDirectories>$(SolutionDir)nodeeditor\include;$(SolutionDir)AgisCore;$(SolutionDir)include;$(SolutionDir)Qt-Advanced-Docking-System\src;$(SolutionDir)QCustomPlot;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)nodeeditor\include;$(SolutionDir)AgisCore;$(SolutionDir)include;$(SolutionDir)Qt-Advanced-Docking-System\src;$(SolutionDir)\external\QCustomPlot;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>$(Qt_DEFINES_);%(PreprocessorDefinitions);NODE_EDITOR_SHARED;ADS_STATIC</PreprocessorDefinitions>
       <LanguageStandard>stdcpp20</LanguageStandard>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>ws2_32.lib;%(AdditionalDependencies); QtNodes.lib;$(SolutionDir)$(Platform)\$(Configuration)\AgisCore.lib</AdditionalDependencies>
+      <AdditionalDependencies>ws2_32.lib;%(AdditionalDependencies); QtNodes.lib;$(SolutionDir)$(Platform)\$(Configuration)\AgisCore.lib;qscintilla2_qt6d.lib</AdditionalDependencies>
       <AdditionalLibraryDirectories>C:\Users\natha\OneDrive\Desktop\C++\external\nodeeditor\out\build\x64-Release\bin;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
-      <AdditionalIncludeDirectories>$(SolutionDir)AgisCore;$(SolutionDir)nodeeditor\include;%(AdditionalIncludeDirectories);$(SolutionDir)include;$(SolutionDir)QCustomPlot</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)AgisCore;$(SolutionDir)nodeeditor\include;%(AdditionalIncludeDirectories);$(SolutionDir)include;$(SolutionDir)\external\QCustomPlot</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <PreprocessorDefinitions>$(Qt_DEFINES_);%(PreprocessorDefinitions);NODE_EDITOR_SHARED;</PreprocessorDefinitions>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>%(AdditionalDependencies);$(Qt_LIBS_);QtNodes.lib;$(SolutionDir)$(Platform)\$(Configuration)\AgisCore.lib</AdditionalDependencies>
+      <AdditionalDependencies>%(AdditionalDependencies);$(Qt_LIBS_);QtNodes.lib;$(SolutionDir)$(Platform)\$(Configuration)\AgisCore.lib;qscintilla2_qt6.lib</AdditionalDependencies>
       <AdditionalLibraryDirectories>C:\Users\natha\OneDrive\Desktop\C++\external\nodeeditor\out\build\x64-Release\bin</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
@@ -119,7 +119,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="QCustomPlot\qcustomplot.cpp" />
+    <ClCompile Include="external\QCustomPlot\qcustomplot.cpp" />
     <ClCompile Include="Qt-Advanced-Docking-System\src\ads_globals.cpp" />
     <ClCompile Include="Qt-Advanced-Docking-System\src\AutoHideDockContainer.cpp" />
     <ClCompile Include="Qt-Advanced-Docking-System\src\AutoHideSideBar.cpp" />
@@ -151,6 +151,7 @@
     <ClCompile Include="src\NexusPlot.cpp" />
     <ClCompile Include="src\NexusPopups.cpp" />
     <ClCompile Include="src\NexusPortfolio.cpp" />
+    <ClCompile Include="src\QScintillaEditor.cpp" />
     <ClCompile Include="src\QTerminal.cpp" />
     <ClCompile Include="src\QTerminalImpl.cpp" />
     <ClCompile Include="src\NexusTree.cpp" />
@@ -158,7 +159,6 @@
     <QtRcc Include="Qt-Advanced-Docking-System\src\ads.qrc" />
     <QtUic Include="MainWindow.ui" />
     <QtMoc Include="include\MainWindow.h" />
-    <ClCompile Include="src\CodeEditor.cpp" />
     <ClCompile Include="src\MainWindow.cpp" />
     <ClCompile Include="src\main.cpp" />
     <QtUic Include="ui\ExchangesPopup.ui" />
@@ -169,9 +169,6 @@
     <QtUic Include="ui\NexusNodeEditor.ui" />
     <QtUic Include="ui\NexusPortfolio.ui" />
     <QtUic Include="ui\NexusSettings.ui" />
-  </ItemGroup>
-  <ItemGroup>
-    <QtMoc Include="include\CodeEditor.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="cpp.hint" />
@@ -236,7 +233,9 @@
     <Image Include="images\win\zoomout.png" />
   </ItemGroup>
   <ItemGroup>
+    <QtMoc Include="external\QCustomPlot\qcustomplot.h" />
     <ClInclude Include="include\NexusHelpers.h" />
+    <QtMoc Include="include\QScintillaEditor.h" />
     <ClInclude Include="Qt-Advanced-Docking-System\src\DockComponentsFactory.h" />
     <ClInclude Include="Qt-Advanced-Docking-System\src\DockingStateReader.h" />
     <ClInclude Include="Qt-Advanced-Docking-System\src\IconProvider.h" />
@@ -267,7 +266,6 @@
     <QtMoc Include="include\NexusNodeWidget.h" />
     <ClInclude Include="include\NexusErrors.h" />
     <ClInclude Include="include\NexusPch.h" />
-    <QtMoc Include="QCustomPlot\qcustomplot.h" />
     <QtMoc Include="include\NexusPlot.h" />
     <QtMoc Include="include\NexusPopups.h" />
     <QtMoc Include="include\NexusTree.h" />

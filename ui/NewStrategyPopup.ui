@@ -1,67 +1,96 @@
-<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
-	<class>NewStrategyPopup</class>
-	<widget class="QDialog" name="NewStrategyPopup">
-		<property name="geometry">
-			<rect>
-				<x>0</x>
-				<y>0</y>
-				<width>480</width>
-				<height>283</height>
-			</rect>
-		</property>
-		<property name="windowTitle">
-			<string>New Portfolio</string>
-		</property>
-		<layout class="QVBoxLayout" name="verticalLayout">
-			<item>
-				<layout class="QGridLayout" name="gridLayout">
-					<item row="0" column="1">
-						<widget class="QLineEdit" name="strategy_id"/>
-					</item>
-					<item row="1" column="0">
-						<widget class="QLabel" name="label_2">
-							<property name="text">
-								<string>Allocation</string>
-							</property>
-						</widget>
-					</item>
-					<item row="0" column="0">
-						<widget class="QLabel" name="label">
-							<property name="text">
-								<string>Strategy ID</string>
-							</property>
-						</widget>
-					</item>
-					<item row="1" column="1">
-						<widget class="QLineEdit" name="allocation"/>
-					</item>
-				</layout>
-			</item>
-			<item>
-				<layout class="QHBoxLayout" name="buttonLayout">
-					<property name="spacing">
-						<number>6</number>
-					</property>
-					<item>
-						<widget class="QPushButton" name="submit_button">
-							<property name="text">
-								<string>Submit</string>
-							</property>
-						</widget>
-					</item>
-					<item>
-						<widget class="QPushButton" name="cancel_button">
-							<property name="text">
-								<string>Cancel</string>
-							</property>
-						</widget>
-					</item>
-				</layout>
-			</item>
-		</layout>
-	</widget>
-	<layoutdefault spacing="6" margin="11"/>
-	<resources/>
-	<connections/>
+ <class>NewStrategyPopup</class>
+ <widget class="QDialog" name="NewStrategyPopup">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>480</width>
+    <height>283</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>New Portfolio</string>
+  </property>
+  <layout class="QVBoxLayout" name="verticalLayout">
+   <item>
+    <layout class="QGridLayout" name="gridLayout">
+     <item row="1" column="0">
+      <widget class="QLabel" name="label_2">
+       <property name="text">
+        <string>Allocation</string>
+       </property>
+      </widget>
+     </item>
+     <item row="1" column="2">
+      <widget class="QLineEdit" name="allocation"/>
+     </item>
+     <item row="0" column="0">
+      <widget class="QLabel" name="label">
+       <property name="text">
+        <string>Strategy ID</string>
+       </property>
+      </widget>
+     </item>
+     <item row="0" column="2">
+      <widget class="QLineEdit" name="strategy_id"/>
+     </item>
+     <item row="2" column="0">
+      <widget class="QLabel" name="label_3">
+       <property name="text">
+        <string>Source Type</string>
+       </property>
+      </widget>
+     </item>
+     <item row="2" column="2">
+		 <widget class="QComboBox" name="source_type">
+			 <property name="editable">
+				 <bool>false</bool>
+			 </property>
+			 <item>
+				 <property name="text">
+					 <string>FLOW</string>
+				 </property>
+			 </item>
+			 <item>
+				 <property name="text">
+					 <string>CPP</string>
+				 </property>
+			 </item>
+			 <item>
+				 <property name="text">
+					 <string>LUAJIT</string>
+				 </property>
+			 </item>
+		 </widget>
+     </item>
+    </layout>
+   </item>
+   <item>
+    <layout class="QHBoxLayout" name="buttonLayout">
+     <property name="spacing">
+      <number>6</number>
+     </property>
+     <item>
+      <widget class="QPushButton" name="submit_button">
+       <property name="text">
+        <string>Submit</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="cancel_button">
+       <property name="text">
+        <string>Cancel</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+  </layout>
+ </widget>
+ <layoutdefault spacing="6" margin="11"/>
+ <resources/>
+ <connections/>
 </ui>

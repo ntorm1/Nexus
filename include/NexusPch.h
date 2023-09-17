@@ -2,6 +2,7 @@
 #ifndef PCH_H
 #define PCH_H
 #define NOMINMAX 
+#define USE_LUAJIT
 #include <memory>
 #include <vector>
 #include <optional>

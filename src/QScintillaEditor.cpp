@@ -386,11 +386,20 @@ bool QScintillaEditor::saveFile(const QString& fileName)
     QApplication::setOverrideCursor(Qt::WaitCursor);
     out << textEdit->text();
     QApplication::restoreOverrideCursor();
-
+    file.close();
 
     this->set_current_strategy(fileName);
     if(this->strategy.has_value()){
-		this->strategy.value()->load_script(fileName.toStdString());
+        try {
+            this->strategy.value()->load_script(fileName.toStdString());
+        }
+        catch (std::exception& e) {
+			QMessageBox::warning(this, tr("Application"),
+                				tr("Cannot load strategy %1:\n%2.")
+            				.arg(fileName)
+            				.arg(e.what()));
+			return false;
+		}
 	}
 
     setCurrentFile(fileName);
@@ -410,7 +419,7 @@ void QScintillaEditor::setCurrentFile(const QString& fileName)
     else
         shownName = strippedName(curFile);
 
-    setWindowTitle(tr("%1[*] - %2").arg(shownName).arg(tr("Application")));
+    this->DockWidget->setWindowTitle(tr("%1[*] - %2").arg(shownName).arg(tr("Application")));
 }
 
 QString QScintillaEditor::strippedName(const QString& fullFileName)

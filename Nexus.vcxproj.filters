@@ -67,9 +67,6 @@
     <ClCompile Include="src\NexusPlot.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="QCustomPlot\qcustomplot.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="src\NexusNode.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -172,9 +169,6 @@
       <Filter>Header Files</Filter>
     </QtMoc>
     <QtMoc Include="include\NexusPlot.h">
-      <Filter>Header Files</Filter>
-    </QtMoc>
-    <QtMoc Include="QCustomPlot\qcustomplot.h">
       <Filter>Header Files</Filter>
     </QtMoc>
     <QtMoc Include="include\NexusNode.h">

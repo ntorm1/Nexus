@@ -1370,15 +1370,15 @@ void MainWindow::__run_lambda()
     }
 
     double cps = this->nexus_env.get_candle_count() / (durationMs / 1000.0f);
-    size_t rows = this->nexus_env.get_hydra()->__get_dt_index().size();
-    double ms_per_row = durationMs / static_cast<double>(rows);
+    //size_t rows = this->nexus_env.get_hydra()->__get_dt_index(false).size();
+    //double ms_per_row = durationMs / static_cast<double>(rows);
 
     // Create a QLocale instance with the desired number formatting settings
     QLocale locale(QLocale::English);
 
     // Format cps with commas and a decimal point
     QString cpsFormatted = locale.toString(cps, 'f', 2);
-    QString ms_per_row_formatted = locale.toString(ms_per_row, 'f', 5);
+    QString ms_per_row_formatted = locale.toString(0.0f, 'f', 5);
 
     auto msg = "Execution time: " + QString::number(durationMs) + " ms\n";
     msg += "Candles per second: " + cpsFormatted + "\n";

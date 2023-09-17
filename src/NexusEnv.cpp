@@ -348,7 +348,6 @@ NexusStatusCode NexusEnv::remove_strategy(const std::string& name)
 AgisResult<bool> NexusEnv::__run()
 {
 	AGIS_DO_OR_RETURN(this->hydra.__run(), bool);
-
 	return AgisResult<bool>(true);
 }
 

@@ -16,13 +16,19 @@ Ex:
 - run: cd Nexus
 - run: git submodule update --init --recursive
 - Open nodeeditor/CMakeLists.txt in Visual Studio, build and copy QtNodes.dll to x64/debug and release folders of the Nexus Solution.
-- Open Nexus.sln and build.
 - cd to external/QScintilla/src. Open x64 Native Tools Command Prompt
 - run qmake
 - run nmake /f Makefile.Debug (and release), then copy dll files to x64/debug and release
+- Open Nexus.sln and build.
   
 To get AgisCoreTest running you will need [Google Test](https://learn.microsoft.com/en-us/visualstudio/test/how-to-use-google-test-for-cpp?view=vs-2022)
 
+
+### Scripting 
+- AgisCore uses LuaJIT for scripting allowing for easy creation of strategies with almost no overhead. You can create abstract strategy trees using the 
+AgisCore Lua API which evaluates to a C++ strategy tree at run time with comparable time to abstract strategies made using the node editor.
+- To use Lua you need to download LuaJIT, see below, and add the Lua header files and lib files to the Visual Studio Nexus project settings. Make sure the
+Lua DLL is available in the system path or is copied/output to the Nexus x64 build folder.
 
 
 ### Dependencies 

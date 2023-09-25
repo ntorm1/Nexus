@@ -391,7 +391,7 @@ bool QScintillaEditor::saveFile(const QString& fileName)
     this->set_current_strategy(fileName);
     if(this->strategy.has_value()){
         try {
-            this->strategy.value()->load_script(fileName.toStdString());
+            this->strategy.value()->load_script_txt(fileName.toStdString());
         }
         catch (std::exception& e) {
 			QMessageBox::warning(this, tr("Application"),

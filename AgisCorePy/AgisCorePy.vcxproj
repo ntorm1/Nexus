@@ -122,7 +122,7 @@
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
-      <AdditionalIncludeDirectories>C:\Program Files\Python310\include;$(SolutionDir)AgisCore</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Program Files\Python310\include;$(SolutionDir)AgisCore\include;</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp20</LanguageStandard>
     </ClCompile>
     <Link>

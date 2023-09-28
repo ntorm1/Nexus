@@ -74,9 +74,12 @@
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
-      <AdditionalIncludeDirectories>$(SolutionDir)nodeeditor\include;$(SolutionDir)AgisCore;$(SolutionDir)include;$(SolutionDir)Qt-Advanced-Docking-System\src;$(SolutionDir)\external\QCustomPlot;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)nodeeditor\include;$(SolutionDir)AgisCore\include;$(SolutionDir)include;$(SolutionDir)Qt-Advanced-Docking-System\src;$(SolutionDir)\external\QCustomPlot;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>$(Qt_DEFINES_);%(PreprocessorDefinitions);NODE_EDITOR_SHARED;ADS_STATIC</PreprocessorDefinitions>
       <LanguageStandard>stdcpp20</LanguageStandard>
+      <AdditionalHeaderUnitDependencies>
+      </AdditionalHeaderUnitDependencies>
+      <AdditionalModuleDependencies>$(SolutionDir)AgisCore\$(Platform)\$(Configuration)\Broker.ixx.ifc;$(SolutionDir)AgisCore\$(Platform)\$(Configuration)\Broker.Base.ixx.ifc;$(SolutionDir)AgisCore\$(Platform)\$(Configuration)\Broker.Dummy.ixx.ifc</AdditionalModuleDependencies>
     </ClCompile>
     <Link>
       <AdditionalDependencies>ws2_32.lib;%(AdditionalDependencies); QtNodes.lib;$(SolutionDir)$(Platform)\$(Configuration)\AgisCore.lib;qscintilla2_qt6d.lib</AdditionalDependencies>
@@ -85,7 +88,7 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
-      <AdditionalIncludeDirectories>$(SolutionDir)AgisCore;$(SolutionDir)nodeeditor\include;%(AdditionalIncludeDirectories);$(SolutionDir)include;$(SolutionDir)\external\QCustomPlot</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)AgisCore\include;$(SolutionDir)nodeeditor\include;%(AdditionalIncludeDirectories);$(SolutionDir)include;$(SolutionDir)\external\QCustomPlot</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <PreprocessorDefinitions>$(Qt_DEFINES_);%(PreprocessorDefinitions);NODE_EDITOR_SHARED;</PreprocessorDefinitions>
     </ClCompile>

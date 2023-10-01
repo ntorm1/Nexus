@@ -126,6 +126,7 @@
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <EnableModules>true</EnableModules>
       <BuildStlModules>true</BuildStlModules>
+      <AdditionalModuleDependencies>$(SolutionDir)AgisCore\$(Platform)\$(Configuration)\Broker.ixx.ifc;$(SolutionDir)AgisCore\$(Platform)\$(Configuration)\Broker.Dummy.ixx.ifc;$(SolutionDir)AgisCore\$(Platform)\$(Configuration)\Broker.Base.ixx.ifc;%(AdditionalModuleDependencies)</AdditionalModuleDependencies>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>

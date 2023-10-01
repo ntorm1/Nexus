@@ -6,11 +6,11 @@
 #define NOMINMAX 
 #ifndef PCH_H
 #define PCH_H
+#define _SILENCE_CXX23_ALIGNED_STORAGE_DEPRECATION_WARNING
+#define _SILENCE_CXX23_DENORM_DEPRECATION_WARNING
 
 // add headers that you want to pre-compile here
 #include "framework.h"
-#include "json.hpp"
-
-using json = nlohmann::json;
+#include <expected>
 
 #endif //PCH_H

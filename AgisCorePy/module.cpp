@@ -4,8 +4,7 @@
 #include <pybind11/functional.h>
 #include <pybind11/stl.h>
 
-#include "AgisStrategy.h"
-#include "Trade.h"
+#include "Hydra.h"
 
 
 namespace py = pybind11;

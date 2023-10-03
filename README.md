@@ -36,6 +36,7 @@ There are a lot, some are nessecary like Qt and AgisCore, others like One Intel 
 - One Intel API and Thread Building Blocks, used for parralell execution
 - Qt
 - (vcpkg) Apache Arrow C++ (for data io)
+- (vcpkg) rapidjson (serialization)
 - (vcpkg) HDF5 C++ (for data io)
 - (vcpkg) Eigen3 (linear algebra)
 - (vcpkg) pybind11 (for python wrapper)

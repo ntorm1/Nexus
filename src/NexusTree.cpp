@@ -6,6 +6,10 @@
 #include "NexusTree.h"
 #include "NexusEnv.h"
 
+import Asset;
+
+using namespace Agis;
+
 enum CustomRoles {
     ParentItemRole = Qt::UserRole + 1,
 };
@@ -104,13 +108,17 @@ void NexusTree::remove_item_accepeted(const QModelIndex& index)
 
 
 //============================================================================
-json NexusTree::to_json() const
+rapidjson::Document NexusTree::to_json() const
 {
     // Save the state of the tree to json
-    json j;
-    auto root_index = this->root->index();
-    j["root_expanded"] = this->isExpanded(root_index);
+    rapidjson::Document j;
+    j.SetObject();
+    rapidjson::Document::AllocatorType& allocator = j.GetAllocator();
 
+    rapidjson::Value rootExpanded(this->isExpanded(this->root->index()));
+    j.AddMember("root_expanded", rootExpanded, allocator);
+
+    auto root_index = this->root->index();
     int rowCount = root_index.model()->rowCount(root_index);
 
     for (int i = 0; i < rowCount; i++)
@@ -120,7 +128,8 @@ json NexusTree::to_json() const
         const QAbstractItemModel* abstractModel = parentIndex.model();
         const QStandardItemModel* parent_model = static_cast<const QStandardItemModel*>(abstractModel);
         QStandardItem* childItem = parent_model->itemFromIndex(childIndex);
-        j[childItem->text().toStdString()] = this->isExpanded(childIndex);
+        rapidjson::Value childExpanded(this->isExpanded(childIndex));
+        j.AddMember(rapidjson::StringRef(childItem->text().toStdString().c_str()), childExpanded, allocator);
     }
     return j;
 }
@@ -170,22 +179,23 @@ PortfolioTree::PortfolioTree(QWidget* parent, HydraPtr hydra_) :
 
 
 //============================================================================
-void PortfolioTree::restore_tree(json const& j)
+void PortfolioTree::restore_tree(const rapidjson::Document& doc)
 {
     this->clear();
-    json const& portfolios = j["portfolios"];
-    json const& portfolios_expanded = j["trees"][this->objectName().toStdString()];
+
+    const rapidjson::Value& portfolios = doc["portfolios"];
+    const rapidjson::Value& portfolios_expanded = doc["trees"][this->objectName().toStdString().c_str()];
 
     // Is the root exchanges element expanded?
     QModelIndex itemIndex = root->index();
-    if (portfolios_expanded["root_expanded"])
+    if (portfolios_expanded["root_expanded"].GetBool())
     {
         this->setExpanded(itemIndex, true);
     }
 
-    for (const auto& portfolio : portfolios.items())
+    for (rapidjson::Value::ConstMemberIterator portfolio = portfolios.MemberBegin(); portfolio != portfolios.MemberEnd(); ++portfolio)
     {
-        QString id = QString::fromStdString(portfolio.key());
+        QString id = QString::fromStdString(portfolio->name.GetString());
         QStandardItem* newItem = new QStandardItem(id);
 
         // Set exchange tree item flags. Can not edit or create child exchanges (TODO)
@@ -199,9 +209,9 @@ void PortfolioTree::restore_tree(json const& j)
         this->restore_strategies(newItem, id);
 
         // Is the element expanded?
-        QModelIndex itemIndex = newItem->index();
-        if (portfolios_expanded[id.toStdString()])
+        if (portfolios_expanded.HasMember(id.toStdString().c_str()) && portfolios_expanded[id.toStdString().c_str()].GetBool())
         {
+            QModelIndex itemIndex = newItem->index();
             this->setExpanded(itemIndex, true);
         }
     }
@@ -521,7 +531,7 @@ AgisResult<bool> ExchangeTree::edit_exchange_instance(QString const& exchange_id
         auto beta_lookback = popup->get_beta_lookback();
         if (!market_asset_id.isEmpty())
         {
-            auto market_asset = MarketAsset(
+            auto market_asset = std::make_shared<MarketAsset>(
                 market_asset_id.toStdString(),
                 stoi(beta_lookback.toStdString())
             );
@@ -584,10 +594,10 @@ void ExchangeTree::create_new_item(const QModelIndex& parentIndex)
     {
         auto market_asset_id = popup->get_market_asset_id();
         auto beta_lookback = popup->get_beta_lookback();
-        std::optional<MarketAsset> market_asset = std::nullopt;
+        std::optional<std::shared_ptr<MarketAsset>> market_asset = std::nullopt;
         if (!market_asset_id.isEmpty())
         {
-            market_asset = MarketAsset(
+            market_asset = std::make_shared<MarketAsset>(
                 market_asset_id.toStdString(),
                 stoi(beta_lookback.toStdString())
             );
@@ -656,40 +666,40 @@ void ExchangeTree::restore_ids(QStandardItem* addedItem, QString exchange_id)
 
 
 //============================================================================
-void ExchangeTree::restore_tree(json const& j)
+void ExchangeTree::restore_tree(const rapidjson::Document& doc)
 {
     this->clear();
-    json const& exchanges = j["exchanges"];
-    json const& exchanges_expanded = j["trees"][this->objectName().toStdString()];
+
+    const rapidjson::Value& exchanges = doc["exchanges"];
+    const rapidjson::Value& exchanges_expanded = doc["trees"][this->objectName().toStdString().c_str()];
 
     // Is the root exchanges element expanded?
     QModelIndex itemIndex = root->index();
-    if (exchanges_expanded["root_expanded"])
+    if (exchanges_expanded["root_expanded"].GetBool())
     {
         this->setExpanded(itemIndex, true);
     }
 
-    for (const auto& exchange : exchanges.items()) 
+    for (rapidjson::Value::ConstMemberIterator exchange = exchanges.MemberBegin(); exchange != exchanges.MemberEnd(); ++exchange)
     {
-        QString id = QString::fromStdString(exchange.key());
+        QString id = QString::fromStdString(exchange->name.GetString());
         QStandardItem* newItem = new QStandardItem(id);
-        
-        // Set exchange tree item flags. Can not edit or create child exchanges (TODO)
+
+        // Set exchange tree item flags. Cannot edit or create child exchanges (TODO)
         Qt::ItemFlags rootFlags = newItem->flags();
         rootFlags &= ~Qt::ItemIsDropEnabled;  // Remove the drop enabled flag
         newItem->setFlags(rootFlags);
         newItem->setEditable(false);
-        newItem->setData(QVariant::fromValue(root), ParentItemRole);  // Set the parent item using custom role
-        
+        newItem->setData(QVariant::fromValue(root), ParentItemRole);  // Set the parent item using a custom role
+
         root->appendRow(newItem);
         this->restore_ids(newItem, id);
 
         // Is the exchange element expanded?
-        QModelIndex itemIndex = newItem->index();
-        if (exchanges_expanded[id.toStdString()])
+        if (exchanges_expanded.HasMember(id.toStdString().c_str()) && exchanges_expanded[id.toStdString().c_str()].GetBool())
         {
+            QModelIndex itemIndex = newItem->index();
             this->setExpanded(itemIndex, true);
         }
     }
 }
-

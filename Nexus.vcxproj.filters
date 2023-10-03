@@ -151,6 +151,9 @@
     <ClCompile Include="external\QCustomPlot\qcustomplot.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\NexusBroker.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <QtMoc Include="include\QTerminal.h">
@@ -385,6 +388,9 @@
     <ClInclude Include="include\NexusHelpers.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="include\NexusBroker.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Text Include="images\material_icons_license.txt" />
@@ -413,6 +419,9 @@
       <Filter>Form Files</Filter>
     </QtUic>
     <QtUic Include="ui\ExchangesPopup.ui">
+      <Filter>Form Files</Filter>
+    </QtUic>
+    <QtUic Include="ui\NexusBroker.ui">
       <Filter>Form Files</Filter>
     </QtUic>
   </ItemGroup>

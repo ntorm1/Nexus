@@ -83,7 +83,7 @@ private slots:
     );
     void on_new_exchange_request(const QModelIndex& parentIndex,
         NewExchangePopup* popup,
-        std::optional<MarketAsset> market_asset
+        std::optional<std::shared_ptr<MarketAsset>> market_asset
     );
 
     void on_remove_portfolio_request(const QString& name, const QModelIndex& parentIndex);
@@ -99,9 +99,9 @@ protected:
 
 private:
     void restore_state();
-    AgisResult<bool> restore_editors(json const& j);
-    AgisResult<bool> restore_exchanges(json const& j);
-    AgisResult<bool> restore_portfolios(json const& j);
+    AgisResult<bool> restore_editors(rapidjson::Document const& j);
+    AgisResult<bool> restore_exchanges(rapidjson::Document const& j);
+    AgisResult<bool> restore_portfolios(rapidjson::Document const& j);
 
     AgisResult<bool> save_state();
 

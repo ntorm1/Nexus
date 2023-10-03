@@ -6,6 +6,8 @@
 
 #include "Hydra.h"
 
+import Broker;
+
 
 namespace py = pybind11;
 using namespace std;
@@ -68,6 +70,12 @@ public:
 };
 
 
+void init_agis_broker(py::module& m)
+{
+    py::class_<Broker, std::shared_ptr<Broker>>(m, "Broker");
+}
+
+
 void init_agis_strategy(py::module& m)
 {
     py::enum_<AllocType>(m, "AllocType")
@@ -77,7 +85,7 @@ void init_agis_strategy(py::module& m)
         .export_values();
 
     py::class_<AgisStrategy, PyAgisStrategy>(m, "AgisStrategy")
-        .def(py::init<const std::string&, std::shared_ptr<Portfolio>, double>())
+        .def(py::init<const std::string&, std::shared_ptr<Portfolio>, std::shared_ptr<Broker>, double>())
         .def("next", &AgisStrategy::next)
         .def("reset", &AgisStrategy::reset)
         .def("build", &AgisStrategy::build)
@@ -154,6 +162,9 @@ void init_portfolio(py::module& m)
 }
 
 PYBIND11_MODULE(AgisCorePy, m) {
+    // build python bindings for broker class
+    init_agis_broker(m);
+
     // build python bindings for Agis strategy class
     init_agis_strategy(m);
 

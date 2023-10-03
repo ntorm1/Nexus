@@ -50,21 +50,20 @@ inline QStringList str_vec_to_qlist(std::vector<std::string> const& vec) {
 
 
 //============================================================================
-inline std::string json_val_to_string(json const& j)
-{
-    if (j.is_string()) {
-        return j.get<std::string>();
+inline std::string json_val_to_string(const rapidjson::Value& j) {
+    if (j.IsString()) {
+        return j.GetString();
     }
-    else if (j.is_number_integer()) {
-        return std::to_string(j.get<long long>());
+    else if (j.IsInt()) {
+        return std::to_string(j.GetInt());
     }
-    else if (j.is_number_unsigned()) {
-        return std::to_string(j.get<size_t>());
+    else if (j.IsUint()) {
+        return std::to_string(j.GetUint());
     }
-    else if (j.is_number_float()) {
-        return std::to_string(j.get<double>());
+    else if (j.IsDouble()) {
+        return std::to_string(j.GetDouble());
     }
     else {
-        throw std::runtime_error("unexcpeted type");
+        throw std::runtime_error("unexpected type");
     }
 }

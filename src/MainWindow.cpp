@@ -1,4 +1,5 @@
 #include <fstream>
+#include <unordered_set>
 
 #include <QTime>
 #include <QLabel>
@@ -49,13 +50,14 @@
 #include "NexusErrors.h"
 #include "NexusHelpers.h"
 #include "NexusPortfolio.h"
+#include "NexusBroker.h"
 #include "AgisLuaStrategy.h"
-
+#include "Hydra.h"
 // Octave Win32 Terminal 
 #include "QTerminalImpl.h"
 
 
-
+using namespace rapidjson;
 using namespace ads;
 
 MainWindow::~MainWindow()
@@ -743,22 +745,22 @@ AgisResult<bool> MainWindow::save_state()
     Settings.setValue("mainWindow/State", this->saveState());
     Settings.setValue("mainWindow/DockingState", DockManager->saveState());
     
-    json j;
-    // Save the open widgets and the Nexus env state
-    j["widgets"] = this->DockManager->save_widgets();
+    rapidjson::Document j(rapidjson::kObjectType); // Create a RapidJSON Document
+    j.AddMember("widgets", this->DockManager->save_widgets(), j.GetAllocator());
+
     this->nexus_env.save_env(j);
     return AgisResult<bool>(true);
 }
 
 
 //============================================================================
-std::optional<fs::path> get_editor_by_id(nlohmann::json const& open_editors, int id)
+std::optional<fs::path> get_editor_by_id(rapidjson::Value const& open_editors, int id)
 {
-    for (const auto& editor : open_editors)
+    for (const auto& editor : open_editors.GetArray())
     {
-        if (editor["widget_id"] == id)
+        if (static_cast<int>(editor["widget_id"].GetUint64()) == id)
         {
-            std::string p = editor["open_file"];
+            std::string p = editor["open_file"].GetString();
             return fs::path(p);
         }
     }
@@ -767,7 +769,7 @@ std::optional<fs::path> get_editor_by_id(nlohmann::json const& open_editors, int
 
 
 //============================================================================
-AgisResult<bool> MainWindow::restore_exchanges(json const& j)
+AgisResult<bool> MainWindow::restore_exchanges(Document const& j)
 {
     // Restore Nexus env from the given json
     auto startTime = std::chrono::high_resolution_clock::now();
@@ -780,7 +782,7 @@ AgisResult<bool> MainWindow::restore_exchanges(json const& j)
 
 
 //============================================================================
-AgisResult<bool> MainWindow::restore_portfolios(json const& j)
+AgisResult<bool> MainWindow::restore_portfolios(Document const& j)
 {
     // Restore Nexus env from the given json
     auto startTime = std::chrono::high_resolution_clock::now();
@@ -793,9 +795,9 @@ AgisResult<bool> MainWindow::restore_portfolios(json const& j)
 
 
 //============================================================================
-AgisResult<bool> MainWindow::restore_editors(json const & j)
+AgisResult<bool> MainWindow::restore_editors(rapidjson::Document const & j)
 {
-    if (!j.contains("open_editors")) {
+    if (!j.HasMember("open_editors")) {
 		return AgisResult<bool>(true);
 	}
     auto& editors = j["open_editors"];
@@ -845,9 +847,10 @@ void MainWindow::restore_state()
     }
     ProgressBar->setValue(1);
     std::string jsonString((std::istreambuf_iterator<char>(env_settings_file)), std::istreambuf_iterator<char>());
-    json j;
+    Document j;
     try {
-         j = nlohmann::json::parse(jsonString);
+        // parse string into rapid json document
+        j.Parse(jsonString.c_str());
     }
     catch (std::exception& e) {
 		QMessageBox::critical(nullptr, "Error", "Failed to parse env state");
@@ -1111,7 +1114,7 @@ void MainWindow::on_strategy_remove_requested(const QModelIndex& parentIndex, co
 //============================================================================
 void MainWindow::on_new_exchange_request(const QModelIndex& parentIndex, 
     NewExchangePopup* popup,
-    std::optional<MarketAsset> market_asset)
+    std::optional<std::shared_ptr<MarketAsset>> market_asset)
 {
     auto res = this->nexus_env.new_exchange(
         popup->get_exchange_id().toStdString(),

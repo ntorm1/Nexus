@@ -61,8 +61,8 @@ class NexusTree : public QTreeView
 public:
     explicit NexusTree(QWidget* parent = nullptr);
     void reset_tree();
-    virtual void restore_tree(json const& j) = 0;
-    virtual json to_json() const;
+    virtual void restore_tree(rapidjson::Document const& j) = 0;
+    virtual rapidjson::Document to_json() const;
     QStandardItemModel* get_model() { return this->model; }
 
 protected:
@@ -89,7 +89,7 @@ class PortfolioTree : public NexusTree
 
 public:
     explicit PortfolioTree(QWidget* parent, HydraPtr hydra);
-    void restore_tree(json const& j) override;
+    void restore_tree(rapidjson::Document const& j) override;
     void relink_tree(std::vector<std::string> const& portfolios);
     void restore_strategies(QStandardItem* addedItem, QString portfolio_id);
 
@@ -174,7 +174,7 @@ class ExchangeTree : public NexusTree
 
 public:
     explicit ExchangeTree(QWidget* parent, NexusEnv* nexus_env);
-    void restore_tree(json const& j) override;
+    void restore_tree(rapidjson::Document const& j) override;
     void restore_ids(QStandardItem* newItem, QString exchange_id);
 
 protected:
@@ -223,7 +223,7 @@ signals:
     void asset_double_click(const QString& asset_id);
     void new_item_requested(const QModelIndex& parentIndex, 
         NewExchangePopup* popup,
-        std::optional<MarketAsset> market_asset
+        std::optional<std::shared_ptr<MarketAsset>> market_asset
     );
 
 public slots:

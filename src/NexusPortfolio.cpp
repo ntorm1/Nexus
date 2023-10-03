@@ -224,24 +224,47 @@ void NexusPortfolio::on_portfolio_download()
     auto hydra = this->nexus_env->get_hydra();
     auto portfolio = hydra->get_portfolio(this->portfolio_id);
     auto& positions = portfolio->__get_positions();
-    json j;
+
+    // Create a RapidJSON Document
+    rapidjson::Document j;
+    j.SetObject();
+    rapidjson::Document::AllocatorType& allocator = j.GetAllocator();
+
     for (auto& [asset_index, position] : positions)
     {
         auto& trades = position->__get_trades();
-        json position_j;
+
+        // Create an array for each position
+        rapidjson::Value position_j(rapidjson::kArrayType);
+
         for (auto& [strategy_index, trade] : trades)
         {
-            json trade_json;
-            trade->serialize(trade_json, this->nexus_env->get_hydra());
-            position_j.push_back(trade_json);
+            // Create an object for each trade
+            auto trade_json = trade->serialize(this->nexus_env->get_hydra());
+
+            // Add the trade object to the position array
+            if (!trade_json.has_value()) {
+				AGIS_THROW(trade_json.error().what());
+			}
+            position_j.PushBack(trade_json.value(), allocator);
         }
+
         auto asset_id = hydra->asset_index_to_id(asset_index).unwrap();
-        j[asset_id] = position_j;
+
+        // Add the position array to the main JSON object
+        j.AddMember(rapidjson::StringRef(asset_id.c_str()), position_j, allocator);
     }
+
     auto ext = this->portfolio_id + ".json";
     auto json_path = this->nexus_env->get_env_path() / ext;
-    std::ofstream file(json_path);
-    file << std::setw(4) << j;
+
+    // Serialize the RapidJSON Document to a file
+    rapidjson::StringBuffer buffer;
+    rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
+    j.Accept(writer);
+
+    std::ofstream file(json_path.string());
+    file << buffer.GetString();
 }
 
 

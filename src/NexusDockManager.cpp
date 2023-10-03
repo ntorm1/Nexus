@@ -11,56 +11,75 @@ NexusDockManager::NexusDockManager(MainWindow* main_window_, QWidget* parent) :
 {
 }
 
-json NexusDockManager::save_widgets()
+Document NexusDockManager::save_widgets()
 {
-	json widgets;
+	Document widgets;
+	auto& allocator = widgets.GetAllocator();
 	for (auto const& dock_widget : this->get_widgets())
 	{
-		json widget;
+		rapidjson::Value widget;
 		widget["widget_id"] = dock_widget->get_id();
-		widget["widget_type"] = dock_widget->get_widget_type();
+		widget["widget_type"] = static_cast<size_t>(dock_widget->get_widget_type());
 
 		if (dock_widget->get_widget_type() == WidgetType::Asset)
 		{
 			auto child = dock_widget->widget();
 			NexusAsset* asset_child = static_cast<NexusAsset*>(child);
-			widget["asset_id"] = asset_child->get_asset_id();
-			widget["plotted_graphs"] = asset_child->get_plotted_graphs();
+			widget.AddMember("asset_id", rapidjson::Value(asset_child->get_asset_id().c_str(), allocator), allocator);
+
+			rapidjson::Value plottedGraphs(rapidjson::kArrayType);
+			const std::vector<std::string> graphs = asset_child->get_plotted_graphs();
+			for (const std::string& graph : graphs)
+			{
+				rapidjson::Value graphValue(graph.c_str(), allocator);
+				plottedGraphs.PushBack(graphValue, allocator);
+			}
+			widget.AddMember("plotted_graphs", plottedGraphs, allocator);
 		}
 		else if (dock_widget->get_widget_type() == WidgetType::NodeEditor)
 		{
 			auto child = dock_widget->widget();
 			NexusNodeEditor* asset_child = static_cast<NexusNodeEditor*>(child);
 			asset_child->__save();
-			widget["strategy_id"] = asset_child->get_strategy_id();
+			widget.AddMember("strategy_id", rapidjson::Value(asset_child->get_strategy_id().c_str(), allocator), allocator);
+
 		}
 		else if (dock_widget->get_widget_type() == WidgetType::Portfolio)
 		{
 			auto child = dock_widget->widget();
 			NexusPortfolio* p = static_cast<NexusPortfolio*>(child);
-			widget["portfolio_id"] = p->get_portfolio_id();
+			widget.AddMember("portfolio_id", rapidjson::Value(p->get_portfolio_id().c_str(), allocator), allocator);
+
 			auto graphs = p->get_plotted_graphs();
 			if (graphs.size() > 0) {
-				widget["plotted_graphs"] = graphs;
+				rapidjson::Value plottedGraphs(rapidjson::kArrayType);
+				for (const std::string& graph : graphs)
+				{
+					rapidjson::Value graphValue(graph.c_str(), allocator);
+					plottedGraphs.PushBack(graphValue, allocator);
+				}
+				widget.AddMember("plotted_graphs", plottedGraphs, allocator);
 			}
 		}
 
-		widgets[dock_widget->objectName().toStdString()] = widget;
+		rapidjson::Value key(dock_widget->objectName().toStdString().c_str(), widgets.GetAllocator());
+		widgets.AddMember(key.Move(), widget, widgets.GetAllocator());
 	}
 	return widgets;
 }
 
-void NexusDockManager::restore_widgets(json const& j)
+void NexusDockManager::restore_widgets(Document const& j)
 {
 	auto const& widgets = j["widgets"];
 
 	// Store the exchange items in a vector for parallel processing
 	int max_widget_id = -1;
-	for (const auto& widget_pair : widgets.items())
-	{
-		auto widget_json = widget_pair.value();
-		int widget_id = widget_json["widget_id"];
-		WidgetType widget_type = widget_json["widget_type"];
+	for (rapidjson::Value::ConstMemberIterator itr = j.MemberBegin(); itr != j.MemberEnd(); ++itr) {
+		size_t widget_id = itr->name.GetUint64();  // Get the key as a C string
+		const rapidjson::Value& widget_json = itr->value; // Get the value
+		
+		size_t widget_type_uint = widget_json["widget_type"].GetUint64();
+		WidgetType widget_type = static_cast<WidgetType>(widget_type_uint);
 
 		ads::CDockWidget* widget = nullptr;
 		switch (widget_type) {
@@ -69,22 +88,32 @@ void NexusDockManager::restore_widgets(json const& j)
 				break;
 			}
 			case WidgetType::Asset: {
-				auto asset_id = QString::fromStdString(widget_json["asset_id"]);
+				auto asset_id = QString::fromStdString(widget_json["asset_id"].GetString());
 				widget = this->main_window->create_asset_widget(asset_id);
 				
-				std::vector<std::string> plots = widget_json["plotted_graphs"];
+				std::vector<std::string> plots;
+				if (widget_json.HasMember("plotted_graphs") && widget_json["plotted_graphs"].IsArray()) {
+					const rapidjson::Value& plottedGraphsArray = widget_json["plotted_graphs"];
+
+					for (rapidjson::SizeType i = 0; i < plottedGraphsArray.Size(); i++) {
+						if (plottedGraphsArray[i].IsString()) {
+							plots.push_back(plottedGraphsArray[i].GetString());
+						}
+					}
+				}
+
 				auto child = widget->widget();
 				NexusAsset* asset_child = static_cast<NexusAsset*>(child);
 				asset_child->set_plotted_graphs(plots);
 				break;
 			}
 			case WidgetType::NodeEditor:{
-				auto strategy_id = QString::fromStdString(widget_json["strategy_id"]);
+				auto strategy_id = QString::fromStdString(widget_json["strategy_id"].GetString());
 				widget = this->main_window->create_node_editor_widget(strategy_id);
 				break;
 			}
 			case WidgetType::Portfolio: {
-				auto portfolio_id = QString::fromStdString(widget_json["portfolio_id"]);
+				auto portfolio_id = QString::fromStdString(widget_json["portfolio_id"].GetString());
 				widget = this->main_window->create_portfolio_widget(portfolio_id);
 				break;
 			}

@@ -5,6 +5,10 @@
 #include <QThread>
 
 
+import Asset;
+
+using namespace Agis;
+
 //============================================================================
 void NexusAsset::init_asset_selection()
 {
@@ -50,7 +54,8 @@ NexusAsset::NexusAsset(
     QMainWindow(parent),
     ui(new Ui::NexusAsset),
     nexus_env(nexus_env_),
-    DockWidget(DockWidget_)
+    DockWidget(DockWidget_), 
+    data(AgisMatrix<double>(nullptr,0,0))
 {
     ui->setupUi(this);
     this->asset = asset_;
@@ -129,8 +134,8 @@ void NexusAsset::load_asset_data()
     QStandardItemModel* model = new QStandardItemModel(this);
 
     // Set the number of rows and columns
-    int rows = data.rows();
-    int columns = data.columns();
+    int rows = data.rows;
+    int columns = data.columns;
     model->setRowCount(rows);
     model->setColumnCount(columns);
     model->setHorizontalHeaderLabels(str_vec_to_qlist(this->column_names));
@@ -224,6 +229,13 @@ void NexusAsset::set_plotted_graphs(std::vector<std::string> const& graphs)
             this->nexus_plot->add_plot(graph_name);
         }
 	}
+}
+
+
+//============================================================================
+std::string NexusAsset::get_asset_id() const noexcept
+{
+    return this->asset->get_asset_id();
 }
 
 

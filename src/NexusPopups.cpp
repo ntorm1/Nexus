@@ -12,6 +12,10 @@
 #include "ui_NexusSettings.h"
 #include "ui_ExchangesPopup.h"
 
+import Asset;
+
+using namespace Agis;
+
 
 //============================================================================
 bool isValidDirectory(const std::string& path)
@@ -149,7 +153,7 @@ NewExchangePopup::NewExchangePopup(
 			exchange.value()->get_source())
         );
 
-        auto frequency = freq_to_string(exchange.value()->get_frequency());
+        auto frequency = FrequencyToString(exchange.value()->get_frequency());
         this->ui->freq_combo->setCurrentText(QString::fromStdString(frequency));
 
         this->ui->dt_format_combo->setCurrentText(QString::fromStdString(
@@ -163,11 +167,11 @@ NewExchangePopup::NewExchangePopup(
         if (market_asset.has_value())
         {
             this->ui->market_asset->setText(
-                QString::fromStdString(market_asset.value().market_id)
+                QString::fromStdString(market_asset.value()->market_id)
             );
-            if (market_asset.value().beta_lookback.has_value())
+            if (market_asset.value()->beta_lookback.has_value())
             {
-                auto v = market_asset.value().beta_lookback.value();
+                auto v = market_asset.value()->beta_lookback.value();
                 this->ui->beta_lookback->setText(
                     QString::fromStdString(std::to_string(v))
                 );

@@ -4,6 +4,7 @@
 
 #include "NexusPch.h"
 #include "DockManager.h"
+#include <unordered_set>
 
 //#include "MainWindow.h"
 
@@ -16,8 +17,8 @@ class NexusDockManager : public ads::CDockManager {
 public:
 	NexusDockManager(MainWindow* main_window, QWidget* parent = nullptr);
 
-	json save_widgets();
-	void restore_widgets(json const& j);
+	Document save_widgets();
+	void restore_widgets(Document const& j);
 
 private: 
 	MainWindow* main_window;

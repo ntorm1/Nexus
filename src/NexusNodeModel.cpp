@@ -5,6 +5,9 @@
 #include "NexusNodeWidget.h"
 #include "NexusErrors.h"
 
+import Asset;
+
+using namespace Agis;
 
 HydraPtr ExchangeModel::hydra = nullptr;
 

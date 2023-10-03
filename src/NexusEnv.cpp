@@ -16,6 +16,9 @@ std::string build_method = "debug";
 std::string build_method = "release";
 #endif
 
+import Asset;
+
+using namespace Agis;
 
 //============================================================================
 const std::vector<std::string> nexus_datetime_columns = {
@@ -30,6 +33,7 @@ const std::vector<std::string> nexus_datetime_columns = {
 //============================================================================
 NexusEnv::NexusEnv() : hydra(Hydra())
 {
+	this->hydra.new_broker("test");
 }
 
 
@@ -206,14 +210,15 @@ AgisResult<bool> NexusEnv::new_exchange(
 	const std::string& source,
 	const std::string& freq,
 	const std::string& dt_format,
-	std::optional<MarketAsset> market_asset
+	std::optional<std::shared_ptr<MarketAsset>> market_asset
 )
 {
 	qDebug() << "Building new exchange: " << exchange_id;
 	return this->hydra.new_exchange(
+		AssetType::US_EQUITY, // TODO fix this
 		exchange_id,
 		source,
-		string_to_freq(freq),
+		StringToFrequency(freq),
 		dt_format,
 		std::nullopt,
 		market_asset
@@ -244,6 +249,8 @@ NexusStatusCode NexusEnv::new_strategy(
 	AgisStrategyType strategy_type
 )
 {
+	auto broker = this->hydra.get_broker("test").value();
+
 	double allocation_double;
 	try {
 		allocation_double = std::stod(allocation);
@@ -258,6 +265,7 @@ NexusStatusCode NexusEnv::new_strategy(
 
 		auto strategy = std::make_unique<AbstractAgisStrategy>(
 			portfolio,
+			broker,
 			strategy_id,
 			allocation_double
 		);
@@ -286,6 +294,7 @@ NexusStatusCode NexusEnv::new_strategy(
 		}
 		auto strategy = std::make_unique<AgisLuaStrategy>(
 			portfolio,
+			broker,
 			strategy_id,
 			allocation_double,
 			script_path
@@ -298,6 +307,7 @@ NexusStatusCode NexusEnv::new_strategy(
 
 		auto strategy = std::make_unique<BenchMarkStrategy>(
 			portfolio,
+			broker,
 			strategy_id
 		);
 		AGIS_TRY(this->hydra.register_strategy(std::move(strategy)));
@@ -739,37 +749,46 @@ void NexusEnv::clear()
 
 
 //============================================================================
-AgisResult<bool> NexusEnv::restore_strategies(json const& j)
+AgisResult<bool> NexusEnv::restore_strategies(const rapidjson::Document& j)
 {
-	// restore cpp strategy tree by linking to all strats if the AgisStrategy library
+	// Restore CPP strategy tree by linking to all strats if the AgisStrategy library
 	fs::path output_dir = this->env_path / "build" / build_method;
 	fs::path agis_strategy_dll = output_dir / "AgisStrategy.dll";
-	// if agis_strategy_dll exists call __link
+
+	// If agis_strategy_dll exists, call __link
 	if (fs::exists(agis_strategy_dll))
 	{
 		AGIS_TRY_RESULT(this->__link(false), bool);
 	}
 
-	// for all strategies loaded, check if they are live
-	json portfolios = j["portfolios"];
-	for (const auto& portfolio_json : portfolios.items())
+	// For all portfolios loaded, check if their strategies are live
+	const rapidjson::Value& portfolios = j["portfolios"];
+	for (rapidjson::Value::ConstMemberIterator portfolio = portfolios.MemberBegin(); portfolio != portfolios.MemberEnd(); ++portfolio)
 	{
-		json& j = portfolio_json.value();
-		json& strategies = j["strategies"];
-		for (const auto& strategy_json : strategies)
+		const rapidjson::Value& portfolio_json = portfolio->value;
+		const rapidjson::Value& strategies = portfolio_json["strategies"];
+		for (rapidjson::Value::ConstValueIterator strategy = strategies.Begin(); strategy != strategies.End(); ++strategy)
 		{
-			bool is_live = strategy_json["is_live"];
-			std::string strategy_id = strategy_json["strategy_id"];
-			if(!this->hydra.strategy_exists(strategy_id)) continue;
-			auto strategy = this->hydra.get_strategy(strategy_id);
+			bool is_live = (*strategy)["is_live"].GetBool();
+			const char* strategy_id = (*strategy)["strategy_id"].GetString();
 
-			// if strategy was linked but it is not live, remove it and force it to be re linked
+			if (!this->hydra.strategy_exists(strategy_id))
+			{
+				continue;
+			}
+
+			auto strategy_ptr = this->hydra.get_strategy(strategy_id);
+
+			// If strategy was linked but it is not live, remove it and force it to be re-linked
 			// if we actually want to load it.
-			if (!is_live && !strategy->__is_abstract_class())
-			{ 
+			if (!is_live && !strategy_ptr->__is_abstract_class())
+			{
 				this->hydra.remove_strategy(strategy_id);
-			}	
-			else hydra.__set_strategy_is_live(strategy_id, is_live);
+			}
+			else
+			{
+				hydra.__set_strategy_is_live(strategy_id, is_live);
+			}
 		}
 	}
 
@@ -836,14 +855,25 @@ AgisResult<bool> NexusEnv::restore_strategies(json const& j)
 
 
 //============================================================================
-AgisResult<bool> NexusEnv::restore_settings(json const& j)
+AgisResult<bool> NexusEnv::restore_settings(rapidjson::Document const& j)
 {
-	this->agis_include_path = j.value("agis_include_path","");
-	this->agis_lib_path = j.value("agis_lib_path", "");
-	this->agis_pyd_path = j.value("agis_pyd_path", "");
+	if (j.HasMember("agis_include_path") && j["agis_include_path"].IsString())
+	{
+		this->agis_include_path = j["agis_include_path"].GetString();
+	}
+
+	if (j.HasMember("agis_lib_path") && j["agis_lib_path"].IsString())
+	{
+		this->agis_lib_path = j["agis_lib_path"].GetString();
+	}
+
+	if (j.HasMember("agis_pyd_path") && j["agis_pyd_path"].IsString())
+	{
+		this->agis_pyd_path = j["agis_pyd_path"].GetString();
+	}
+
 	return AgisResult<bool>(true);
 }
-
 
 //============================================================================
 AgisResult<bool> NexusEnv::set_settings(NexusSettings* nexus_settings)
@@ -893,48 +923,50 @@ AgisResult<bool> NexusEnv::set_settings(NexusSettings* nexus_settings)
 
 
 //============================================================================
-bool NexusEnv::save_env(json& j)
+bool NexusEnv::save_env(rapidjson::Document &j)
 {
-	qDebug() << "Saving environemnt...";
+	rapidjson::Document::AllocatorType& allocator = j.GetAllocator();
 
 	// Save the current open editors and the files they have open
-	json open_editors;
+	rapidjson::Value open_editors(rapidjson::kArrayType);
 	for (const auto& editor : this->open_editors)
 	{
-		json editor_json;
-		auto open_file = editor->get_file_name().toStdString();
-		if (open_file == "empty")
+		if (editor->get_file_name() != "empty")
 		{
-			continue;
+			rapidjson::Value editor_json(rapidjson::kObjectType);
+			editor_json.AddMember("widget_id", editor->get_id(), allocator);
+			editor_json.AddMember("open_file", rapidjson::StringRef(editor->get_file_name().toStdString().c_str()), allocator);
+			open_editors.PushBack(editor_json, allocator);
 		}
-
-		editor_json["widget_id"] = editor->get_id();
-		editor_json["open_file"] = open_file;
-		open_editors.push_back(editor_json);
 	}
-	j["open_editors"] = open_editors;
+	j.AddMember("open_editors", open_editors, allocator);
 
-	// Save the current hydra sate;
+	// Serialize hydra state
+	Document hydra_state;
 	qDebug() << "Serializing hydra state...";
-	this->hydra.save_state(j);
+	this->hydra.save_state(hydra_state);
 	qDebug() << "Hydra state serialized";
+	j.AddMember("hydra_state", hydra_state, allocator);
 
 	// Save the current state of the trees
-	json trees;
+	rapidjson::Value trees(rapidjson::kObjectType);
 	for (const auto& tree : this->open_trees)
 	{
-		trees[tree->objectName().toStdString()] = tree->to_json();
+		trees.AddMember(rapidjson::StringRef(tree->objectName().toStdString().c_str()), tree->to_json(), allocator);
 	}
-	j["trees"] = trees;
+	j.AddMember("trees", trees, allocator);
 
-	// save the nexus settings
-	j["agis_include_path"] = this->agis_include_path;
-	j["agis_lib_path"] = this->agis_lib_path;
-	j["agis_pyd_path"] = this->agis_pyd_path;
+	// Save the nexus settings
+	j.AddMember("agis_include_path", rapidjson::StringRef(this->agis_include_path.c_str()), allocator);
+	j.AddMember("agis_lib_path", rapidjson::StringRef(this->agis_lib_path.c_str()), allocator);
+	j.AddMember("agis_pyd_path", rapidjson::StringRef(this->agis_pyd_path.c_str()), allocator);
 
+	// Dump the JSON output to a file
+	rapidjson::StringBuffer buffer;
+	rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
+	j.Accept(writer);
 
-	// Dump ths json output to a file
-	std::string jsonString = j.dump(4);
+	std::string jsonString = buffer.GetString();
 	auto json_path = this->env_path / "env_settings.json";
 	std::ofstream outputFile(json_path.string());
 	if (outputFile.is_open()) {

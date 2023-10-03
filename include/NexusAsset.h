@@ -10,8 +10,13 @@
 #include "NexusHelpers.h"
 #include "NexusEnv.h"
 #include "NexusPlot.h"
-#include "Asset.h"
 #include "Order.h"
+
+namespace Agis {
+    class Asset;
+}
+
+typedef std::shared_ptr<Agis::Asset> AssetPtr;
 
 namespace Ui {
     class NexusAsset;
@@ -76,7 +81,7 @@ public:
 
     void set_plotted_graphs(std::vector<std::string> const& graphs);
     std::vector<std::string> get_plotted_graphs() const { return this->nexus_plot->plotted_graphs; }
-    std::string get_asset_id() const { return this->asset->get_asset_id(); }
+    std::string get_asset_id() const noexcept;
 
     Ui::NexusAsset* ui;
     ads::CDockWidget* DockWidget;
@@ -117,19 +122,21 @@ void event_data_loader(
 
     // Set the data in the model
     int row = 0;
-    json object_json;
     auto column_names = qlist_to_str_vec(q_columns);
     for (auto& new_event : events) {
         int col = 0;
         for (auto& column_name : column_names) {
-            AGIS_TRY(new_event->serialize(object_json, hydra));
-            const json& value = object_json[column_name];
+            std::expected<rapidjson::Document, AgisException> object_json_expected = new_event->serialize(hydra);
+            if (!object_json_expected.has_value()) {
+				AGIS_THROW(object_json_expected.error().what());
+			}
+            rapidjson::Document object_json = std::move(object_json_expected.value());
+            const rapidjson::Value& value = object_json[column_name.c_str()];
             std::string str_value;
 
             // test if column_name is in nexus_datetime_columns
             if (std::find(nexus_datetime_columns.begin(), nexus_datetime_columns.end(), column_name) != nexus_datetime_columns.end()) {
-                auto& value = object_json[column_name];
-                long long epoch_time = value.get<long long>();
+                long long epoch_time = object_json[column_name.c_str()].GetUint64();
                 auto res = epoch_to_str(epoch_time, NEXUS_DATETIME_FORMAT);
                 if (res.is_exception())
                 {

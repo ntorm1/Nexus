@@ -74,12 +74,15 @@
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
-      <AdditionalIncludeDirectories>$(SolutionDir)nodeeditor\include;$(SolutionDir)AgisCore\include;$(SolutionDir)include;$(SolutionDir)Qt-Advanced-Docking-System\src;$(SolutionDir)\external\QCustomPlot;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>$(Qt_DEFINES_);%(PreprocessorDefinitions);NODE_EDITOR_SHARED;ADS_STATIC</PreprocessorDefinitions>
-      <LanguageStandard>stdcpp20</LanguageStandard>
+      <AdditionalIncludeDirectories>$(SolutionDir)nodeeditor\include;$(SolutionDir)AgisCore\include;$(SolutionDir)AgisCore\external\include;$(SolutionDir)include;$(SolutionDir)Qt-Advanced-Docking-System\src;$(SolutionDir)\external\QCustomPlot;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>_DEBUG;$(Qt_DEFINES_);%(PreprocessorDefinitions);NODE_EDITOR_SHARED;ADS_STATIC</PreprocessorDefinitions>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
       <AdditionalHeaderUnitDependencies>
       </AdditionalHeaderUnitDependencies>
-      <AdditionalModuleDependencies>$(SolutionDir)AgisCore\$(Platform)\$(Configuration)\Broker.ixx.ifc;$(SolutionDir)AgisCore\$(Platform)\$(Configuration)\Broker.Base.ixx.ifc;$(SolutionDir)AgisCore\$(Platform)\$(Configuration)\Broker.Dummy.ixx.ifc</AdditionalModuleDependencies>
+      <AdditionalModuleDependencies>$(SolutionDir)AgisCore\$(Platform)\$(Configuration)\Broker.ixx.ifc;$(SolutionDir)AgisCore\$(Platform)\$(Configuration)\Broker.Base.ixx.ifc;$(SolutionDir)AgisCore\$(Platform)\$(Configuration)\Broker.Dummy.ixx.ifc;$(SolutionDir)AgisCore\$(Platform)\$(Configuration)\Asset.ixx.ifc;$(SolutionDir)AgisCore\$(Platform)\$(Configuration)\Asset.Base.ixx.ifc;$(SolutionDir)AgisCore\$(Platform)\$(Configuration)\Asset.Core.ixx.ifc;$(SolutionDir)AgisCore\$(Platform)\$(Configuration)\Asset.Observer.ixx.ifc</AdditionalModuleDependencies>
+      <EnableModules>true</EnableModules>
+      <BuildStlModules>true</BuildStlModules>
+      <ScanSourceForModuleDependencies>false</ScanSourceForModuleDependencies>
     </ClCompile>
     <Link>
       <AdditionalDependencies>ws2_32.lib;%(AdditionalDependencies); QtNodes.lib;$(SolutionDir)$(Platform)\$(Configuration)\AgisCore.lib;qscintilla2_qt6d.lib</AdditionalDependencies>
@@ -88,9 +91,12 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
-      <AdditionalIncludeDirectories>$(SolutionDir)AgisCore\include;$(SolutionDir)nodeeditor\include;%(AdditionalIncludeDirectories);$(SolutionDir)include;$(SolutionDir)\external\QCustomPlot</AdditionalIncludeDirectories>
-      <LanguageStandard>stdcpp20</LanguageStandard>
+      <AdditionalIncludeDirectories>$(SolutionDir)AgisCore\include;$(SolutionDir)AgisCore\external\include;$(SolutionDir)nodeeditor\include;%(AdditionalIncludeDirectories);$(SolutionDir)include;$(SolutionDir)\external\QCustomPlot</AdditionalIncludeDirectories>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
       <PreprocessorDefinitions>$(Qt_DEFINES_);%(PreprocessorDefinitions);NODE_EDITOR_SHARED;</PreprocessorDefinitions>
+      <EnableModules>true</EnableModules>
+      <BuildStlModules>true</BuildStlModules>
+      <AdditionalModuleDependencies>$(SolutionDir)AgisCore\$(Platform)\$(Configuration)\Broker.ixx.ifc;$(SolutionDir)AgisCore\$(Platform)\$(Configuration)\Broker.Base.ixx.ifc;$(SolutionDir)AgisCore\$(Platform)\$(Configuration)\Broker.Dummy.ixx.ifc;$(SolutionDir)AgisCore\$(Platform)\$(Configuration)\Asset.ixx.ifc;$(SolutionDir)AgisCore\$(Platform)\$(Configuration)\Asset.Base.ixx.ifc;$(SolutionDir)AgisCore\$(Platform)\$(Configuration)\Asset.Core.ixx.ifc;$(SolutionDir)AgisCore\$(Platform)\$(Configuration)\Asset.Observer.ixx.ifc</AdditionalModuleDependencies>
     </ClCompile>
     <Link>
       <AdditionalDependencies>%(AdditionalDependencies);$(Qt_LIBS_);QtNodes.lib;$(SolutionDir)$(Platform)\$(Configuration)\AgisCore.lib;qscintilla2_qt6.lib</AdditionalDependencies>
@@ -146,6 +152,7 @@
     <ClCompile Include="Qt-Advanced-Docking-System\src\PushButton.cpp" />
     <ClCompile Include="Qt-Advanced-Docking-System\src\ResizeHandle.cpp" />
     <ClCompile Include="src\NexusAsset.cpp" />
+    <ClCompile Include="src\NexusBroker.cpp" />
     <ClCompile Include="src\NexusDockManager.cpp" />
     <ClCompile Include="src\NexusEnv.cpp" />
     <ClCompile Include="src\NexusNode.cpp" />
@@ -169,6 +176,7 @@
     <QtUic Include="ui\NewPortfolioPopup.ui" />
     <QtUic Include="ui\NewStrategyPopup.ui" />
     <QtUic Include="ui\NexusAsset.ui" />
+    <QtUic Include="ui\NexusBroker.ui" />
     <QtUic Include="ui\NexusNodeEditor.ui" />
     <QtUic Include="ui\NexusPortfolio.ui" />
     <QtUic Include="ui\NexusSettings.ui" />
@@ -237,6 +245,7 @@
   </ItemGroup>
   <ItemGroup>
     <QtMoc Include="external\QCustomPlot\qcustomplot.h" />
+    <ClInclude Include="include\NexusBroker.h" />
     <ClInclude Include="include\NexusHelpers.h" />
     <QtMoc Include="include\QScintillaEditor.h" />
     <ClInclude Include="Qt-Advanced-Docking-System\src\DockComponentsFactory.h" />

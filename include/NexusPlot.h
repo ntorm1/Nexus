@@ -29,8 +29,8 @@ public:
 
 	void set_title(std::string title);
 	void plot(
-		std::span<long long> x,
-		std::span<double const> y,
+		std::span<const long long> x,
+		std::span<const double> y,
 		std::string name
 	);
 

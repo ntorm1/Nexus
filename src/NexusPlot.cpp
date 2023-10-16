@@ -242,7 +242,11 @@ void NexusPlot::set_title(std::string title)
 
 
 //============================================================================
-void NexusPlot::plot(std::span<long long> x, std::span<double const> y, std::string name)
+void NexusPlot::plot(
+	std::span<const long long> x,
+	std::span<const double> y,
+	std::string name
+)
 {
 	this->addGraph();
 	auto q_name = QString::fromStdString(name);

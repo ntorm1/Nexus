@@ -102,8 +102,8 @@ public:
 
     std::vector<std::string> column_names;
     std::vector<std::string> dt_index_str;
-    std::span<long long> dt_index;
-    AgisMatrix <double> data;
+    std::span<const long long> dt_index;
+    std::vector<double> data;
 };
 
 

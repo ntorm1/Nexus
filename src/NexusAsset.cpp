@@ -54,8 +54,7 @@ NexusAsset::NexusAsset(
     QMainWindow(parent),
     ui(new Ui::NexusAsset),
     nexus_env(nexus_env_),
-    DockWidget(DockWidget_), 
-    data(AgisMatrix<double>(nullptr,0,0))
+    DockWidget(DockWidget_)
 {
     ui->setupUi(this);
     this->asset = asset_;
@@ -134,8 +133,8 @@ void NexusAsset::load_asset_data()
     QStandardItemModel* model = new QStandardItemModel(this);
 
     // Set the number of rows and columns
-    int rows = data.rows;
-    int columns = data.columns;
+    int rows = asset->get_rows();
+    int columns = asset->get_cols();
     model->setRowCount(rows);
     model->setColumnCount(columns);
     model->setHorizontalHeaderLabels(str_vec_to_qlist(this->column_names));
@@ -145,7 +144,7 @@ void NexusAsset::load_asset_data()
     int q_index = 0;
     for (auto& column_name : this->column_names) {
         auto i = headers.at(column_name);
-        auto col = this->data.column(i);
+        auto col = &this->data[i*rows];
         for (int j = 0; j < rows; ++j) {
             double value = col[j];
             QStandardItem* item = new QStandardItem(QString::number(value));

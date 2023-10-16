@@ -16,6 +16,7 @@ std::string build_method = "debug";
 std::string build_method = "release";
 #endif
 
+#include "Portfolio.h"
 #include "Asset/Asset.h"
 
 using namespace Agis;
@@ -357,7 +358,10 @@ NexusStatusCode NexusEnv::remove_strategy(const std::string& name)
 //============================================================================
 AgisResult<bool> NexusEnv::__run()
 {
-	AGIS_DO_OR_RETURN(this->hydra.__run(), bool);
+	auto res = this->hydra.__run();
+	if (!res.has_value()) {
+		return AgisResult<bool>(res.error());
+	}
 	return AgisResult<bool>(true);
 }
 
@@ -842,7 +846,8 @@ AgisResult<bool> NexusEnv::restore_strategies(const rapidjson::Document& j)
 	}
 
 	// build the hydra instance to allow for the strategy map to get populated
-	AGIS_DO_OR_RETURN(this->hydra.build(), bool);
+	auto res = this->hydra.build();
+	if (!res.has_value()) return AgisResult<bool>(res.error());
 
 	this->remove_editors();
 	for (auto& tree : this->open_trees)

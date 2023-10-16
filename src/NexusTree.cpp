@@ -7,6 +7,9 @@
 #include "NexusEnv.h"
 
 #include "Asset/Asset.h"
+#include "ExchangeMap.h"
+#include "Exchange.h"
+#include "Portfolio.h"
 
 using namespace Agis;
 
@@ -522,7 +525,13 @@ void ExchangeTree::new_item_accepted(const QModelIndex& parentIndex, const QStri
 //============================================================================
 AgisResult<bool> ExchangeTree::edit_exchange_instance(QString const& exchange_id)
 {
-    auto exchange = this->hydra->get_exchanges().get_exchange(exchange_id.toStdString());
+    auto exchange_opt = this->hydra->get_exchanges()
+        .get_exchange(exchange_id.toStdString());
+    if (!exchange_opt.has_value()) {
+		return AgisResult<bool>(AGIS_EXCEP("Exchange not found"));
+	}
+    auto & exchange = exchange_opt.value();
+
     NewExchangePopup* popup = new NewExchangePopup(this, exchange);
     
     if (popup->exec() == QDialog::Accepted)
@@ -558,7 +567,9 @@ AgisResult<bool> ExchangeTree::edit_exchange_instance(QString const& exchange_id
         // update vol lookback if needed
         auto vol_lookback = popup->get_vol_lookback();
         size_t vol_lookback_size_t = std::stoul(vol_lookback.toStdString());
-        auto exchange = this->hydra->get_exchanges().get_exchange(popup->get_exchange_id().toStdString());
+        ExchangePtr exchange = this->hydra->get_exchanges()
+            .get_exchange(popup->get_exchange_id().toStdString())
+            .value();
         if (exchange->__get_vol_lookback() != vol_lookback_size_t) {
             exchange->__set_volatility_lookback(vol_lookback_size_t);
         }

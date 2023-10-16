@@ -5,7 +5,7 @@
 #include "NexusHelpers.h"
 #include "ui_NexusPortfolio.h"
 
-
+#include "Portfolio.h"
 
 //============================================================================
 NexusPortfolio::NexusPortfolio(

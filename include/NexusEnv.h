@@ -9,6 +9,8 @@
 
 #include "AgisPointers.h"
 #include "AgisErrors.h"
+#include "ExchangeMap.h"
+#include "Portfolio.h"
 
 namespace fs = std::filesystem;
 
@@ -23,6 +25,9 @@ constexpr auto NEXUS_DATETIME_FORMAT = "%F %T";
 extern const std::vector<std::string> nexus_datetime_columns;
 
 class NexusSettings;
+class Position;
+
+typedef std::shared_ptr<Position> SharedPositionPtr;
 
 class NexusEnv
 {

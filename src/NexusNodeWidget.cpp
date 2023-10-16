@@ -2,6 +2,7 @@
 
 #include "NexusNodeModel.h"
 #include "NexusNodeWidget.h"
+#include "ExchangeMap.h"
 
 
 //============================================================================

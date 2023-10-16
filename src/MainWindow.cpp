@@ -53,6 +53,7 @@
 #include "NexusBroker.h"
 #include "AgisLuaStrategy.h"
 #include "Hydra.h"
+#include "ExchangeMap.h"
 // Octave Win32 Terminal 
 #include "QTerminalImpl.h"
 
@@ -1130,7 +1131,9 @@ void MainWindow::on_new_exchange_request(const QModelIndex& parentIndex,
     {
         size_t vol_lookback_size_t = std::stoul(vol_lookback.toStdString());
         auto& exchanges = this->nexus_env.get_hydra()->get_exchanges();
-        exchanges.get_exchange(popup->get_exchange_id().toStdString())->__set_volatility_lookback(vol_lookback_size_t);
+        exchanges
+            .get_exchange(popup->get_exchange_id().toStdString())
+            .value()->__set_volatility_lookback(vol_lookback_size_t);
     }
 
     emit new_exchange_accepted(parentIndex, popup->get_exchange_id());

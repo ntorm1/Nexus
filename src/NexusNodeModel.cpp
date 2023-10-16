@@ -444,8 +444,9 @@ std::shared_ptr<NodeData> ExchangeModel::outData(PortIndex const port)
 	if (port == 0)
 	{
 		auto exchange_id = this->exchange_node->exchange_id->currentText().toStdString();
-		auto exchange = this->hydra->get_exchanges().get_exchange(exchange_id);
-		return std::make_shared<ExchangeData>(exchange);
+		auto exchange_opt = this->hydra->get_exchange(exchange_id);
+		if (!exchange_opt.has_value()) return nullptr;
+		return std::make_shared<ExchangeData>(exchange_opt.value());
 	}
 	return nullptr;
 }
@@ -497,7 +498,7 @@ std::shared_ptr<NodeData> ExchangeViewModel::outData(PortIndex const port)
 		{
 			// function that takes in serious of operations to apply to as asset and outputs
 			// a double value that is result of said opps
-			auto asset_chain = [&](AssetPtr const& asset) -> AgisResult<double> {
+			auto asset_chain = [&](AssetPtr const& asset) {
 				return asset_feature_lambda_chain(
 					asset,
 					lambda_opps
@@ -589,7 +590,7 @@ void ExchangeViewModel::setInData(std::shared_ptr<NodeData> data, PortIndex cons
 				// with the new column index create a new asset lambda struct and push to the chain
 				auto column_index = column_index_res.unwrap();
 				auto row = operation.row;
-				AssetLambda lambda_op = AssetLambda(operation.asset_lambda.first, [=](const AssetPtr& asset) -> AgisResult<double> {
+				AssetLambda lambda_op = AssetLambda(operation.asset_lambda.first, [=](const AssetPtr& asset) {
 					return asset->get_asset_feature(column_index, row);
 					});
 				AssetLambdaScruct asset_lambda_struct{ lambda_op, operation.asset_lambda.first, column_name, row};

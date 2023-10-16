@@ -3,6 +3,7 @@
 #include <filesystem>
 
 #include "Hydra.h"
+#include "ExchangeMap.h"
 #include "NexusEnv.h"
 #include "NexusPopups.h"
 

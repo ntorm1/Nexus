@@ -12,7 +12,7 @@
 #include "ui_NexusSettings.h"
 #include "ui_ExchangesPopup.h"
 
-import Asset;
+#include "Asset/Asset.h"
 
 using namespace Agis;
 

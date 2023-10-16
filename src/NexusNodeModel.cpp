@@ -5,7 +5,7 @@
 #include "NexusNodeWidget.h"
 #include "NexusErrors.h"
 
-import Asset;
+#include "Asset/Asset.h"
 
 using namespace Agis;
 

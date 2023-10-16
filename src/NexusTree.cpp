@@ -6,7 +6,7 @@
 #include "NexusTree.h"
 #include "NexusEnv.h"
 
-import Asset;
+#include "Asset/Asset.h"
 
 using namespace Agis;
 

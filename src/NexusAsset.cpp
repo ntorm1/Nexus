@@ -5,7 +5,7 @@
 #include <QThread>
 
 
-import Asset;
+#include "Asset/Asset.h"
 
 using namespace Agis;
 

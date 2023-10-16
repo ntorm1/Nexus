@@ -16,7 +16,7 @@ std::string build_method = "debug";
 std::string build_method = "release";
 #endif
 
-import Asset;
+#include "Asset/Asset.h"
 
 using namespace Agis;
 

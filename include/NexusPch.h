@@ -34,9 +34,17 @@ typedef const Hydra* HydraPtr;
 #define NEXUS_DO_OR_INTERUPT(function) \
     do { \
         auto res = function; \
-        if (res.is_exception()) { \
+        if (!res.is_exception()) { \
             NEXUS_INTERUPT(res.get_exception()); \
         }\
     } while (false)
+
+
+#define NEXUS_ASSIGN_OR_INTERUPT (res, function) \
+    auto res = function; \
+    if (!res.has_value()) { \
+        NEXUS_INTERUPT(res.error()); \
+    }
+
 
 #endif

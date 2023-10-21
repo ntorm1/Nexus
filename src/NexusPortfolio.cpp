@@ -207,8 +207,8 @@ void populate_stats_model(
 
     // calculate beta
     if(benchmark_nlv.has_value()){
-        auto beta = get_stats_beta(nlv, benchmark_nlv.value()).unwrap_or(AGIS_NAN);
-        x = QString::number(beta, 'f', 2);
+        //auto beta = get_stats_beta(nlv, benchmark_nlv.value()).unwrap_or(AGIS_NAN);
+        x = QString::number(0.0f, 'f', 2);
     }
 	else{
         x = QString::number(AGIS_NAN, 'f', 2);

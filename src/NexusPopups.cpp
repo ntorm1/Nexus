@@ -209,7 +209,7 @@ void NewExchangePopup::on_submit()
         return;
     }
     // validate beta lookback
-    if (this->get_beta_lookback().isEmpty() || this->get_market_asset_id().isEmpty())
+    if (this->get_beta_lookback().isEmpty() && !this->get_market_asset_id().isEmpty())
     {
         QMessageBox::critical(this, "Error", "Missing beta");
         return;

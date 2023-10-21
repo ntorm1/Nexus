@@ -14,12 +14,18 @@ NexusDockManager::NexusDockManager(MainWindow* main_window_, QWidget* parent) :
 Document NexusDockManager::save_widgets()
 {
 	Document widgets;
+	widgets.SetObject();  // Create a JSON object to store the data.
+
 	auto& allocator = widgets.GetAllocator();
 	for (auto const& dock_widget : this->get_widgets())
 	{
-		rapidjson::Value widget;
-		widget["widget_id"] = dock_widget->get_id();
-		widget["widget_type"] = static_cast<size_t>(dock_widget->get_widget_type());
+		rapidjson::Value widget(rapidjson::kObjectType);
+		widget.AddMember("widget_id", dock_widget->get_id(), allocator);
+
+		// Add widget_type as a member
+		rapidjson::Value widgetTypeValue;
+		widgetTypeValue.SetUint64(static_cast<uint64_t>(dock_widget->get_widget_type()));
+		widget.AddMember("widget_type", widgetTypeValue, allocator);
 
 		if (dock_widget->get_widget_type() == WidgetType::Asset)
 		{
@@ -62,8 +68,11 @@ Document NexusDockManager::save_widgets()
 			}
 		}
 
-		rapidjson::Value key(dock_widget->objectName().toStdString().c_str(), widgets.GetAllocator());
-		widgets.AddMember(key.Move(), widget, widgets.GetAllocator());
+		// Use dock_widget's objectName() as the key
+		rapidjson::Value key(dock_widget->objectName().toStdString().c_str(), allocator);
+
+		// Add the widget object with the custom key to the main JSON object
+		widgets.AddMember(key.Move(), widget, allocator);
 	}
 	return widgets;
 }
@@ -74,8 +83,10 @@ void NexusDockManager::restore_widgets(Document const& j)
 
 	// Store the exchange items in a vector for parallel processing
 	int max_widget_id = -1;
-	for (rapidjson::Value::ConstMemberIterator itr = j.MemberBegin(); itr != j.MemberEnd(); ++itr) {
-		size_t widget_id = itr->name.GetUint64();  // Get the key as a C string
+	size_t widget_id = 0;
+	for (rapidjson::Value::ConstMemberIterator itr = widgets.MemberBegin(); itr != widgets.MemberEnd(); ++itr) {
+		//auto widget_id_str = itr->name.GetString();  
+		//auto widget_id = static_cast<size_t>(std::stoi(widget_id_str));
 		const rapidjson::Value& widget_json = itr->value; // Get the value
 		
 		size_t widget_type_uint = widget_json["widget_type"].GetUint64();
@@ -130,6 +141,7 @@ void NexusDockManager::restore_widgets(Document const& j)
 		widget->set_id(widget_id);
 		widget->set_widget_type(widget_type);
 		this->addDockWidget(ads::TopDockWidgetArea, widget);
+		widget_id++;
 	}
 	ads::CDockWidget::counter = max_widget_id + 1;
 }

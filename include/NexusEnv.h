@@ -86,8 +86,8 @@ public:
 
 	AgisResult<bool> restore_strategies(rapidjson::Document const& j);
 	AgisResult<bool> restore_settings(rapidjson::Document const& j);
-	inline AgisResult<bool> restore_portfolios(rapidjson::Document const& j) { return this->hydra.restore_portfolios(j); }
-	inline AgisResult<bool> restore_exchanges(rapidjson::Document const& j) { return this->hydra.restore_exchanges(j); }
+	inline std::expected<bool, AgisException> restore_portfolios(rapidjson::Document const& j) { return this->hydra.restore_portfolios(j); }
+	inline std::expected<bool, AgisException> restore_exchanges(rapidjson::Document const& j) { return this->hydra.restore_exchanges(j); }
 
 	AgisResult<bool> init_covariance_matrix(size_t lookback, size_t step) { return this->hydra.init_covariance_matrix(lookback, step); }
 
@@ -101,7 +101,7 @@ public:
 	//============================================================================
 	fs::path const& get_env_path() const { return this->env_path; }
 	fs::path get_env_settings_path() const { return this->env_path / "env_settings.json"; }
-	bool save_env(rapidjson::Document& j);
+	std::expected<bool,AgisException> save_env(rapidjson::Document& j);
 	void set_env_name(std::string const & exe_path, std::string const & env_name);
 
 	//============================================================================

@@ -5,6 +5,7 @@
 #include "NexusNode.h"
 #include "NexusNodeModel.h"
 #include <AgisStrategyRegistry.h>
+#include "Broker/Broker.Base.h"
 
 #ifdef USE_LUAJIT
 #include "AgisLuaStrategy.h"
@@ -30,11 +31,42 @@ const std::vector<std::string> nexus_datetime_columns = {
 	"Trade Close Time"
 };
 
+std::string tradeable_asset = R"(
+[
+    {
+        "contract_id": "CL",
+		"exchange_id": "exchange1",
+        "unit_multiplier": 1000,
+        "overnight_initial_margin":  0.07,
+        "intraday_initial_margin":  0.07,
+        "intraday_maintenance_margin":  0.07,
+        "overnight_initial_margin":  0.07,
+        "overnight_maintenance_margin":  0.07,
+        "short_overnight_initial_margin": 0.07,
+        "short_overnight_maintenance_margin":  0.07
+    },
+    {
+        "contract_id": "ES",
+        "exchange_id": "exchange1",
+        "unit_multiplier": 50,
+        "overnight_initial_margin": 0.05,
+        "intraday_initial_margin": 0.05,
+        "intraday_maintenance_margin": 0.05,
+        "overnight_initial_margin": 0.05,
+        "overnight_maintenance_margin": 0.05,
+        "short_overnight_initial_margin": 0.05,
+        "short_overnight_maintenance_margin": 0.05
+    }
+    ]
+    )";
+
 
 //============================================================================
 NexusEnv::NexusEnv() : hydra(Hydra())
 {
 	this->hydra.new_broker("test");
+	auto broker = hydra.get_broker("test").value();
+	auto res = broker->load_tradeable_assets(tradeable_asset);
 }
 
 
@@ -766,10 +798,17 @@ AgisResult<bool> NexusEnv::restore_strategies(const rapidjson::Document& j)
 	}
 
 	// For all portfolios loaded, check if their strategies are live
-	const rapidjson::Value& portfolios = j["portfolios"];
+	if (!j["hydra_state"].HasMember("portfolios")) {
+		return AgisResult<bool>(true);
+	}
+	const rapidjson::Value& portfolios = j["hydra_state"]["portfolios"];
 	for (rapidjson::Value::ConstMemberIterator portfolio = portfolios.MemberBegin(); portfolio != portfolios.MemberEnd(); ++portfolio)
 	{
 		const rapidjson::Value& portfolio_json = portfolio->value;
+
+		// if "strategies" doesn't exist, skip
+		if (!portfolio_json.HasMember("strategies")) continue;
+
 		const rapidjson::Value& strategies = portfolio_json["strategies"];
 		for (rapidjson::Value::ConstValueIterator strategy = strategies.Begin(); strategy != strategies.End(); ++strategy)
 		{
@@ -928,7 +967,8 @@ AgisResult<bool> NexusEnv::set_settings(NexusSettings* nexus_settings)
 
 
 //============================================================================
-bool NexusEnv::save_env(rapidjson::Document &j)
+std::expected<bool, AgisException>
+NexusEnv::save_env(rapidjson::Document &j)
 {
 	rapidjson::Document::AllocatorType& allocator = j.GetAllocator();
 
@@ -946,18 +986,22 @@ bool NexusEnv::save_env(rapidjson::Document &j)
 	}
 	j.AddMember("open_editors", open_editors, allocator);
 
-	// Serialize hydra state
-	Document hydra_state;
+
 	qDebug() << "Serializing hydra state...";
-	this->hydra.save_state(hydra_state);
+	AGIS_ASSIGN_OR_RETURN(hydra_state, this->hydra.save_state(allocator));
+	j.AddMember("hydra_state", hydra_state.Move(), allocator);
 	qDebug() << "Hydra state serialized";
-	j.AddMember("hydra_state", hydra_state, allocator);
 
 	// Save the current state of the trees
 	rapidjson::Value trees(rapidjson::kObjectType);
 	for (const auto& tree : this->open_trees)
 	{
-		trees.AddMember(rapidjson::StringRef(tree->objectName().toStdString().c_str()), tree->to_json(), allocator);
+		rapidjson::Value key(tree->objectName().toStdString().c_str(), allocator);
+		trees.AddMember(
+			key.Move(),
+			tree->to_json(allocator),
+			allocator
+		);
 	}
 	j.AddMember("trees", trees, allocator);
 

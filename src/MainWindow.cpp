@@ -295,9 +295,9 @@ ads::CDockWidget* MainWindow::create_exchanges_widget()
     // Signal that requests new exchanges
     QObject::connect(
         w, 
-        SIGNAL(new_item_requested(QModelIndex, QString, QString, QString, QString, std::optional<MarketAsset>)),
+        SIGNAL(new_item_requested(QModelIndex, NewExchangePopup*)),
         this, 
-        SLOT(on_new_exchange_request(QModelIndex, NewExchangePopup*, std::optional<MarketAsset>))
+        SLOT(on_new_exchange_request(QModelIndex, NewExchangePopup*))
     );
     // Signal to accept  new exchanges
     QObject::connect(
@@ -746,10 +746,15 @@ AgisResult<bool> MainWindow::save_state()
     Settings.setValue("mainWindow/State", this->saveState());
     Settings.setValue("mainWindow/DockingState", DockManager->saveState());
     
-    rapidjson::Document j(rapidjson::kObjectType); // Create a RapidJSON Document
-    j.AddMember("widgets", this->DockManager->save_widgets(), j.GetAllocator());
+    rapidjson::Document j;
+    j.SetObject();  // Create a JSON object to store the data.
+    auto doc = this->DockManager->save_widgets();
+    rapidjson::Document::AllocatorType& allocator = j.GetAllocator();
+    rapidjson::Value key("widgets", allocator);
+    j.AddMember(key, doc, allocator);
 
-    this->nexus_env.save_env(j);
+    auto res = this->nexus_env.save_env(j);
+    if(!res) return AgisResult<bool>(res.error());
     return AgisResult<bool>(true);
 }
 
@@ -770,28 +775,30 @@ std::optional<fs::path> get_editor_by_id(rapidjson::Value const& open_editors, i
 
 
 //============================================================================
-AgisResult<bool> MainWindow::restore_exchanges(Document const& j)
+std::expected<bool, AgisException>
+MainWindow::restore_exchanges(Document const& j)
 {
     // Restore Nexus env from the given json
     auto startTime = std::chrono::high_resolution_clock::now();
-    AGIS_DO_OR_RETURN(this->nexus_env.restore_exchanges(j), bool);
+    AGIS_ASSIGN_OR_RETURN(res, this->nexus_env.restore_exchanges(j));
     auto endTime = std::chrono::high_resolution_clock::now();
     auto durationMs = std::chrono::duration_cast<std::chrono::milliseconds>(endTime - startTime).count();
     qDebug() << "EXCHANGES RESTORE COMPLETE IN " << QString::number(durationMs) << " Ms";
-    return AgisResult<bool>(true);
+    return true;
 }
 
 
 //============================================================================
-AgisResult<bool> MainWindow::restore_portfolios(Document const& j)
+std::expected<bool, AgisException>
+MainWindow::restore_portfolios(Document const& j)
 {
     // Restore Nexus env from the given json
     auto startTime = std::chrono::high_resolution_clock::now();
-    AGIS_DO_OR_RETURN(this->nexus_env.restore_portfolios(j), bool);
+    AGIS_ASSIGN_OR_RETURN(res, this->nexus_env.restore_portfolios(j));
     auto endTime = std::chrono::high_resolution_clock::now();
     auto durationMs = std::chrono::duration_cast<std::chrono::milliseconds>(endTime - startTime).count();
     qDebug() << "PORTFOLIO RESTORE COMPLETE IN " << QString::number(durationMs) << " Ms";
-    return AgisResult<bool>(true);
+    return true;
 }
 
 
@@ -873,17 +880,26 @@ void MainWindow::restore_state()
 
     // restore the Nexus hydra env
     this->nexus_env.clear();
-    NEXUS_DO_OR_INTERUPT(this->restore_exchanges(j));
+    auto res = this->restore_exchanges(j);
+    if (!res) NEXUS_INTERUPT(res.error().what());
+
     ProgressBar->setValue(5);
-    NEXUS_DO_OR_INTERUPT(this->restore_portfolios(j));
+    res = this->restore_portfolios(j);
+    if (!res) NEXUS_INTERUPT(res.error().what());
+
     ProgressBar->setValue(6);
-    NEXUS_DO_OR_INTERUPT(this->nexus_env.restore_strategies(j));
-    NEXUS_DO_OR_INTERUPT(this->nexus_env.restore_settings(j));
+    auto result = this->nexus_env.restore_strategies(j);
+    if (result.is_exception()) NEXUS_INTERUPT(result.get_exception());
+
+    result = this->nexus_env.restore_settings(j);
+    if (result.is_exception()) NEXUS_INTERUPT(result.get_exception());
     ProgressBar->setValue(7);
   
     // Restore widgets
-    NEXUS_DO_OR_INTERUPT(this->restore_editors(j));
+    result = this->restore_editors(j);
+    if (result.is_exception()) NEXUS_INTERUPT(result.get_exception());
     ProgressBar->setValue(8);
+
     this->DockManager->restore_widgets(j);
     ProgressBar->setValue(9);
 
@@ -1113,16 +1129,16 @@ void MainWindow::on_strategy_remove_requested(const QModelIndex& parentIndex, co
 
 
 //============================================================================
-void MainWindow::on_new_exchange_request(const QModelIndex& parentIndex, 
-    NewExchangePopup* popup,
-    std::optional<std::shared_ptr<MarketAsset>> market_asset)
+void MainWindow::on_new_exchange_request(
+    const QModelIndex& parentIndex, 
+    NewExchangePopup* popup)
 {
     auto res = this->nexus_env.new_exchange(
         popup->get_exchange_id().toStdString(),
         popup->get_source().toStdString(),
         popup->get_freq().toStdString(),
         popup->get_dt_format().toStdString(),
-        market_asset);
+        std::nullopt);
     if (res.is_exception()) QMessageBox::critical(this, "Error", QString::fromStdString(res.get_exception()));
     
     // set the volatiltiy lookback if specified

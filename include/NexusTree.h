@@ -62,7 +62,7 @@ public:
     explicit NexusTree(QWidget* parent = nullptr);
     void reset_tree();
     virtual void restore_tree(rapidjson::Document const& j) = 0;
-    virtual rapidjson::Document to_json() const;
+    virtual rapidjson::Value to_json(rapidjson::Document::AllocatorType& allocator) const;
     QStandardItemModel* get_model() { return this->model; }
 
 protected:
@@ -222,8 +222,7 @@ private:
 signals:
     void asset_double_click(const QString& asset_id);
     void new_item_requested(const QModelIndex& parentIndex, 
-        NewExchangePopup* popup,
-        std::optional<std::shared_ptr<MarketAsset>> market_asset
+        NewExchangePopup* popup
     );
 
 public slots:

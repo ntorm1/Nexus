@@ -111,13 +111,11 @@ void NexusTree::remove_item_accepeted(const QModelIndex& index)
 
 
 //============================================================================
-rapidjson::Document NexusTree::to_json() const
+rapidjson::Value
+NexusTree::to_json(rapidjson::Document::AllocatorType& allocator) const
 {
     // Save the state of the tree to json
-    rapidjson::Document j;
-    j.SetObject();
-    rapidjson::Document::AllocatorType& allocator = j.GetAllocator();
-
+    Value j(kObjectType);
     rapidjson::Value rootExpanded(this->isExpanded(this->root->index()));
     j.AddMember("root_expanded", rootExpanded, allocator);
 
@@ -132,7 +130,8 @@ rapidjson::Document NexusTree::to_json() const
         const QStandardItemModel* parent_model = static_cast<const QStandardItemModel*>(abstractModel);
         QStandardItem* childItem = parent_model->itemFromIndex(childIndex);
         rapidjson::Value childExpanded(this->isExpanded(childIndex));
-        j.AddMember(rapidjson::StringRef(childItem->text().toStdString().c_str()), childExpanded, allocator);
+        rapidjson::Value key(childItem->text().toStdString().c_str(), allocator);
+        j.AddMember(key.Move(), childExpanded, allocator);
     }
     return j;
 }
@@ -185,8 +184,8 @@ PortfolioTree::PortfolioTree(QWidget* parent, HydraPtr hydra_) :
 void PortfolioTree::restore_tree(const rapidjson::Document& doc)
 {
     this->clear();
-
-    const rapidjson::Value& portfolios = doc["portfolios"];
+    if (!doc.HasMember("hydra_state") || !doc["hydra_state"].HasMember("portfolios")) { return; }
+    const rapidjson::Value& portfolios = doc["hydra_state"]["portfolios"];
     const rapidjson::Value& portfolios_expanded = doc["trees"][this->objectName().toStdString().c_str()];
 
     // Is the root exchanges element expanded?
@@ -615,7 +614,7 @@ void ExchangeTree::create_new_item(const QModelIndex& parentIndex)
         }
 
         // Send signal to main window asking to create the new item
-        emit new_item_requested(parentIndex, popup, market_asset);
+        emit new_item_requested(parentIndex, popup);
     }
 }
 
@@ -680,8 +679,8 @@ void ExchangeTree::restore_ids(QStandardItem* addedItem, QString exchange_id)
 void ExchangeTree::restore_tree(const rapidjson::Document& doc)
 {
     this->clear();
-
-    const rapidjson::Value& exchanges = doc["exchanges"];
+    if (!doc.HasMember("hydra_state") || !doc["hydra_state"].HasMember("exchanges")) { return; }
+    const rapidjson::Value& exchanges = doc["hydra_state"]["exchanges"];
     const rapidjson::Value& exchanges_expanded = doc["trees"][this->objectName().toStdString().c_str()];
 
     // Is the root exchanges element expanded?

@@ -31,7 +31,7 @@ int main(int argc, char *argv[])
 
     WCHAR path[MAX_PATH] = { 0 };
     DWORD size = GetModuleFileName(NULL, path, MAX_PATH);
-
+   
     if (size == 0) {
         std::cerr << "Failed to get the executable path." << std::endl;
         return 1;
@@ -55,13 +55,6 @@ int main(int argc, char *argv[])
     // Extract the directory path (excluding the executable name)
     exe_directory.remove_filename();
    
-    // arrow dll
-    auto arrow_dll = exe_directory / "arrow.dll";
-	HMODULE hDLL = LoadLibrary(StringToLPCWSTR(arrow_dll.string()));
-    if (!hDLL) {
-        std::cerr << "Failed to load 'arrow.dll'." << std::endl;
-    }
-
     setStyle();
 
 	QCoreApplication::setApplicationName("Nexus");

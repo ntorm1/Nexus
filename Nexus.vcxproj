@@ -161,6 +161,7 @@
     <ClCompile Include="src\NexusPlot.cpp" />
     <ClCompile Include="src\NexusPopups.cpp" />
     <ClCompile Include="src\NexusPortfolio.cpp" />
+    <ClCompile Include="src\NexusWidgetFactory.cpp" />
     <ClCompile Include="src\QScintillaEditor.cpp" />
     <ClCompile Include="src\QTerminal.cpp" />
     <ClCompile Include="src\QTerminalImpl.cpp" />
@@ -248,6 +249,7 @@
     <ClInclude Include="include\NexusBroker.h" />
     <ClInclude Include="include\NexusHelpers.h" />
     <QtMoc Include="include\QScintillaEditor.h" />
+    <ClInclude Include="include\NexusWidgetFactory.h" />
     <ClInclude Include="Qt-Advanced-Docking-System\src\DockComponentsFactory.h" />
     <ClInclude Include="Qt-Advanced-Docking-System\src\DockingStateReader.h" />
     <ClInclude Include="Qt-Advanced-Docking-System\src\IconProvider.h" />

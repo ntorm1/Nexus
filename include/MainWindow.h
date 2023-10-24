@@ -25,6 +25,7 @@
 class NexusDockManager;
 class NexusSettings;
 class NewExchangePopup;
+class NexusWidgetFactory;
 
 QT_BEGIN_NAMESPACE
 namespace Ui {
@@ -35,7 +36,7 @@ QT_END_NAMESPACE
 class MainWindow : public QMainWindow
 {
     Q_OBJECT
-
+    friend class NexusWidgetFactory;
 public:
     MainWindow(QWidget* parent = 0);
     ~MainWindow();
@@ -144,9 +145,6 @@ private:
 public:
     ads::CDockWidget* create_console_widget();
     ads::CDockWidget* create_editor_widget();
-    ads::CDockWidget* create_exchanges_widget();
-    ads::CDockWidget* create_portfolios_widget();
-    ads::CDockWidget* create_file_system_tree_widget();
     ads::CDockWidget* create_asset_widget(const QString& asset_id);
     ads::CDockWidget* create_portfolio_widget(const QString& portfolio_id);
     ads::CDockWidget* create_node_editor_widget(const QString& strategy_id);

@@ -51,6 +51,7 @@
 #include "NexusHelpers.h"
 #include "NexusPortfolio.h"
 #include "NexusBroker.h"
+#include "NexusWidgetFactory.h"
 #include "AgisLuaStrategy.h"
 #include "Hydra.h"
 #include "ExchangeMap.h"
@@ -128,7 +129,7 @@ MainWindow::MainWindow(QWidget* parent):
 
     // create file system widget
     qDebug() << "INIT BASE WIDGETS";
-    auto FileSystemWidget = create_file_system_tree_widget();
+    auto FileSystemWidget = NexusWidgetFactory::create_file_system_tree_widget(this);
     FileSystemWidget->setFeature(ads::CDockWidget::DockWidgetFloatable, false);
     //FileSystemWidget->setFeature(ads::CDockWidget::DockWidgetMovable, false);
     FileSystemWidget->setFeature(ads::CDockWidget::DockWidgetClosable, false);
@@ -136,7 +137,7 @@ MainWindow::MainWindow(QWidget* parent):
     container->setSize(300);
 
     // create exchanges widget
-    auto ExchangesWidget = create_exchanges_widget();
+    auto ExchangesWidget = NexusWidgetFactory::create_exchanges_widget(this);
     ExchangesWidget->setFeature(ads::CDockWidget::DockWidgetFloatable, false);
     //ExchangesWidget->setFeature(ads::CDockWidget::DockWidgetMovable, false);
     ExchangesWidget->setFeature(ads::CDockWidget::DockWidgetClosable, false);
@@ -144,7 +145,7 @@ MainWindow::MainWindow(QWidget* parent):
     container->setSize(200);
 
     // create exchanges widget
-    auto PortfoliosWidget = create_portfolios_widget();
+    auto PortfoliosWidget = NexusWidgetFactory::create_portfolios_widget(this);
     PortfoliosWidget->setFeature(ads::CDockWidget::DockWidgetFloatable, false);
     //ExchangesWidget->setFeature(ads::CDockWidget::DockWidgetMovable, false);
     PortfoliosWidget->setFeature(ads::CDockWidget::DockWidgetClosable, false);
@@ -184,187 +185,6 @@ ads::CDockWidget* MainWindow::create_console_widget()
     return DockWidget;
 }
 
-
-//============================================================================
-ads::CDockWidget* MainWindow::create_portfolios_widget()
-{
-    static int exchanges_widgets_counter = 0;
-
-    PortfolioTree* w = new PortfolioTree(this, this->nexus_env.get_hydra());
-    this->nexus_env.new_tree(w);
-    this->portfolio_tree = w;
-
-    // Signal that requests new strategy
-    QObject::connect(
-        w,
-        SIGNAL(new_strategy_requested(QModelIndex, QString, QString, QString, AgisStrategyType)),
-        this,
-        SLOT(on_new_strategy_requested(QModelIndex, QString, QString, QString, AgisStrategyType))
-    );
-    // Signal that requests to remove a strategy
-    QObject::connect(
-        w,
-        SIGNAL(strategy_remove_requested(QModelIndex, QString)),
-        this,
-        SLOT(on_strategy_remove_requested(QModelIndex, QString))
-    );
-    // Signal to request removal of portfolio
-    QObject::connect(
-        w,
-        SIGNAL(remove_item_requested(QString, QModelIndex)),
-        this,
-        SLOT(on_remove_portfolio_request(QString, QModelIndex))
-    );
-    // Signal that requests new portfolio
-    QObject::connect(
-        w,
-        SIGNAL(new_item_requested(QModelIndex, QString, QString)),
-        this,
-        SLOT(on_new_portfolio_request(QModelIndex, QString, QString))
-    );
-    // Signal that accepets new strategy
-    QObject::connect(
-        this,
-        SIGNAL(new_strategy_accepeted(QModelIndex, QString)),
-        w,
-        SLOT(new_item_accepted(QModelIndex, QString))
-    );
-    // Signal to accept new portfolio
-    QObject::connect(
-        this,
-        SIGNAL(new_portfolio_accepeted(QModelIndex, QString)),
-        w,
-        SLOT(new_item_accepted(QModelIndex, QString))
-    );
-    // Signal to accept removal of portfolio
-    QObject::connect(
-        this,
-        SIGNAL(remove_portfolio_accepted(QModelIndex)),
-        w,
-        SLOT(remove_item_accepeted(QModelIndex))
-    );
-    // Signal that accepts to remove a strategy
-    QObject::connect(
-        this,
-        SIGNAL(remove_strategy_accepted(QModelIndex)),
-        w,
-        SLOT(remove_item_accepeted(QModelIndex))
-    );
-    // Signal to create new node editor window
-    QObject::connect(
-        w,
-        SIGNAL(strategy_double_clicked(QString)),
-        this,
-        SLOT(on_new_node_editor_request(QString))
-    );
-    // Signal to create new portfolio window
-    QObject::connect(
-        w,
-        SIGNAL(portfolio_double_clicked(QString)),
-        this,
-        SLOT(on_new_portfolio_window_request(QString))
-    );
-    // Signal to toggle strategy
-    QObject::connect(
-        w,
-        SIGNAL(strategy_toggled(QString, bool)),
-        this,
-        SLOT(on_strategy_toggle(QString, bool))
-    );
-
-    ads::CDockWidget* DockWidget = new ads::CDockWidget(QString("Portfolios")
-        .arg(exchanges_widgets_counter++));
-    w->setFocusPolicy(Qt::NoFocus);
-    DockWidget->setWidget(w);
-    DockWidget->setIcon(svgIcon("./images/piechart.png"));
-
-    DockWidget->set_widget_type(WidgetType::Portfolios);
-    return DockWidget;
-}
-
-
-//============================================================================
-ads::CDockWidget* MainWindow::create_exchanges_widget()
-{
-    static int exchanges_widgets_counter = 0;
-
-    ExchangeTree* w = new ExchangeTree(this, &this->nexus_env);
-    this->nexus_env.new_tree(w);
-    this->exchange_tree = w;
-
-    // Signal that requests new exchanges
-    QObject::connect(
-        w, 
-        SIGNAL(new_item_requested(QModelIndex, NewExchangePopup*)),
-        this, 
-        SLOT(on_new_exchange_request(QModelIndex, NewExchangePopup*))
-    );
-    // Signal to accept  new exchanges
-    QObject::connect(
-        this,
-        SIGNAL(new_exchange_accepted(QModelIndex, QString)),
-        w,
-        SLOT(new_item_accepted(QModelIndex, QString))
-    );
-    // Signal to request removal of exchange
-    QObject::connect(
-        w,
-        SIGNAL(remove_item_requested(QString, QModelIndex)),
-        this,
-        SLOT(on_remove_exchange_request(QString, QModelIndex))
-    );
-    // Signal to accept removal of exchange
-    QObject::connect(
-        this,
-        SIGNAL(remove_exchange_accepted(QModelIndex)),
-        w,
-        SLOT(remove_item_accepeted(QModelIndex))
-    );
-    // Signal to create new asset window
-    QObject::connect(
-        w,
-        SIGNAL(asset_double_click(QString)),
-        this,
-        SLOT(on_new_asset_window_request(QString))
-    );
-
-    ads::CDockWidget* DockWidget = new ads::CDockWidget(QString("Exchanges")
-        .arg(exchanges_widgets_counter++));
-    DockWidget->setWidget(w);
-    DockWidget->setIcon(svgIcon("./images/exchange.png"));
-    DockWidget->set_widget_type(WidgetType::Exchanges);
-
-    w->setFocusPolicy(Qt::NoFocus);
-    return DockWidget;
-}
-
-//============================================================================
-ads::CDockWidget* MainWindow::create_file_system_tree_widget()
-{
-    static int file_system_count = 0;
-
-    QTreeView* w = new QTreeView();
-    w->setFrameShape(QFrame::NoFrame);
-    QFileSystemModel* m = new QFileSystemModel(w);
-    m->setRootPath(QDir::currentPath());
-    w->setModel(m);
-    w->setRootIndex(m->index(QDir::currentPath()));
-
-    ads::CDockWidget* DockWidget = new ads::CDockWidget(QString("Files")
-        .arg(file_system_count++));
-    DockWidget->setWidget(w);
-    DockWidget->set_widget_type(WidgetType::FileTree);
-    DockWidget->setIcon(svgIcon(".images/folder_open.svg"));
-
-    ui->menuView->addAction(DockWidget->toggleViewAction());
-    // We disable focus to test focus highlighting if the dock widget content
-    // does not support focus
-    w->setFocusPolicy(Qt::NoFocus);
-
-    connect(w, &QAbstractItemView::doubleClicked, this, &MainWindow::onFileDoubleClicked);
-
-    return DockWidget;
-}
 
 //============================================================================
 ads::CDockWidget* MainWindow::create_editor_widget()

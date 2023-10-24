@@ -154,6 +154,9 @@
     <ClCompile Include="src\NexusBroker.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\NexusWidgetFactory.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <QtMoc Include="include\QTerminal.h">
@@ -389,6 +392,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="include\NexusBroker.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\NexusWidgetFactory.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
